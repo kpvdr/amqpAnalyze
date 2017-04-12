@@ -29,15 +29,19 @@ amqpAnalyze is an AMQP analyzer for pcapng (wireshark) files.
 
 This is a cmake project. Proceed as follows:
 
-  git clone https://github.com/kpvdr/amqpAnalyze.git
-  cd amqpAnalyze
-  mkdir build
-  cd build
-  cmake ..
-  make
+```
+git clone https://github.com/kpvdr/amqpAnalyze.git
+cd amqpAnalyze
+mkdir build
+cd build
+cmake ..
+make
+```
   
 There is no install for this (yet), so run from build location:
 
-  ./src/amqpAnalyze <pcapng-file>
+```
+./src/amqpAnalyze <pcapng-file>
+```
 
 Some sample pcapng files are provided in the test_files directory.
