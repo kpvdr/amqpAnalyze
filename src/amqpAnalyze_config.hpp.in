@@ -1,0 +1,2 @@
+#define amqpAnalyze_VERSION_MAJOR @amqpAnalyze_VERSION_MAJOR@
+#define amqpAnalyze_VERSION_MINOR @amqpAnalyze_VERSION_MINOR@
