@@ -57,7 +57,7 @@ namespace amqpAnalyze
                 << " (" << s_protocolIdName[_hdr._protocolId] << ")";
         }
 
-        std::size_t ProtocolHeader::decodeSize() const {
+        std::size_t ProtocolHeader::frameSize() const {
             return sizeof(struct hdr);
         }
 

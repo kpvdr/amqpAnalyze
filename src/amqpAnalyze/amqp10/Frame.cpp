@@ -36,7 +36,8 @@ namespace amqpAnalyze
                 _hdr(hdrPtr),
                 _dataOffsetBytes(_hdr._dataOffset*4),
                 _extendedHeaderSize(_dataOffsetBytes - 8),
-                _performative(nullptr)
+                _performative(nullptr),
+                _sectionList()
         {
             if (_hdr._frameSize < 8) throw amqpAnalyze::Error(MSG("Invalid AMQP frame size: 0x" << std::hex << _hdr._frameSize));
             if (_hdr._dataOffset < 2) throw amqpAnalyze::Error(MSG("Invalid AMQP frame data offset (doff): 0x" << std::hex << _hdr._dataOffset));
@@ -44,6 +45,9 @@ namespace amqpAnalyze
             case 0: { // AMQP frame
                     Buffer amqpBuffer(((const char*)hdrPtr + _dataOffsetBytes), (_hdr._frameSize - _dataOffsetBytes));
                     _performative = (CompositeType*)Type::decode(amqpBuffer);
+//                    while (!amqpBuffer.isEmpty()) {
+//                        _sectionList.push_back(Type::decode(amqpBuffer));
+//                    }
                 }
                 break;
             case 1: // SASL frame
@@ -58,6 +62,10 @@ namespace amqpAnalyze
                 delete _performative;
                 _performative = nullptr;
             }
+            for (std::vector<Type*>::iterator i=_sectionList.begin(); i!=_sectionList.end(); ++i) {
+                delete *i;
+            }
+            _sectionList.clear();
         }
 
         void Frame::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
@@ -71,14 +79,18 @@ namespace amqpAnalyze
             if (_extendedHeaderSize > 0) {
                 oss << " extHdrSize=0x" << _extendedHeaderSize;
             }
+            oss << ": ";
             if (_performative == nullptr) {
-                oss << " heartbeat";
+                oss << "heartbeat";
             } else {
-                oss << " " <<  _performative->toString(margin + 9);
+                oss <<  _performative->toString(margin + 9);
+                for (std::vector<Type*>::const_iterator i=_sectionList.cbegin(); i!=_sectionList.cend(); ++i) {
+                    oss << "section: " << (*i)->Type::typeValueStr();
+                }
             }
         }
 
-        std::size_t Frame::decodeSize() const {
+        std::size_t Frame::frameSize() const {
             return _hdr._frameSize;;
         }
 

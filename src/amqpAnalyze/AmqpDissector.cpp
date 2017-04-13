@@ -67,11 +67,11 @@ AmqpDissector::AmqpDissector(const struct pcap_pkthdr* pcapPacketHeaderPtr,
             std::string magic((const char*)(packetPtr+packetOffs+amqpOffs), 4);
             if (magic.compare("AMQP") == 0) { // AMQP header
                 amqp10::ProtocolHeader* amqpHdrPtr = new amqp10::ProtocolHeader(amqpOffs, (const amqp10::ProtocolHeader::hdr*)(packetPtr+packetOffs+amqpOffs));
-                amqpOffs += amqpHdrPtr->decodeSize();
+                amqpOffs += amqpHdrPtr->frameSize();
                 _amqpFrameList.push_back(amqpHdrPtr);
             } else { // AMQP frame
                 amqp10::Frame* frameHdrPtr = new amqp10::Frame(amqpOffs, (const amqp10::Frame::hdr*)(packetPtr+packetOffs+amqpOffs));
-                amqpOffs += frameHdrPtr->decodeSize();
+                amqpOffs += frameHdrPtr->frameSize();
                 _amqpFrameList.push_back(frameHdrPtr);
             }
         }
@@ -86,7 +86,7 @@ AmqpDissector::~AmqpDissector() {
 }
 
 void AmqpDissector::appendString(std::ostringstream& oss, size_t margin) const {
-    oss << std::endl << std::string(margin, ' ') << "AMQP: "/* << std::endl << _debugHexFrameData*/;
+    oss << std::endl << std::string(margin, ' ') << "AMQP: ";
     for (std::deque<amqp10::FrameBase*>::const_iterator i=_amqpFrameList.begin(); i!=_amqpFrameList.end(); ++i) {
         (*i)->appendString(oss, margin + 6, i == _amqpFrameList.begin());
      }

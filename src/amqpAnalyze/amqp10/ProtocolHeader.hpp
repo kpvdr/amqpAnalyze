@@ -37,7 +37,7 @@ namespace amqpAnalyze
             ProtocolHeader(std::size_t frameOffset, const struct ProtocolHeader::hdr* hdrPtr);
             ~ProtocolHeader();
             void appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const;
-            std::size_t decodeSize() const;
+            std::size_t frameSize() const;
         };
 
     } /* namespace amqp10 */

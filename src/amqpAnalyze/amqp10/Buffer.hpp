@@ -30,6 +30,8 @@ namespace amqpAnalyze
             virtual ~Buffer();
             std::size_t getSize() const;
             std::size_t getOffset() const;
+            std::size_t getRemaining() const;
+            bool isEmpty() const;
 
             void ignore(std::size_t size);
             bool getBool();

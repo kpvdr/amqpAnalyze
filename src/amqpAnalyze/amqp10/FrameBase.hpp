@@ -24,7 +24,7 @@ namespace amqpAnalyze
             virtual ~FrameBase();
             virtual void appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const = 0;
             std::string toString(std::size_t margin, bool ignoreFirstMargin);
-            virtual std::size_t decodeSize() const = 0;
+            virtual std::size_t frameSize() const = 0;
         };
 
     } /* namespace amqp10 */

@@ -20,6 +20,7 @@ namespace amqpAnalyze
     {
 
         class CompositeType;
+        class Type;
 
         enum frameType_e:uint8_t {AMQP_FRAME = 0,
                                   SASL_FRAME};
@@ -39,12 +40,13 @@ namespace amqpAnalyze
             std::size_t _dataOffsetBytes;
             std::size_t _extendedHeaderSize;
             CompositeType* _performative;
+            std::vector<Type*> _sectionList;
             static std::map<frameType_e, const char*> s_frameTypeName;
         public:
             Frame(std::size_t frameOffset, const struct Frame::hdr* hdrPtr);
             ~Frame();
             void appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const;
-            std::size_t decodeSize() const;
+            std::size_t frameSize() const;
         };
 
     } /* namespace amqp10 */

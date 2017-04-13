@@ -35,6 +35,14 @@ namespace amqpAnalyze
             return _dataOffset;
         }
 
+        std::size_t Buffer::getRemaining() const {
+            return _dataLength - _dataOffset;
+        }
+
+        bool Buffer::isEmpty() const {
+            return _dataLength == _dataOffset;
+        }
+
         void Buffer::ignore(std::size_t size) {
             checkSize(size);
             _dataOffset += size;

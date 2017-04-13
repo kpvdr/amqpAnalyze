@@ -21,10 +21,11 @@ namespace amqpAnalyze
         amqp_provides_requires_list_t Type::s_providesList = {};
         Type::Type() {}
         Type::~Type() {}
-        std::string Type::toString() const {
-            return toString(name());
+        std::string Type::typeValueStr(const char* valueDelim) const {
+            std::ostringstream oss;
+            oss << typeStr() << valueDelim[0] << valueStr() << valueDelim[1];
+            return oss.str();
         }
-
        // static
         Type* Type::decode(Buffer& b) {
             uint8_t code = b.getUint8();
@@ -207,7 +208,7 @@ namespace amqpAnalyze
             std::unique_ptr<PrimitiveType> descriptorPtr((PrimitiveType*)Type::decode(b));
             switch (descriptorPtr->type()) {
             case amqpPrimitiveType_t::ULONG_TYPE: {
-                AmqpUlong* longDescriptorPtr = (AmqpUlong*)descriptorPtr.get(); // TODO: ugly fix: works ok. descriptorPtr will delete when it goes out of scope.
+                AmqpUlong* longDescriptorPtr = (AmqpUlong*)descriptorPtr.get(); // TODO: Ugly! Fix this! Works ok, descriptorPtr will delete when it goes out of scope.
                 switch((amqpCompositeType_t)longDescriptorPtr->value()) {
                 case amqpCompositeType_t::OPEN:return new AmqpOpen((AmqpList*)Type::decode(b));
                 case amqpCompositeType_t::BEGIN: return new AmqpBegin((AmqpList*)Type::decode(b));
@@ -241,29 +242,32 @@ namespace amqpAnalyze
                 case amqpCompositeType_t::SASL_RESPONSE: return new AmqpSaslResponse((AmqpList*)Type::decode(b));
                 case amqpCompositeType_t::SASL_OUTCOME: return new AmqpSaslOutcome((AmqpList*)Type::decode(b));
                 case amqpCompositeType_t::HEADER: return new AmqpMessageHeader((AmqpList*)Type::decode(b));
+                //case amqpCompositeType_t::DELIVERY_ANNOTATIONS: return new AmqpDeliveryAnnotations();
+                //case amqpCompositeType_t::MESSAGE_ANNOTATIONS: return AmqpMessageAnnotations();
                 case amqpCompositeType_t::PROPERTIES: return new AmqpMessageProperties((AmqpList*)Type::decode(b));
+                //case amqpCompositeType_t::APPLICATION_PROPERTIES: return AmqpApplicationProperties();
+                //case amqpCompositeType_t::MESSAGE_DATA_RAW: return AmqpRawData();
+                //case amqpCompositeType_t::MESSAGE_DATA_AMQP_SEQUENCE: return AmqpSequence();
+                //case amqpCompositeType_t::MESSAGE_DATA_AMQP_VALUE: return nullptr;
+                //case amqpCompositeType_t::FOOTER: return AmqpFooter();
                 default:
-                    throw amqpAnalyze::Error(MSG("Invalid AMQP composite type code " << descriptorPtr.get()));
+                    throw amqpAnalyze::Error(MSG("Invalid AMQP composite type code " << longDescriptorPtr->valueStr()));
                 }}
             case amqpPrimitiveType_t::SYMBOL_TYPE:
-                throw amqpAnalyze::Error(MSG("AMQP symbol descriptors not handled (" << descriptorPtr->name() << ")"));
+                throw amqpAnalyze::Error(MSG("AMQP symbol descriptors not handled (" << descriptorPtr->typeStr() << ")"));
             default:
-                throw amqpAnalyze::Error(MSG("Invalid AMQP composite type descriptor " << descriptorPtr->name()));
+                throw amqpAnalyze::Error(MSG("Invalid AMQP composite type descriptor " << descriptorPtr->typeStr()));
             }
-        }
-
-        std::ostream& operator<<(std::ostream& o, Type& t) {
-            o << t.toString();
-            return o;
-        }
-        std::ostream& operator<<(std::ostream& o, Type* t) {
-            o << t->toString();
-            return o;
         }
 
 
         PrimitiveType::PrimitiveType(): Type() {}
         PrimitiveType::~PrimitiveType() {}
+//        std::string PrimitiveType::toString(const char* name, std::size_t margin) const {
+//            std::ostringstream oss;
+//            oss << std::string(margin, ' ') << name << "(" << valueStr() << ")";
+//            return oss.str();
+//        }
         // static
         std::map<amqpPrimitiveType_t, const char*> PrimitiveType::s_amqpSimpleTypeNames = {
             // Primitive types
@@ -336,250 +340,327 @@ namespace amqpAnalyze
 
         AmqpNull::AmqpNull(): PrimitiveType() {}
         AmqpNull::~AmqpNull() {}
-        std::string AmqpNull::toString(const char* name) const {
-            return "<null>";
+        std::string AmqpNull::valueStr() const {
+            return "null";
         }
 
 
         AmqpBoolean::AmqpBoolean(bool v): PrimitiveType(), _value(v) {}
         AmqpBoolean::~AmqpBoolean() {}
-        std::string AmqpBoolean::toString(const char* name) const {
-            std::ostringstream oss;
-            oss << name << "(" << (_value ? "true" : "false") << ")";
-            return oss.str();
+        std::string AmqpBoolean::valueStr() const {
+            return _value ? "true" : "false";
         }
 
 
         AmqpUbyte::AmqpUbyte(uint8_t v): PrimitiveType(), _value(v) {}
         AmqpUbyte::~AmqpUbyte() {}
-        std::string AmqpUbyte::toString(const char* name) const {
-            std::ostringstream oss;
-            oss << name << "(0x" << std::hex << (int)_value << ")";
+        std::string AmqpUbyte::valueStr() const {
+            std::stringstream oss;
+            oss << "0x" << std::hex << (int)_value;
             return oss.str();
         }
 
 
         AmqpUshort::AmqpUshort(uint16_t v): PrimitiveType(), _value(v) {}
         AmqpUshort::~AmqpUshort() {}
-        std::string AmqpUshort::toString(const char* name) const {
-            std::ostringstream oss;
-            oss << name << "(0x" << std::hex << _value << ")";
+        std::string AmqpUshort::valueStr() const {
+            std::stringstream oss;
+            oss << "0x" << std::hex << _value;
             return oss.str();
         }
 
 
         AmqpUint::AmqpUint(uint32_t v): PrimitiveType(), _value(v) {}
         AmqpUint::~AmqpUint() {}
-        std::string AmqpUint::toString(const char* name) const {
+        std::string AmqpUint::valueStr() const {
             std::ostringstream oss;
-            oss << name << "(0x" << std::hex << _value << ")";
+            oss<< "0x" << std::hex << _value;
             return oss.str();
         }
 
 
         AmqpUlong::AmqpUlong(uint64_t v): PrimitiveType(), _value(v) {}
         AmqpUlong::~AmqpUlong() {}
-        std::string AmqpUlong::toString(const char* name) const {
+        std::string AmqpUlong::valueStr() const {
             std::ostringstream oss;
-            oss << name << "(0x" << std::hex << _value << ")";
+            oss << "0x" << std::hex << _value;
             return oss.str();
         }
 
 
         AmqpByte::AmqpByte(int8_t v): PrimitiveType(), _value(v) {}
         AmqpByte::~AmqpByte() {}
-        std::string AmqpByte::toString(const char* name) const {
+        std::string AmqpByte::valueStr() const {
             std::ostringstream oss;
-            oss << name << "(0x" << std::hex << (int)(uint8_t)_value << ")";
+            oss <<  "0x" << std::hex << (int)(uint8_t)_value;
             return oss.str();
         }
 
 
         AmqpShort::AmqpShort(int16_t v): PrimitiveType(), _value(v) {}
         AmqpShort::~AmqpShort() {}
-        std::string AmqpShort::toString(const char* name) const {
+        std::string AmqpShort::valueStr() const {
             std::ostringstream oss;
-            oss << name << "(0x" << std::hex << _value << ")";
+            oss << "0x" << std::hex << _value;
             return oss.str();
         }
 
 
         AmqpInt::AmqpInt(int32_t v): PrimitiveType(), _value(v) {}
         AmqpInt::~AmqpInt() {}
-        std::string AmqpInt::toString(const char* name) const {
+        std::string AmqpInt::valueStr() const {
             std::ostringstream oss;
-            oss << name << "(0x" << std::hex << _value << ")";
+            oss << "0x" << std::hex << _value;
             return oss.str();
         }
 
 
         AmqpLong::AmqpLong(int64_t v): PrimitiveType(), _value(v) {}
         AmqpLong::~AmqpLong() {}
-        std::string AmqpLong::toString(const char* name) const {
+        std::string AmqpLong::valueStr() const {
             std::ostringstream oss;
-            oss << name << "(0x" << std::hex << _value << ")";
+            oss << "0x" << std::hex << _value;
             return oss.str();
         }
 
 
         AmqpFloat::AmqpFloat(float v): PrimitiveType(), _value(v) {}
         AmqpFloat::~AmqpFloat() {}
-        std::string AmqpFloat::toString(const char* name) const {
+        std::string AmqpFloat::valueStr() const {
             std::ostringstream oss;
-            oss << name << "(" << _value << ")";
+            oss << _value;
             return oss.str();
         }
 
 
         AmqpDouble::AmqpDouble(double v): PrimitiveType(), _value(v) {}
         AmqpDouble::~AmqpDouble() {}
-        std::string AmqpDouble::toString(const char* name) const {
+        std::string AmqpDouble::valueStr() const {
             std::ostringstream oss;
-            oss << name << "(" << _value << ")";
+            oss << _value;
             return oss.str();
         }
 
 
         AmqpDecimal32::AmqpDecimal32(): PrimitiveType(), _value({0, 0, 0, 0}) {}
         AmqpDecimal32::~AmqpDecimal32() {}
-        std::string AmqpDecimal32::toString(const char* name) const {
+        std::string AmqpDecimal32::valueStr() const {
             std::ostringstream oss;
-            oss << name << "[" << std::hex;
+            oss << std::hex;
             for (int i=0; i<4; ++i) {
                 oss << (i>0 ? ", 0x" : "0x") << i;
             }
-            oss << "]";
             return oss.str();
         }
 
 
         AmqpDecimal64::AmqpDecimal64(): PrimitiveType(), _value({0, 0, 0, 0, 0, 0, 0, 0}) {}
         AmqpDecimal64::~AmqpDecimal64() {}
-        std::string AmqpDecimal64::toString(const char* name) const {
+        std::string AmqpDecimal64::valueStr() const {
             std::ostringstream oss;
-            oss << name << "[" << std::hex;
+            oss << std::hex;
             for (int i=0; i<8; ++i) {
                 oss << (i>0 ? ", 0x" : "0x") << i;
             }
-            oss << "]";
             return oss.str();
         }
 
 
         AmqpDecimal128::AmqpDecimal128(): PrimitiveType(), _value({0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}) {}
         AmqpDecimal128::~AmqpDecimal128() {}
-        std::string AmqpDecimal128::toString(const char* name) const {
+        std::string AmqpDecimal128::valueStr() const {
             std::ostringstream oss;
-            oss << name << "[" << std::hex;
+            oss << std::hex;
             for (int i=0; i<16; ++i) {
                 oss << (i>0 ? ", 0x" : "0x") << i;
             }
-            oss << "]";
             return oss.str();
         }
 
 
         AmqpChar::AmqpChar(char32_t v): PrimitiveType(), _value(v) {}
         AmqpChar::~AmqpChar() {}
-        std::string AmqpChar::toString(const char* name) const {
+        std::string AmqpChar::valueStr() const {
             std::ostringstream oss;
-            oss << name << "(0x" << std::hex << (int)_value << "='" << _value << "')";
+            oss << "0x" << std::hex << (int)_value << "='" << _value << "'";
             return oss.str();
         }
 
 
         AmqpTimestamp::AmqpTimestamp(uint64_t v): PrimitiveType(), _value(v) {}
         AmqpTimestamp::~AmqpTimestamp() {}
-        std::string AmqpTimestamp::toString(const char* name) const {
+        std::string AmqpTimestamp::valueStr() const {
             std::ostringstream oss;
             std::time_t t = (std::time_t)(_value/1000);
-            oss << name << "(0x" << std::hex << _value << "=" << std::asctime(std::localtime(&t)) << " + " << (_value%1000) << "ms)";
+            oss << "0x" << std::hex << _value << "=" << std::asctime(std::localtime(&t)) << " + " << (_value%1000) << "ms";
             return oss.str();
         }
 
 
         AmqpUuid::AmqpUuid(): PrimitiveType(), _value({0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}) {}
         AmqpUuid::~AmqpUuid() {}
-        std::string AmqpUuid::toString(const char* name) const {
+        std::string AmqpUuid::valueStr() const {
             std::ostringstream oss;
-            oss << name << "(" << std::hex << std::setfill('0');
+            oss << std::hex << std::setfill('0');
             for (int i=0; i<16; ++i) {
                 if (i==4 || i==6 || i==8 || i==10) oss << '-';
                 oss << std::setw(2) << _value[i];
             }
-            oss << ")";
             return oss.str();
         }
 
 
         AmqpBinary::AmqpBinary(): PrimitiveType(), _value() {}
         AmqpBinary::~AmqpBinary() {}
-        std::string AmqpBinary::toString(const char* name) const {
+        std::string AmqpBinary::valueStr() const {
             std::ostringstream oss;
-            oss << name << "(" << std::hex << std::setfill('0');
+            oss << std::hex << std::setfill('0');
             for (int i=0; i<_value.size(); ++i) {
                 if (i>0) oss << ' ';
-                oss << std::setw(2) << (int)(unsigned char)_value.at(i);
+                oss << std::setw(2) << (int)_value.at(i);
             }
-            oss << ")";
             return oss.str();
         }
 
 
         AmqpString::AmqpString(): PrimitiveType(), _value() {}
         AmqpString::~AmqpString() {}
-        std::string AmqpString::toString(const char* name) const {
+        std::string AmqpString::valueStr() const {
             std::stringstream oss;
-            oss << name << "(" << _value << ")";
+            oss << "\"" << _value << "\"";
             return oss.str();
         }
 
 
         AmqpSymbol::AmqpSymbol(): PrimitiveType(), _value() {}
         AmqpSymbol::~AmqpSymbol() {}
-        std::string AmqpSymbol::toString(const char* name) const {
+        std::string AmqpSymbol::valueStr() const {
             std::stringstream oss;
-            oss << name << "(" << _value << ")";
+            oss << "\"" << _value << "\"";
             return oss.str();
         }
 
 
-        AmqpList::AmqpList(): PrimitiveType(), _value() {}
-        AmqpList::~AmqpList() {}
-        std::string AmqpList::toString(const char* name) const {
+        CompoundType::CompoundType(): PrimitiveType() {}
+        CompoundType::~CompoundType() {}
+        // static
+        std::size_t CompoundType::appendString(std::ostringstream& oss, Type* ptr, std::size_t margin) {
+            std::ostringstream oss2;
+            CompoundType* cPtr(dynamic_cast<CompoundType*>(ptr));
+            if (cPtr) {
+                oss2 << cPtr->toString(margin);
+            } else {
+                CompositeType* compositePtr(dynamic_cast<CompositeType*>(ptr));
+                if (compositePtr) {
+                    oss2 << compositePtr->toString(margin + 2);
+                } else {
+                    oss2 << ptr->typeValueStr();
+                }
+            }
+            oss << oss2.str();
+            return oss2.str().length();
+        }
+
+
+        AmqpList::AmqpList(): CompoundType(), _value() {}
+        AmqpList::~AmqpList() {
+            for (amqp_list_itr_t i=_value.begin(); i!=_value.end(); ++i) {
+                delete *i;
+            }
+            _value.clear();
+        }
+        std::string AmqpList::valueStr() const {
             std::ostringstream oss;
-            oss << name << "[";
-            for (amqp_list_citr_t i=_value.cbegin(); i<_value.cend(); ++i) {
+            for (amqp_list_citr_t i=_value.cbegin(); i!=_value.cend(); ++i) {
                 if (i!=_value.cbegin()) oss << ", ";
-                oss << (*i)->toString();
+                oss << (*i)->typeValueStr();
+            }
+            return oss.str();
+        }
+        std::string AmqpList::toString(std::size_t margin) const {
+            std::string t(typeStr());
+            std::size_t l(margin + t.length() + 3);
+            std::string m(l, ' ');
+            std::ostringstream oss;
+            oss << t << ": [";
+            for (amqp_list_citr_t i=_value.cbegin(); i<_value.cend(); ++i) {
+                if (i!=_value.cbegin()) oss << std::endl << m;
+                appendString(oss, *i, l);
             }
             oss << "]";
             return oss.str();
         }
 
 
-        AmqpMap::AmqpMap(): PrimitiveType(), _value() {}
-        AmqpMap::~AmqpMap() {}
-        std::string AmqpMap::toString(const char* name) const {
+        AmqpMap::AmqpMap(): CompoundType(), _value() {}
+        AmqpMap::~AmqpMap() {
+            while (!_value.empty()) {
+                amqp_map_itr_t i = _value.begin();
+                Type* k = i->first;
+                Type* v = i->second;
+                _value.erase(i);
+                delete k;
+                delete v;
+            }
+        }
+        std::string AmqpMap::valueStr() const {
             std::ostringstream oss;
-            oss << name << "{";
             for (amqp_map_citr_t i=_value.cbegin(); i!=_value.cend(); ++i) {
                 if (i!=_value.cbegin()) oss << ", ";
-                oss << "{" << i->first->toString() << ": " << i->second->toString() << "}";
+                oss << "{" << i->first->typeValueStr() << ": " << i->second->typeValueStr() << "}";
+            }
+            return oss.str();
+        }
+        std::string AmqpMap::toString(std::size_t margin) const {
+            std::string t(typeStr());
+            std::size_t l(margin + t.length() + 3);
+            std::string m(l, ' ');
+            std::ostringstream oss;
+            oss << t << ": {";
+            for (amqp_map_citr_t i=_value.cbegin(); i!=_value.cend(); ++i) {
+                if (i!=_value.cbegin()) oss << std::endl << m;
+                oss << "{";
+                CompoundType* kPtr(dynamic_cast<CompoundType*>(i->first));
+                if (kPtr != nullptr) {
+                    // key is a compound type
+                    oss << kPtr->toString(l) << std::endl << m << ":";
+                } else {
+                    std::string kStr(i->first->typeValueStr());
+                    oss << kStr << ": ";
+                    l += kStr.length() + 2;
+                }
+                appendString(oss, i->second, l); // print value
+                oss << "}";
             }
             oss << "}";
             return oss.str();
         }
 
 
-        AmqpArray::AmqpArray(): PrimitiveType(), _value() {}
-        AmqpArray::~AmqpArray() {}
-        std::string AmqpArray::toString(const char* name) const {
+        AmqpArray::AmqpArray(): CompoundType(), _value() {}
+        AmqpArray::~AmqpArray() {
+            for (amqp_array_itr_t i=_value.begin(); i!=_value.end(); ++i) {
+                delete *i;
+            }
+            _value.clear();
+        }
+        std::string AmqpArray::valueStr() const {
             std::ostringstream oss;
-            oss << name << "[";
             for (amqp_array_citr_t i=_value.cbegin(); i!=_value.cend(); ++i) {
                 if (i != _value.cbegin()) oss << ", ";
-                oss << (*i)->toString();
+                oss << (*i)->typeValueStr();
+            }
+            return oss.str();
+        }
+        std::string AmqpArray::toString(std::size_t margin) const {
+            std::string t(typeStr());
+            std::size_t l(margin + t.length() + 2);
+            std::string m(l, ' ');
+            std::ostringstream oss;
+            oss << t << ": [";
+            for (amqp_array_citr_t i=_value.cbegin(); i!=_value.cend(); ++i) {
+                if (i!=_value.cbegin()) oss << std::endl << m;
+                appendString(oss, *i, l);
             }
             oss << "]";
             return oss.str();
@@ -593,10 +674,8 @@ namespace amqpAnalyze
         };
         AmqpRole::AmqpRole(amqp_role_t v): AmqpBoolean((amqp_boolean_t)v) {}
         AmqpRole:: ~AmqpRole() {}
-        std::string AmqpRole::toString() const {
-            std::ostringstream oss;
-            oss << name() << "(" << (_value ? "receiver" : "sender") << ")";
-            return oss.str();
+        std::string AmqpRole::valueStr() const {
+            return s_choiceNames.at((amqp_role_t)_value);
         }
 
 
@@ -608,10 +687,8 @@ namespace amqpAnalyze
         };
         AmqpSenderSettleMode::AmqpSenderSettleMode(amqp_sender_settle_mode_t v): AmqpUbyte((amqp_ubyte_t)v) {}
         AmqpSenderSettleMode::~AmqpSenderSettleMode() {}
-        std::string AmqpSenderSettleMode::toString() const {
-            std::ostringstream oss;
-            oss << name() << "(" << s_choiceNames[(amqp_sender_settle_mode_t)_value] << ")";
-            return oss.str();
+        std::string AmqpSenderSettleMode::valueStr() const {
+            return s_choiceNames.at((amqp_sender_settle_mode_t)_value);
         }
 
 
@@ -622,10 +699,8 @@ namespace amqpAnalyze
         };
         AmqpReceiverSettleMode::AmqpReceiverSettleMode(amqp_receiver_settle_mode_t v): AmqpUbyte((amqp_ubyte_t)v) {}
         AmqpReceiverSettleMode::~AmqpReceiverSettleMode() {}
-        std::string AmqpReceiverSettleMode::toString() const {
-            std::ostringstream oss;
-            oss << name() << "(" << s_choiceNames[(amqp_receiver_settle_mode_t)_value] << ")";
-            return oss.str();
+        std::string AmqpReceiverSettleMode::valueStr() const {
+            return s_choiceNames.at((amqp_receiver_settle_mode_t)_value);
         }
 
 
@@ -659,10 +734,10 @@ namespace amqpAnalyze
 
         AmqpMessageFormat::AmqpMessageFormat(amqp_message_format_t v): AmqpUint(v) {}
         AmqpMessageFormat::~AmqpMessageFormat() {}
-        std::string AmqpMessageFormat::toString() const {
+        std::string AmqpMessageFormat::valueStr() const {
             std::ostringstream oss;
-            oss << name() << "(format=0x" << std::hex << std::setfill('0') << std::setw(6) << getFormat()
-                << " version=0x" << std::setw(2) << (int)getVersion() << ")";
+            oss << typeStr() << "fmt=0x" << std::hex << std::setfill('0') << std::setw(6) << getFormat()
+                << " ver=0x" << std::setw(2) << (int)getVersion() << ")";
             return oss.str();
         }
 
@@ -840,10 +915,8 @@ namespace amqpAnalyze
         };
         AmqpTerminusDurability::AmqpTerminusDurability(amqp_terminus_durability_t v): AmqpUint((amqp_uint_t)v) {}
         AmqpTerminusDurability::~AmqpTerminusDurability() {}
-        std::string AmqpTerminusDurability::toString() const {
-            std::ostringstream oss;
-            oss << name() << "(" << s_choiceNames[(amqp_terminus_durability_t)_value] << ")";
-            return oss.str();
+        std::string AmqpTerminusDurability::valueStr() const {
+            return s_choiceNames.at((amqp_terminus_durability_t)_value);
         }
 
 
@@ -966,10 +1039,8 @@ namespace amqpAnalyze
         };
         AmqpSaslCode::AmqpSaslCode(amqp_sasl_code_t v): AmqpUbyte((amqp_ubyte_t)v) {}
         AmqpSaslCode::~AmqpSaslCode() {}
-        std::string AmqpSaslCode::toString() const {
-            std::ostringstream oss;
-            oss << name() << "(" << s_choiceNames[(amqp_sasl_code_t)_value] << ")";
-            return oss.str();
+        std::string AmqpSaslCode::valueStr() const {
+            return s_choiceNames.at((amqp_sasl_code_t)_value);
         }
 
         FieldType::FieldType(const char* fieldName, amqpPrimitiveType_t primitiveType, bool mandatoryFlag, bool multipleFlag, std::initializer_list<amqpRequiresProvides_t> _requiresInitList):
@@ -1030,7 +1101,14 @@ namespace amqpAnalyze
                         {amqpCompositeType_t::SASL_RESPONSE, "sasl-response"},
                         {amqpCompositeType_t::SASL_OUTCOME, "sasl-outcome"},
                         {amqpCompositeType_t::HEADER, "header"},
-                        {amqpCompositeType_t::PROPERTIES, "properties"}
+                        //{amqpCompositeType_t::DELIVERY_ANNOTATIONS, "delivery-annotations"},
+                        //{amqpCompositeType_t::MESSAGE_ANNOTATIONS, "message-annotations"},
+                        {amqpCompositeType_t::PROPERTIES, "properties"}//,
+                        //{amqpCompositeType_t::APPLICATION_PROPERTIES, "application-properties"},
+                        //{amqpCompositeType_t::MESSAGE_DATA_RAW, "data"},
+                        //{amqpCompositeType_t::MESSAGE_DATA_AMQP_SEQUENCE, "amqp-sequence"},
+                        //{amqpCompositeType_t::MESSAGE_DATA_AMQP_VALUE, "amqp-value"},
+                        //{amqpCompositeType_t::FOOTER "footer"}
         };
         CompositeType::CompositeType(AmqpList* fieldListPtr): Type(), _fieldListPtr(fieldListPtr) {}
         CompositeType::~CompositeType() {
@@ -1039,6 +1117,15 @@ namespace amqpAnalyze
                 _fieldListPtr = nullptr;
             }
         }
+        std::string CompositeType::toString(std::size_t margin) const {
+            std::ostringstream oss;
+            oss << typeStr() << ":" << std::endl << std::string(margin, ' ') << _fieldListPtr->toString(margin);
+            return oss.str();
+        }
+        std::string CompositeType::valueStr() const {
+            return _fieldListPtr->valueStr();
+        }
+/*
         std::string CompositeType::toString(std::size_t margin, const fieldTypeList_t& fieldTypeList) const {
             std::ostringstream oss;
             oss << name();
@@ -1059,17 +1146,21 @@ namespace amqpAnalyze
             }
             return oss.str();
         }
+*/
 
+/*
         std::string CompositeType::toString(const char* name) const {
             std::ostringstream oss;
             oss << name;
             if (_fieldListPtr != nullptr) oss << std::endl << _fieldListPtr;
             return oss.str();
         }
+*/
 
 
         AmqpOpen::AmqpOpen(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpOpen::~AmqpOpen() {}
+        //std::string AmqpOpen::valueStr() const { return }
         // static
         fieldTypeList_t AmqpOpen::s_fieldTypeList = {
             FieldType("container-id", amqpPrimitiveType_t::STRING_TYPE, true, false),
@@ -1087,6 +1178,7 @@ namespace amqpAnalyze
 
         AmqpBegin::AmqpBegin(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpBegin::~AmqpBegin() {}
+        //std::string AmqpBegin::valueStr() const {}
         // static
         fieldTypeList_t AmqpBegin::s_fieldTypeList = {
             FieldType("remote-channel", amqpPrimitiveType_t::USHORT_TYPE, false, false),
@@ -1102,6 +1194,7 @@ namespace amqpAnalyze
 
         AmqpAttach::AmqpAttach(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpAttach::~AmqpAttach() {}
+        //std::string AmqpAttach::valueStr() const {}
         // static
         fieldTypeList_t AmqpAttach::s_fieldTypeList = {
             FieldType("name", amqpPrimitiveType_t::STRING_TYPE, true, false),
@@ -1123,6 +1216,7 @@ namespace amqpAnalyze
 
         AmqpFlow::AmqpFlow(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpFlow::~AmqpFlow() {}
+        //std::string AmqpFlow::valueStr() const {}
         // static
         fieldTypeList_t AmqpFlow::s_fieldTypeList = {
             FieldType("next-incoming-id", amqpPrimitiveType_t::TRANSFER_NUMBER_TYPE, false, false),
@@ -1141,6 +1235,7 @@ namespace amqpAnalyze
 
         AmqpTransfer::AmqpTransfer(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpTransfer::~AmqpTransfer() {}
+        //std::string AmqpTransfer::valueStr() const {}
         // static
         fieldTypeList_t AmqpTransfer::s_fieldTypeList = {
             FieldType("handle", amqpPrimitiveType_t::HANDLE_TYPE, true, false),
@@ -1159,6 +1254,7 @@ namespace amqpAnalyze
 
         AmqpDisposition::AmqpDisposition(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpDisposition::~AmqpDisposition() {}
+        //std::string AmqpDisposition::valueStr() const {}
         // static
         fieldTypeList_t AmqpDisposition::s_fieldTypeList = {
             FieldType("role", amqpPrimitiveType_t::ROLE_TYPE, true, false),
@@ -1172,6 +1268,7 @@ namespace amqpAnalyze
 
         AmqpDetach::AmqpDetach(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpDetach::~AmqpDetach() {}
+        //std::string AmqpDetach::valueStr() const {}
         // static
         fieldTypeList_t AmqpDetach::s_fieldTypeList = {
             FieldType("handle", amqpPrimitiveType_t::HANDLE_TYPE, true, false),
@@ -1182,6 +1279,7 @@ namespace amqpAnalyze
 
         AmqpEnd::AmqpEnd(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpEnd::~AmqpEnd() {}
+        //std::string AmqpEnd::valueStr() const {}
         // static
         fieldTypeList_t AmqpEnd::s_fieldTypeList = {
             FieldType("error", amqpPrimitiveType_t::AMQP_ERROR_TYPE, false, false)
@@ -1190,6 +1288,7 @@ namespace amqpAnalyze
 
         AmqpClose::AmqpClose(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpClose::~AmqpClose() {}
+        //std::string AmqpClose::valueStr() const {}
         // static
         fieldTypeList_t AmqpClose::s_fieldTypeList = {
             FieldType("error", amqpPrimitiveType_t::AMQP_ERROR_TYPE, false, false)
@@ -1198,6 +1297,7 @@ namespace amqpAnalyze
 
         AmqpErrorRecord::AmqpErrorRecord(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpErrorRecord::~AmqpErrorRecord() {}
+        //std::string AmqpErrorRecord::valueStr() const {}
         // static
         fieldTypeList_t AmqpErrorRecord::s_fieldTypeList = {
             FieldType("condition", amqpPrimitiveType_t::SYMBOL_TYPE, true, false, {amqpRequiresProvides_t::ERROR_CONDITION}),
@@ -1208,6 +1308,7 @@ namespace amqpAnalyze
 
         AmqpReceived::AmqpReceived(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpReceived::~AmqpReceived() {}
+        //std::string AmqpReceived::valueStr() const {}
         // static
         fieldTypeList_t AmqpReceived::s_fieldTypeList = {
             FieldType("section-number", amqpPrimitiveType_t::UINT_TYPE, true, false),
@@ -1220,6 +1321,7 @@ namespace amqpAnalyze
 
         AmqpAccepted::AmqpAccepted(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpAccepted::~AmqpAccepted() {}
+        //std::string AmqpAccepted::valueStr() const {}
         // static
         fieldTypeList_t AmqpAccepted::s_fieldTypeList = {};
         // static
@@ -1231,6 +1333,7 @@ namespace amqpAnalyze
 
         AmqpRejected::AmqpRejected(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpRejected::~AmqpRejected() {}
+        //std::string AmqpRejected::valueStr() const {}
         // static
         fieldTypeList_t AmqpRejected::s_fieldTypeList = {
             FieldType("error", amqpPrimitiveType_t::AMQP_ERROR_TYPE, false, false)
@@ -1244,6 +1347,7 @@ namespace amqpAnalyze
 
         AmqpReleased::AmqpReleased(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpReleased::~AmqpReleased() {}
+        //std::string AmqpReleased::valueStr() const {}
         // static
         fieldTypeList_t AmqpReleased::s_fieldTypeList = {};
         // static
@@ -1255,6 +1359,7 @@ namespace amqpAnalyze
 
         AmqpModified::AmqpModified(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpModified::~AmqpModified() {}
+        //std::string AmqpModified::valueStr() const {}
         // static
         fieldTypeList_t AmqpModified::s_fieldTypeList = {
             FieldType("delivery-failed", amqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
@@ -1270,6 +1375,7 @@ namespace amqpAnalyze
 
         AmqpSource::AmqpSource(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpSource::~AmqpSource() {}
+        //std::string AmqpSource::valueStr() const {}
         // static
         fieldTypeList_t AmqpSource::s_fieldTypeList = {
             FieldType("address", '*', false, false, {amqpRequiresProvides_t::ADDRESS}),
@@ -1292,6 +1398,7 @@ namespace amqpAnalyze
 
         AmqpTarget::AmqpTarget(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpTarget::~AmqpTarget() {}
+        //std::string AmqpTarget::valueStr() const {}
         // static
         fieldTypeList_t AmqpTarget::s_fieldTypeList = {
             FieldType("address", '*', false, false, {amqpRequiresProvides_t::ADDRESS}),
@@ -1309,30 +1416,35 @@ namespace amqpAnalyze
 
         AmqpDeleteOnClose::AmqpDeleteOnClose(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpDeleteOnClose::~AmqpDeleteOnClose() {}
+        //std::string AmqpDeleteOnClose::valueStr() const {}
         // static
         fieldTypeList_t AmqpDeleteOnClose::s_fieldTypeList = {};
 
 
         AmqpDeleteOnNoLinks::AmqpDeleteOnNoLinks(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpDeleteOnNoLinks::~AmqpDeleteOnNoLinks() {}
+        //std::string AmqpDeleteOnNoLinks::valueStr() const {}
         // static
         fieldTypeList_t AmqpDeleteOnNoLinks::s_fieldTypeList = {};
 
 
         AmqpDeleteOnNoMessages::AmqpDeleteOnNoMessages(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpDeleteOnNoMessages::~AmqpDeleteOnNoMessages() {}
+        //std::string AmqpDeleteOnNoMessages::valueStr() const {}
         // static
         fieldTypeList_t AmqpDeleteOnNoMessages::s_fieldTypeList = {};
 
 
         AmqpDeleteOnNoLinksOrMessages::AmqpDeleteOnNoLinksOrMessages(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpDeleteOnNoLinksOrMessages::~AmqpDeleteOnNoLinksOrMessages() {}
+        //std::string AmqpDeleteOnNoLinksOrMessages::valueStr() const {}
         // static
         fieldTypeList_t AmqpDeleteOnNoLinksOrMessages::s_fieldTypeList = {};
 
 
         AmqpCoordinator::AmqpCoordinator(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpCoordinator::~AmqpCoordinator() {}
+        //std::string AmqpCoordinator::valueStr() const {}
         // static
         fieldTypeList_t AmqpCoordinator::s_fieldTypeList = {
             FieldType("capabilities", amqpPrimitiveType_t::SYMBOL_TYPE, false, true, {amqpRequiresProvides_t::TXN_CAPABILITY})
@@ -1345,6 +1457,7 @@ namespace amqpAnalyze
 
         AmqpDeclare::AmqpDeclare(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpDeclare::~AmqpDeclare() {}
+        //std::string AmqpDeclare::valueStr() const {}
         // static
         fieldTypeList_t AmqpDeclare::s_fieldTypeList = {
             FieldType("global-id", '*', false, false, {amqpRequiresProvides_t::GLOBAL_TX_ID}) // NOTE: GLOBAL_TX_ID is not yet defined by AMQP 1.0 spec
@@ -1353,6 +1466,7 @@ namespace amqpAnalyze
 
         AmqpDischarge::AmqpDischarge(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpDischarge::~AmqpDischarge() {}
+        //std::string AmqpDischarge::valueStr() const {}
         // static
         fieldTypeList_t AmqpDischarge::s_fieldTypeList = {
             FieldType("txn-id", '*', true, false, {amqpRequiresProvides_t::TXN_ID}),
@@ -1362,6 +1476,7 @@ namespace amqpAnalyze
 
         AmqpDeclared::AmqpDeclared(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpDeclared::~AmqpDeclared() {}
+        //std::string AmqpDeclared::valueStr() const {}
         // static
         fieldTypeList_t AmqpDeclared::s_fieldTypeList = {
             FieldType("txn-id", '*', true, false, {amqpRequiresProvides_t::TXN_ID})
@@ -1375,6 +1490,7 @@ namespace amqpAnalyze
 
         AmqpTransactionalState::AmqpTransactionalState(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpTransactionalState::~AmqpTransactionalState() {}
+        //std::string AmqpTransactionalState::valueStr() const {}
         // static
         fieldTypeList_t AmqpTransactionalState::s_fieldTypeList = {
             FieldType("txn-id", '*', true, false, {amqpRequiresProvides_t::TXN_ID}),
@@ -1388,6 +1504,7 @@ namespace amqpAnalyze
 
         AmqpSaslMechanisms::AmqpSaslMechanisms(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpSaslMechanisms::~AmqpSaslMechanisms() {}
+        //std::string AmqpSaslMechanisms::valueStr() const {}
         // static
         fieldTypeList_t AmqpSaslMechanisms::s_fieldTypeList = {
             FieldType("sasl-server-mechanisms", amqpPrimitiveType_t::SYMBOL_TYPE, true, true)
@@ -1396,6 +1513,7 @@ namespace amqpAnalyze
 
         AmqpSaslInit::AmqpSaslInit(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpSaslInit::~AmqpSaslInit() {}
+        //std::string AmqpSaslInit::valueStr() const {}
         // static
         fieldTypeList_t AmqpSaslInit::s_fieldTypeList = {
             FieldType("mechanism", amqpPrimitiveType_t::SYMBOL_TYPE, true, false),
@@ -1406,6 +1524,7 @@ namespace amqpAnalyze
 
         AmqpSaslChallenge::AmqpSaslChallenge(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpSaslChallenge::~AmqpSaslChallenge() {}
+        //std::string AmqpSaslChallenge::valueStr() const {}
         // static
         fieldTypeList_t AmqpSaslChallenge::s_fieldTypeList = {
             FieldType("challenge", amqpPrimitiveType_t::BINARY_TYPE, true, false)
@@ -1414,6 +1533,7 @@ namespace amqpAnalyze
 
         AmqpSaslResponse::AmqpSaslResponse(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpSaslResponse::~AmqpSaslResponse() {}
+        //std::string AmqpSaslResponse::valueStr() const {}
         // static
         fieldTypeList_t AmqpSaslResponse::s_fieldTypeList = {
             FieldType("response", amqpPrimitiveType_t::BINARY_TYPE, true, false)
@@ -1422,6 +1542,7 @@ namespace amqpAnalyze
 
         AmqpSaslOutcome::AmqpSaslOutcome(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpSaslOutcome::~AmqpSaslOutcome() {}
+        //std::string AmqpSaslOutcome::valueStr() const {}
         // static
         fieldTypeList_t AmqpSaslOutcome::s_fieldTypeList = {
             FieldType("code", amqpPrimitiveType_t::SASL_CODE_TYPE, true, false),
@@ -1431,6 +1552,7 @@ namespace amqpAnalyze
 
         AmqpMessageHeader::AmqpMessageHeader(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpMessageHeader::~AmqpMessageHeader() {}
+        //std::string AmqpMessageHeader::valueStr() const {}
         // static
         fieldTypeList_t AmqpMessageHeader::s_fieldTypeList = {
             FieldType("durable", amqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
@@ -1443,6 +1565,7 @@ namespace amqpAnalyze
 
         AmqpMessageProperties::AmqpMessageProperties(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpMessageProperties::~AmqpMessageProperties() {}
+        //std::string AmqpMessageProperties::valueStr() const {}
         // static
         fieldTypeList_t AmqpMessageProperties::s_fieldTypeList = {
             FieldType("message-id", '*', false, false, {amqpRequiresProvides_t::MESSAGE_ID}),
