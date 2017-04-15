@@ -17,12 +17,6 @@ namespace amqpAnalyze
     namespace amqp10
     {
 
-        // static
-        std::map<uint8_t, const char*> ProtocolHeader::s_protocolIdName = {
-            {0, "AMQP"},
-            {2, "TLS"},
-            {3, "SASL"}};
-
         ProtocolHeader::hdr::hdr(const struct hdr* hdrPtr):
                 _magic(::ntohl(hdrPtr->_magic)),
                 _protocolId(hdrPtr->_protocolId),
@@ -60,6 +54,12 @@ namespace amqpAnalyze
         std::size_t ProtocolHeader::frameSize() const {
             return sizeof(struct hdr);
         }
+
+        // static
+        std::map<uint8_t, const char*> ProtocolHeader::s_protocolIdName = {
+            {0, "AMQP"},
+            {2, "TLS"},
+            {3, "SASL"}};
 
     } /* namespace amqp10 */
 } /* namespace amqpAnalyze */

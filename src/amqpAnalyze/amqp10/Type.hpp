@@ -22,7 +22,7 @@ namespace amqpAnalyze
 
         class CompositeType;
         class PrimitiveType;
-        class Buffer;
+        class FrameBuffer;
 
         // List of requires and provides values
         enum class amqpRequiresProvides_t {
@@ -53,9 +53,9 @@ namespace amqpAnalyze
             std::string typeValueStr(const char* valueDelim = "()") const; // formatted string type(value) without margins
             virtual std::string valueStr() const = 0; // value only as string
 
-            static Type* decode(Buffer& b);
-            static PrimitiveType* decodePrimitive(uint8_t code, Buffer& b);
-            static CompositeType* decodeComposite(Buffer& b);
+            static Type* decode(FrameBuffer& b);
+            static PrimitiveType* decodePrimitive(uint8_t code, FrameBuffer& b);
+            static CompositeType* decodeComposite(FrameBuffer& b);
 
         //protected:
             //virtual std::string toString(const char* name, std::size_t margin) const = 0;
@@ -111,13 +111,13 @@ namespace amqpAnalyze
             SESSION_ERROR_TYPE,
             LINK_ERROR_TYPE,
             ANNOTATIONS_TYPE,
-            DELIVERY_ANNOTATIONS_TYPE,
-            MESSAGE_ANNOTATIONS_TYPE,
-            APPLICATION_PROPERTIES_TYPE,
-            RAW_DATA_TYPE,
-            AMQP_SEQUENCE_TYPE,
+            //DELIVERY_ANNOTATIONS_TYPE,
+            //MESSAGE_ANNOTATIONS_TYPE,
+            //APPLICATION_PROPERTIES_TYPE,
+            //RAW_DATA_TYPE,
+            //AMQP_SEQUENCE_TYPE,
             // AMQP_VALUE_TYPE, // TODO
-            FOOTER_TYPE,
+            //FOOTER_TYPE,
             MESSAGE_ID_ULONG_TYPE,
             MESSAGE_ID_UUID_TYPE,
             MESSAGE_ID_BINARY_TYPE,
@@ -437,9 +437,10 @@ namespace amqpAnalyze
         public:
             CompoundType();
             virtual ~CompoundType();
-            virtual std::string toString(std::size_t margin) const = 0; // formatted one element-per-line output
+            virtual void appendString(std::ostringstream& oss, std::size_t margin) const = 0; // formatted one element-per-line output
+            //virtual std::string toString(std::size_t margin) const = 0; // formatted one element-per-line output
         protected:
-            static std::size_t appendString(std::ostringstream& oss, Type* ptr, std::size_t margin);
+            static void stringAppendHandler(std::ostringstream& oss, Type* ptr, std::size_t margin);
         };
 
 
@@ -452,7 +453,8 @@ namespace amqpAnalyze
         public:
             AmqpList();
             virtual ~AmqpList();
-            std::string toString(std::size_t margin) const override;
+            void appendString(std::ostringstream& oss, std::size_t margin) const override;
+            //std::string toString(std::size_t margin) const override;
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::LIST_TYPE; }
             inline std::string typeValueStr() const { return Type::typeValueStr("[]"); }
             inline amqp_list_t& value() { return _value; }
@@ -470,7 +472,8 @@ namespace amqpAnalyze
         public:
             AmqpMap();
             virtual ~AmqpMap();
-            std::string toString(std::size_t margin) const override;
+            void appendString(std::ostringstream& oss, std::size_t margin) const override;
+            //std::string toString(std::size_t margin) const override;
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::MAP_TYPE; }
             inline std::string typeValueStr() const { return Type::typeValueStr("{}"); }
             inline amqp_map_t& value() { return _value; }
@@ -488,7 +491,8 @@ namespace amqpAnalyze
         public:
             AmqpArray();
             virtual ~AmqpArray();
-            std::string toString(std::size_t margin) const override;
+            void appendString(std::ostringstream& oss, std::size_t margin) const override;
+            //std::string toString(std::size_t margin) const override;
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::ARRAY_TYPE; }
             inline std::string typeValueStr() const { return Type::typeValueStr("[]"); }
             inline amqp_array_t& value() { return _value; }
@@ -738,6 +742,7 @@ namespace amqpAnalyze
         };
 
 
+/*
         typedef amqp_annotations_t amqp_delivery_annotations_t;
         typedef amqp_delivery_annotations_t::iterator amqp_delivery_annotations_itr_t;
         typedef amqp_delivery_annotations_t::const_iterator amqp_delivery_annotations_citr_t;
@@ -749,8 +754,10 @@ namespace amqpAnalyze
             inline amqp_delivery_annotations_t& value() { return _value; }
             inline const amqp_delivery_annotations_t& value() const { return _value; }
         };
+*/
 
 
+/*
         typedef amqp_annotations_t amqp_message_annotations_t;
         typedef amqp_message_annotations_t::iterator amqp_message_annotations_itr_t;
         typedef amqp_message_annotations_t::const_iterator amqp_message_annotations_citr_t;
@@ -762,8 +769,10 @@ namespace amqpAnalyze
             inline amqp_message_annotations_t& value() { return _value; }
             inline const amqp_message_annotations_t& value() const { return _value; }
         };
+*/
 
 
+/*
         typedef amqp_map_t amqp_application_properties_t;
         typedef amqp_application_properties_t::iterator amqp_application_properties_itr_t;
         typedef amqp_application_properties_t::const_iterator amqp_application_properties_citr_t;
@@ -775,8 +784,10 @@ namespace amqpAnalyze
             inline amqp_application_properties_t& value() { return _value; }
             inline const amqp_application_properties_t& value() const { return _value; }
         };
+*/
 
 
+/*
         typedef amqp_binary_t amqp_raw_data_t;
         typedef amqp_raw_data_t::iterator amqp_raw_data_itr_t;
         typedef amqp_raw_data_t::const_iterator amqp_raw_data_citr_t;
@@ -788,8 +799,10 @@ namespace amqpAnalyze
             inline amqp_raw_data_t& value() { return _value; }
             inline const amqp_raw_data_t& value() const { return _value; }
         };
+*/
 
 
+/*
         typedef amqp_list_t amqp_sequence_t;
         typedef amqp_list_t::iterator amqp_sequence_itr_t;
         typedef amqp_list_t::const_iterator amqp_sequence_citr_t;
@@ -801,11 +814,13 @@ namespace amqpAnalyze
             inline amqp_sequence_t& value() { return _value; }
             inline const amqp_sequence_t& value() const { return _value; }
         };
+*/
 
 
-        typedef amqp_primitive_t amqp_value_t;
+//        typedef amqp_primitive_t amqp_value_t;
 
 
+/*
         typedef amqp_annotations_t amqp_footer_t;
         typedef amqp_footer_t::iterator amqp_footer_itr_t;
         typedef amqp_footer_t::const_iterator amqp_footer_citr_t;
@@ -817,6 +832,7 @@ namespace amqpAnalyze
             inline amqp_footer_t& value() { return _value; }
             inline const amqp_footer_t& value() const { return _value; }
         };
+*/
 
 
         typedef amqp_ulong_t amqp_msg_id_ulong_t;
@@ -1029,15 +1045,15 @@ namespace amqpAnalyze
         //=========================================
 
         enum class amqpCompositeType_t:uint64_t {
-            OPEN=0x10,
-            BEGIN,
-            ATTACH,
-            FLOW,
-            TRANSFER,
-            DISPOSITION,
-            DETACH,
-            END,
-            CLOSE,
+            //OPEN=0x10,
+            //BEGIN,
+            //ATTACH,
+            //FLOW,
+            //TRANSFER,
+            //DISPOSITION,
+            //DETACH,
+            //END,
+            //CLOSE,
             ERROR = 0x1d,
             RECEIVED = 0x23,
             ACCEPTED,
@@ -1059,11 +1075,11 @@ namespace amqpAnalyze
             SASL_INIT,
             SASL_CHALLENGE,
             SASL_RESPONSE,
-            SASL_OUTCOME,
-            HEADER = 0x70,
+            SASL_OUTCOME//,
+            //HEADER = 0x70,
             //DELIVERY_ANNOTATIONS,
             //MESSAGE_ANNOTATIONS,
-            PROPERTIES = 0x73 //,
+            //PROPERTIES = 0x73 //,
             //APPLICATION_PROPERTIES,
             //MESSAGE_DATA_RAW,
             //MESSAGE_DATA_AMQP_SEQUENCE,
@@ -1071,7 +1087,8 @@ namespace amqpAnalyze
             //FOOTER
         };
 
-        struct FieldType {
+/*
+        struct XXFieldTypeXX {
             const char* _fieldName;
             union ctype {
                 const amqpPrimitiveType_t _primitiveType;
@@ -1084,12 +1101,13 @@ namespace amqpAnalyze
             const bool _mandatoryFlag;
             const bool _multipleFlag;
             std::vector<amqpRequiresProvides_t> _requiresList;
-            FieldType(const char* fieldName, amqpPrimitiveType_t primitiveType, bool mandatoryFlag, bool multipleFlag, std::initializer_list<amqpRequiresProvides_t> _requiresInit = {});
-            FieldType(const char* fieldName, amqpCompositeType_t compositeType, bool mandatoryFlag, bool multipleFlag, std::initializer_list<amqpRequiresProvides_t> _requiresInit = {});
-            FieldType(const char* fieldName, char wildcard, bool mandatoryFlag, bool multipleFlag, std::initializer_list<amqpRequiresProvides_t> _requiresInit);
+            XXFieldTypeXX(const char* fieldName, amqpPrimitiveType_t primitiveType, bool mandatoryFlag, bool multipleFlag, std::initializer_list<amqpRequiresProvides_t> _requiresInit = {});
+            XXFieldTypeXX(const char* fieldName, amqpCompositeType_t compositeType, bool mandatoryFlag, bool multipleFlag, std::initializer_list<amqpRequiresProvides_t> _requiresInit = {});
+            XXFieldTypeXX(const char* fieldName, char wildcard, bool mandatoryFlag, bool multipleFlag, std::initializer_list<amqpRequiresProvides_t> _requiresInit);
         };
-        typedef std::vector<FieldType> fieldTypeList_t;
-        typedef fieldTypeList_t::const_iterator fieldTypeList_citr_t;
+        typedef std::vector<XXFieldTypeXX> XXFieldTypeCCList_t;
+        typedef XXFieldTypeCCList_t::const_iterator XXFieldTypeXXList_citr_t;
+*/
 
 
         class CompositeType: public Type {
@@ -1109,6 +1127,7 @@ namespace amqpAnalyze
         protected:
             //std::string toString(const char* name) const override;
         };
+/*
 
 
         class AmqpOpen: public CompositeType {
@@ -1217,6 +1236,10 @@ namespace amqpAnalyze
         protected:
             static fieldTypeList_t s_fieldTypeList;
         };
+*/
+
+        class FieldType;
+        typedef std::vector<FieldType> fieldTypeList_t;
 
 
         class AmqpErrorRecord: public CompositeType {
@@ -1492,6 +1515,7 @@ namespace amqpAnalyze
         };
 
 
+/*
         class AmqpMessageHeader: public CompositeType {
         public:
             AmqpMessageHeader(AmqpList* fieldList);
@@ -1514,6 +1538,7 @@ namespace amqpAnalyze
         protected:
             static fieldTypeList_t s_fieldTypeList;
         };
+*/
 
 
     } /* namespace amqp10 */

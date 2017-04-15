@@ -10,9 +10,10 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 set(amqpAnalyze_HEADERS
     amqpAnalyze.hpp
-    amqpAnalyze/amqp10/Buffer.hpp
+    amqpAnalyze/amqp10/FieldType.hpp
     amqpAnalyze/amqp10/FrameBase.hpp
-    amqpAnalyze/amqp10/Frame.hpp
+    amqpAnalyze/amqp10/FrameBuffer.hpp
+    amqpAnalyze/amqp10/Performative.hpp
     amqpAnalyze/amqp10/ProtocolHeader.hpp
     amqpAnalyze/amqp10/Section.hpp
     amqpAnalyze/amqp10/Type.hpp
@@ -31,9 +32,10 @@ set(amqpAnalyze_HEADERS
 set(amqpAnalyze_SOURCES
     ${amqpAnalyze_HEADERS}
     amqpAnalyze.cpp
-    amqpAnalyze/amqp10/Buffer.cpp
+    amqpAnalyze/amqp10/FieldType.cpp
     amqpAnalyze/amqp10/FrameBase.cpp
-    amqpAnalyze/amqp10/Frame.cpp
+    amqpAnalyze/amqp10/FrameBuffer.cpp
+    amqpAnalyze/amqp10/Performative.cpp
     amqpAnalyze/amqp10/ProtocolHeader.cpp
     amqpAnalyze/amqp10/Section.cpp
     amqpAnalyze/amqp10/Type.cpp

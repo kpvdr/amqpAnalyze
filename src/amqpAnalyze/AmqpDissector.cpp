@@ -7,7 +7,8 @@
 
 #include <amqpAnalyze/AmqpDissector.hpp>
 
-#include <amqpAnalyze/amqp10/Frame.hpp>
+#include <amqpAnalyze/amqp10/FrameBuffer.hpp>
+#include <amqpAnalyze/amqp10/Performative.hpp>
 #include <amqpAnalyze/amqp10/ProtocolHeader.hpp>
 #include <amqpAnalyze/Error.hpp>
 
@@ -61,7 +62,7 @@ AmqpDissector::AmqpDissector(const struct pcap_pkthdr* pcapPacketHeaderPtr,
 */
 
 
-    uint32_t amqpOffs = 0;
+    std::size_t amqpOffs = 0;
     try {
         while (amqpDataSize - amqpOffs >= 8) {
             std::string magic((const char*)(packetPtr+packetOffs+amqpOffs), 4);
@@ -70,9 +71,9 @@ AmqpDissector::AmqpDissector(const struct pcap_pkthdr* pcapPacketHeaderPtr,
                 amqpOffs += amqpHdrPtr->frameSize();
                 _amqpFrameList.push_back(amqpHdrPtr);
             } else { // AMQP frame
-                amqp10::Frame* frameHdrPtr = new amqp10::Frame(amqpOffs, (const amqp10::Frame::hdr*)(packetPtr+packetOffs+amqpOffs));
-                amqpOffs += frameHdrPtr->frameSize();
-                _amqpFrameList.push_back(frameHdrPtr);
+                amqp10::FrameBuffer b(packetPtr+packetOffs+amqpOffs);
+                _amqpFrameList.push_back(amqp10::Performative::decode(amqpOffs, b));
+                amqpOffs += b.getSize();
             }
         }
     } catch (const Error& e) {std::cout << " Error: " << e.what() << std::endl;}

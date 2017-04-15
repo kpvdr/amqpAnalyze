@@ -17,14 +17,14 @@ namespace amqpAnalyze
 
         class FrameBase
         {
-        protected:
-            std::size_t _frameOffset;
         public:
             FrameBase(std::size_t frameOffset);
             virtual ~FrameBase();
             virtual void appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const = 0;
             std::string toString(std::size_t margin, bool ignoreFirstMargin);
             virtual std::size_t frameSize() const = 0;
+        protected:
+            const std::size_t _frameOffset;
         };
 
     } /* namespace amqp10 */

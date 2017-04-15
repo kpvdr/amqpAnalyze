@@ -5,10 +5,11 @@
  *      Author: kpvdr
  */
 
-#ifndef SRC_AMQPANALYZE_AMQP10_BUFFER_HPP_
-#define SRC_AMQPANALYZE_AMQP10_BUFFER_HPP_
+#ifndef SRC_AMQPANALYZE_AMQP10_FRAMEBUFFER_HPP_
+#define SRC_AMQPANALYZE_AMQP10_FRAMEBUFFER_HPP_
 
 #include <amqpAnalyze/amqp10/Type.hpp>
+
 #include <array>
 #include <cstdint>
 #include <string>
@@ -19,19 +20,16 @@ namespace amqpAnalyze
     namespace amqp10
     {
 
-        class Buffer
+        class FrameBuffer
         {
-        protected:
-            const char* _dataPtr;
-            std::size_t _dataLength;
-            std::size_t _dataOffset;
         public:
-            Buffer(const char* dataPtr, std::size_t n);
-            virtual ~Buffer();
+            FrameBuffer(const uint8_t* dataPtr);
+            virtual ~FrameBuffer();
             std::size_t getSize() const;
             std::size_t getOffset() const;
             std::size_t getRemaining() const;
             bool isEmpty() const;
+            const uint8_t* getDataPtr();
 
             void ignore(std::size_t size);
             bool getBool();
@@ -57,10 +55,13 @@ namespace amqpAnalyze
             amqp_map_t& getMap(amqp_map_t& value, std::size_t size, std::size_t count);
             amqp_array_t& getArray(amqp_array_t& value, std::size_t size, std::size_t count);
         protected:
+            const uint8_t* _dataPtr;
+            std::size_t _dataLength;
+            std::size_t _dataOffset;
             void checkSize(std::size_t size);
         };
 
     } /* namespace amqp10 */
 } /* namespace amqpAnalyze */
 
-#endif /* SRC_AMQPANALYZE_AMQP10_BUFFER_HPP_ */
+#endif /* SRC_AMQPANALYZE_AMQP10_FRAMEBUFFER_HPP_ */

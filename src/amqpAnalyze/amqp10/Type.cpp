@@ -5,8 +5,10 @@
  *      Author: kpvdr
  */
 
-#include <amqpAnalyze/amqp10/Buffer.hpp>
 #include <amqpAnalyze/amqp10/Type.hpp>
+
+#include <amqpAnalyze/amqp10/FieldType.hpp>
+#include <amqpAnalyze/amqp10/FrameBuffer.hpp>
 #include <amqpAnalyze/Error.hpp>
 
 #include <ctime>
@@ -27,13 +29,13 @@ namespace amqpAnalyze
             return oss.str();
         }
        // static
-        Type* Type::decode(Buffer& b) {
+        Type* Type::decode(FrameBuffer& b) {
             uint8_t code = b.getUint8();
             if (code > 0) return Type::decodePrimitive(code, b);
             return Type::decodeComposite(b);
         }
         // static
-        PrimitiveType* Type::decodePrimitive(uint8_t code, Buffer& b) {
+        PrimitiveType* Type::decodePrimitive(uint8_t code, FrameBuffer& b) {
             switch(code) {
 
             // null
@@ -204,21 +206,21 @@ namespace amqpAnalyze
             }
         }
         // static
-        CompositeType* Type::decodeComposite(Buffer& b) {
+        CompositeType* Type::decodeComposite(FrameBuffer& b) {
             std::unique_ptr<PrimitiveType> descriptorPtr((PrimitiveType*)Type::decode(b));
             switch (descriptorPtr->type()) {
             case amqpPrimitiveType_t::ULONG_TYPE: {
                 AmqpUlong* longDescriptorPtr = (AmqpUlong*)descriptorPtr.get(); // TODO: Ugly! Fix this! Works ok, descriptorPtr will delete when it goes out of scope.
                 switch((amqpCompositeType_t)longDescriptorPtr->value()) {
-                case amqpCompositeType_t::OPEN:return new AmqpOpen((AmqpList*)Type::decode(b));
-                case amqpCompositeType_t::BEGIN: return new AmqpBegin((AmqpList*)Type::decode(b));
-                case amqpCompositeType_t::ATTACH: return new AmqpAttach((AmqpList*)Type::decode(b));
-                case amqpCompositeType_t::FLOW: return new AmqpFlow((AmqpList*)Type::decode(b));
-                case amqpCompositeType_t::TRANSFER: return new AmqpTransfer((AmqpList*)Type::decode(b));
-                case amqpCompositeType_t::DISPOSITION: return new AmqpDisposition((AmqpList*)Type::decode(b));
-                case amqpCompositeType_t::DETACH: return new AmqpDetach((AmqpList*)Type::decode(b));
-                case amqpCompositeType_t::END: return new AmqpEnd((AmqpList*)Type::decode(b));
-                case amqpCompositeType_t::CLOSE: return new AmqpClose((AmqpList*)Type::decode(b));
+                //case amqpCompositeType_t::OPEN:return new AmqpOpen((AmqpList*)Type::decode(b));
+                //case amqpCompositeType_t::BEGIN: return new AmqpBegin((AmqpList*)Type::decode(b));
+                //case amqpCompositeType_t::ATTACH: return new AmqpAttach((AmqpList*)Type::decode(b));
+                //case amqpCompositeType_t::FLOW: return new AmqpFlow((AmqpList*)Type::decode(b));
+                //case amqpCompositeType_t::TRANSFER: return new AmqpTransfer((AmqpList*)Type::decode(b));
+                //case amqpCompositeType_t::DISPOSITION: return new AmqpDisposition((AmqpList*)Type::decode(b));
+                //case amqpCompositeType_t::DETACH: return new AmqpDetach((AmqpList*)Type::decode(b));
+                //case amqpCompositeType_t::END: return new AmqpEnd((AmqpList*)Type::decode(b));
+                //case amqpCompositeType_t::CLOSE: return new AmqpClose((AmqpList*)Type::decode(b));
                 case amqpCompositeType_t::ERROR: return new AmqpErrorRecord((AmqpList*)Type::decode(b));
                 case amqpCompositeType_t::RECEIVED: return new AmqpReceived((AmqpList*)Type::decode(b));
                 case amqpCompositeType_t::ACCEPTED: return new AmqpAccepted((AmqpList*)Type::decode(b));
@@ -241,10 +243,10 @@ namespace amqpAnalyze
                 case amqpCompositeType_t::SASL_CHALLENGE: return new AmqpSaslChallenge((AmqpList*)Type::decode(b));
                 case amqpCompositeType_t::SASL_RESPONSE: return new AmqpSaslResponse((AmqpList*)Type::decode(b));
                 case amqpCompositeType_t::SASL_OUTCOME: return new AmqpSaslOutcome((AmqpList*)Type::decode(b));
-                case amqpCompositeType_t::HEADER: return new AmqpMessageHeader((AmqpList*)Type::decode(b));
+                //case amqpCompositeType_t::HEADER: return new AmqpMessageHeader((AmqpList*)Type::decode(b));
                 //case amqpCompositeType_t::DELIVERY_ANNOTATIONS: return new AmqpDeliveryAnnotations();
                 //case amqpCompositeType_t::MESSAGE_ANNOTATIONS: return AmqpMessageAnnotations();
-                case amqpCompositeType_t::PROPERTIES: return new AmqpMessageProperties((AmqpList*)Type::decode(b));
+                //case amqpCompositeType_t::PROPERTIES: return new AmqpMessageProperties((AmqpList*)Type::decode(b));
                 //case amqpCompositeType_t::APPLICATION_PROPERTIES: return AmqpApplicationProperties();
                 //case amqpCompositeType_t::MESSAGE_DATA_RAW: return AmqpRawData();
                 //case amqpCompositeType_t::MESSAGE_DATA_AMQP_SEQUENCE: return AmqpSequence();
@@ -314,13 +316,13 @@ namespace amqpAnalyze
             {amqpPrimitiveType_t::SESSION_ERROR_TYPE, "session-error"},
             {amqpPrimitiveType_t::LINK_ERROR_TYPE, "link-error"},
             {amqpPrimitiveType_t::ANNOTATIONS_TYPE, "annotations"},
-            {amqpPrimitiveType_t::DELIVERY_ANNOTATIONS_TYPE, "delivery-annotations"},
-            {amqpPrimitiveType_t::MESSAGE_ANNOTATIONS_TYPE, "message-annotations"},
-            {amqpPrimitiveType_t::APPLICATION_PROPERTIES_TYPE, "application-properties"},
-            {amqpPrimitiveType_t::RAW_DATA_TYPE, "data"},
-            {amqpPrimitiveType_t::AMQP_SEQUENCE_TYPE, "amqp-sequence"},
+            //{amqpPrimitiveType_t::DELIVERY_ANNOTATIONS_TYPE, "delivery-annotations"},
+            //{amqpPrimitiveType_t::MESSAGE_ANNOTATIONS_TYPE, "message-annotations"},
+            //{amqpPrimitiveType_t::APPLICATION_PROPERTIES_TYPE, "application-properties"},
+            //{amqpPrimitiveType_t::RAW_DATA_TYPE, "data"},
+            //{amqpPrimitiveType_t::AMQP_SEQUENCE_TYPE, "amqp-sequence"},
             // AMQP_VALUE_TYPE
-            {amqpPrimitiveType_t::FOOTER_TYPE, "footer"},
+            //{amqpPrimitiveType_t::FOOTER_TYPE, "footer"},
             {amqpPrimitiveType_t::MESSAGE_ID_ULONG_TYPE, "message-id-ulong"},
             {amqpPrimitiveType_t::MESSAGE_ID_UUID_TYPE, "message-id-uuid"},
             {amqpPrimitiveType_t::MESSAGE_ID_BINARY_TYPE, "message-id-binary"},
@@ -544,21 +546,18 @@ namespace amqpAnalyze
         CompoundType::CompoundType(): PrimitiveType() {}
         CompoundType::~CompoundType() {}
         // static
-        std::size_t CompoundType::appendString(std::ostringstream& oss, Type* ptr, std::size_t margin) {
-            std::ostringstream oss2;
+        void CompoundType::stringAppendHandler(std::ostringstream& oss, Type* ptr, std::size_t margin) {
             CompoundType* cPtr(dynamic_cast<CompoundType*>(ptr));
             if (cPtr) {
-                oss2 << cPtr->toString(margin);
+                cPtr->appendString(oss, margin);
             } else {
                 CompositeType* compositePtr(dynamic_cast<CompositeType*>(ptr));
                 if (compositePtr) {
-                    oss2 << compositePtr->toString(margin + 2);
+                    oss << compositePtr->toString(margin + 2);
                 } else {
-                    oss2 << ptr->typeValueStr();
+                    oss<< ptr->typeValueStr();
                 }
             }
-            oss << oss2.str();
-            return oss2.str().length();
         }
 
 
@@ -577,6 +576,19 @@ namespace amqpAnalyze
             }
             return oss.str();
         }
+        void AmqpList::appendString(std::ostringstream& oss, std::size_t margin) const {
+            std::string t(typeStr());
+            std::size_t l(margin + t.length() + 3);
+            std::string m(l, ' ');
+            oss << t << ": [";
+            for (amqp_list_citr_t i=_value.cbegin(); i<_value.cend(); ++i) {
+                if (i!=_value.cbegin()) oss << std::endl << m;
+                stringAppendHandler(oss, *i, l);
+            }
+            oss << "]";
+
+        }
+/*
         std::string AmqpList::toString(std::size_t margin) const {
             std::string t(typeStr());
             std::size_t l(margin + t.length() + 3);
@@ -585,11 +597,12 @@ namespace amqpAnalyze
             oss << t << ": [";
             for (amqp_list_citr_t i=_value.cbegin(); i<_value.cend(); ++i) {
                 if (i!=_value.cbegin()) oss << std::endl << m;
-                appendString(oss, *i, l);
+                stringAppendHandler(oss, *i, l);
             }
             oss << "]";
             return oss.str();
         }
+*/
 
 
         AmqpMap::AmqpMap(): CompoundType(), _value() {}
@@ -611,6 +624,30 @@ namespace amqpAnalyze
             }
             return oss.str();
         }
+        void AmqpMap::appendString(std::ostringstream& oss, std::size_t margin) const {
+            std::string t(typeStr());
+            std::size_t l(margin + t.length() + 3);
+            std::string m(l, ' ');
+            oss << t << ": {";
+            for (amqp_map_citr_t i=_value.cbegin(); i!=_value.cend(); ++i) {
+                if (i!=_value.cbegin()) oss << std::endl << m;
+                oss << "{";
+                CompoundType* kPtr(dynamic_cast<CompoundType*>(i->first));
+                if (kPtr != nullptr) {
+                    // key is a compound type
+                    kPtr->appendString(oss, l);
+                    oss << std::endl << m << ":";
+                } else {
+                    std::string kStr(i->first->typeValueStr());
+                    oss << kStr << ": ";
+                    l += kStr.length() + 2;
+                }
+                stringAppendHandler(oss, i->second, l); // print value
+                oss << "}";
+            }
+            oss << "}";
+        }
+/*
         std::string AmqpMap::toString(std::size_t margin) const {
             std::string t(typeStr());
             std::size_t l(margin + t.length() + 3);
@@ -629,12 +666,13 @@ namespace amqpAnalyze
                     oss << kStr << ": ";
                     l += kStr.length() + 2;
                 }
-                appendString(oss, i->second, l); // print value
+                stringAppendHandler(oss, i->second, l); // print value
                 oss << "}";
             }
             oss << "}";
             return oss.str();
         }
+*/
 
 
         AmqpArray::AmqpArray(): CompoundType(), _value() {}
@@ -652,6 +690,18 @@ namespace amqpAnalyze
             }
             return oss.str();
         }
+        void AmqpArray::appendString(std::ostringstream& oss, std::size_t margin) const {
+            std::string t(typeStr());
+            std::size_t l(margin + t.length() + 2);
+            std::string m(l, ' ');
+            oss << t << ": [";
+            for (amqp_array_citr_t i=_value.cbegin(); i!=_value.cend(); ++i) {
+                if (i!=_value.cbegin()) oss << std::endl << m;
+                stringAppendHandler(oss, *i, l);
+            }
+            oss << "]";
+        }
+/*
         std::string AmqpArray::toString(std::size_t margin) const {
             std::string t(typeStr());
             std::size_t l(margin + t.length() + 2);
@@ -660,11 +710,12 @@ namespace amqpAnalyze
             oss << t << ": [";
             for (amqp_array_citr_t i=_value.cbegin(); i!=_value.cend(); ++i) {
                 if (i!=_value.cbegin()) oss << std::endl << m;
-                appendString(oss, *i, l);
+                stringAppendHandler(oss, *i, l);
             }
             oss << "]";
             return oss.str();
         }
+*/
 
 
         // static
@@ -854,28 +905,40 @@ namespace amqpAnalyze
         AmqpAnnotations::~AmqpAnnotations() {}
 
 
+/*
         AmqpDeliveryAnnotations::AmqpDeliveryAnnotations(): AmqpAnnotations() {}
         AmqpDeliveryAnnotations::~AmqpDeliveryAnnotations() {}
+*/
 
 
+/*
         AmqpMessageAnnotations::AmqpMessageAnnotations(): AmqpAnnotations() {}
         AmqpMessageAnnotations::~AmqpMessageAnnotations() {}
+*/
 
 
+/*
         AmqpApplicationProperties::AmqpApplicationProperties(): AmqpMap() {}
         AmqpApplicationProperties::~AmqpApplicationProperties() {}
+*/
 
 
+/*
         AmqpRawData::AmqpRawData(): AmqpBinary() {}
         AmqpRawData::~AmqpRawData() {}
+*/
 
 
+/*
         AmqpSequence::AmqpSequence(): AmqpList() {}
         AmqpSequence::~AmqpSequence() {}
+*/
 
 
+/*
         AmqpFooter::AmqpFooter(): AmqpAnnotations() {}
         AmqpFooter::~AmqpFooter() {}
+*/
 
         // static
         amqp_provides_requires_list_t AmqpMessageIdUlong::s_providesList = {amqpRequiresProvides_t::MESSAGE_ID};
@@ -1043,6 +1106,7 @@ namespace amqpAnalyze
             return s_choiceNames.at((amqp_sasl_code_t)_value);
         }
 
+/*
         FieldType::FieldType(const char* fieldName, amqpPrimitiveType_t primitiveType, bool mandatoryFlag, bool multipleFlag, std::initializer_list<amqpRequiresProvides_t> _requiresInitList):
             _fieldName(fieldName),
             _types(primitiveType),
@@ -1064,20 +1128,21 @@ namespace amqpAnalyze
 			_multipleFlag(multipleFlag),
 			_requiresList(_requiresInitList)
 		{}
+*/
 
 
 
         // static
         std::map<amqpCompositeType_t, const char*> CompositeType::s_amqpCompositeTypeNames = {
-                        {amqpCompositeType_t::OPEN, "open"},
-                        {amqpCompositeType_t::BEGIN, "begin"},
-                        {amqpCompositeType_t::ATTACH, "attach"},
-                        {amqpCompositeType_t::FLOW, "flow"},
-                        {amqpCompositeType_t::TRANSFER, "transfer"},
-                        {amqpCompositeType_t::DISPOSITION, "disposition"},
-                        {amqpCompositeType_t::DETACH, "detatch"},
-                        {amqpCompositeType_t::END, "end"},
-                        {amqpCompositeType_t::CLOSE, "close"},
+                        //{amqpCompositeType_t::OPEN, "open"},
+                        //{amqpCompositeType_t::BEGIN, "begin"},
+                        //{amqpCompositeType_t::ATTACH, "attach"},
+                        //{amqpCompositeType_t::FLOW, "flow"},
+                        //{amqpCompositeType_t::TRANSFER, "transfer"},
+                        //{amqpCompositeType_t::DISPOSITION, "disposition"},
+                        //{amqpCompositeType_t::DETACH, "detatch"},
+                        //{amqpCompositeType_t::END, "end"},
+                        //{amqpCompositeType_t::CLOSE, "close"},
                         {amqpCompositeType_t::ERROR, "error"},
                         {amqpCompositeType_t::RECEIVED, "received"},
                         {amqpCompositeType_t::ACCEPTED, "accepted"},
@@ -1099,11 +1164,11 @@ namespace amqpAnalyze
                         {amqpCompositeType_t::SASL_INIT, "sasl-init"},
                         {amqpCompositeType_t::SASL_CHALLENGE, "sasl-challenge"},
                         {amqpCompositeType_t::SASL_RESPONSE, "sasl-response"},
-                        {amqpCompositeType_t::SASL_OUTCOME, "sasl-outcome"},
-                        {amqpCompositeType_t::HEADER, "header"},
+                        {amqpCompositeType_t::SASL_OUTCOME, "sasl-outcome"}//,
+                        //{amqpCompositeType_t::HEADER, "header"},
                         //{amqpCompositeType_t::DELIVERY_ANNOTATIONS, "delivery-annotations"},
                         //{amqpCompositeType_t::MESSAGE_ANNOTATIONS, "message-annotations"},
-                        {amqpCompositeType_t::PROPERTIES, "properties"}//,
+                        //{amqpCompositeType_t::PROPERTIES, "properties"}//,
                         //{amqpCompositeType_t::APPLICATION_PROPERTIES, "application-properties"},
                         //{amqpCompositeType_t::MESSAGE_DATA_RAW, "data"},
                         //{amqpCompositeType_t::MESSAGE_DATA_AMQP_SEQUENCE, "amqp-sequence"},
@@ -1119,7 +1184,8 @@ namespace amqpAnalyze
         }
         std::string CompositeType::toString(std::size_t margin) const {
             std::ostringstream oss;
-            oss << typeStr() << ":" << std::endl << std::string(margin, ' ') << _fieldListPtr->toString(margin);
+            oss << typeStr() << ":" << std::endl << std::string(margin, ' ');
+            _fieldListPtr->appendString(oss, margin);
             return oss.str();
         }
         std::string CompositeType::valueStr() const {
@@ -1158,6 +1224,7 @@ namespace amqpAnalyze
 */
 
 
+/*
         AmqpOpen::AmqpOpen(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpOpen::~AmqpOpen() {}
         //std::string AmqpOpen::valueStr() const { return }
@@ -1293,6 +1360,7 @@ namespace amqpAnalyze
         fieldTypeList_t AmqpClose::s_fieldTypeList = {
             FieldType("error", amqpPrimitiveType_t::AMQP_ERROR_TYPE, false, false)
         };
+*/
 
 
         AmqpErrorRecord::AmqpErrorRecord(AmqpList* fieldList): CompositeType(fieldList) {}
@@ -1550,6 +1618,7 @@ namespace amqpAnalyze
         };
 
 
+/*
         AmqpMessageHeader::AmqpMessageHeader(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpMessageHeader::~AmqpMessageHeader() {}
         //std::string AmqpMessageHeader::valueStr() const {}
@@ -1582,6 +1651,7 @@ namespace amqpAnalyze
             FieldType("group-sequence", amqpPrimitiveType_t::SEQUENCE_NUMBER_TYPE, false, false),
             FieldType("reply-to-group-id", amqpPrimitiveType_t::STRING_TYPE, false, false)
         };
+*/
 
 
 

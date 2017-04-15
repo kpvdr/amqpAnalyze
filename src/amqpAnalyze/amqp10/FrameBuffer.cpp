@@ -5,50 +5,50 @@
  *      Author: kpvdr
  */
 
-#include <amqpAnalyze/amqp10/Buffer.hpp>
-
+#include <amqpAnalyze/amqp10/FrameBuffer.hpp>
 #include <amqpAnalyze/Error.hpp>
 
 #include <endian.h>
-
-// debug
-//#include <iostream>
 
 namespace amqpAnalyze
 {
     namespace amqp10
     {
 
-        Buffer::Buffer(const char* dataPtr, std::size_t n):
+        FrameBuffer::FrameBuffer(const uint8_t* dataPtr):
                 _dataPtr(dataPtr),
-                _dataLength(n),
+                _dataLength(be32toh(*(uint32_t*)dataPtr)),
                 _dataOffset(0)
         {}
 
-        Buffer::~Buffer() {}
+        FrameBuffer::~FrameBuffer() {}
 
-        std::size_t Buffer::Buffer::getSize() const {
+        std::size_t FrameBuffer::FrameBuffer::getSize() const {
             return _dataLength;
         }
 
-        std::size_t Buffer::getOffset() const {
+        std::size_t FrameBuffer::getOffset() const {
             return _dataOffset;
         }
 
-        std::size_t Buffer::getRemaining() const {
+        std::size_t FrameBuffer::getRemaining() const {
             return _dataLength - _dataOffset;
         }
 
-        bool Buffer::isEmpty() const {
+        bool FrameBuffer::isEmpty() const {
             return _dataLength == _dataOffset;
         }
 
-        void Buffer::ignore(std::size_t size) {
+        const uint8_t* FrameBuffer::getDataPtr() {
+            return _dataPtr + _dataOffset;
+        }
+
+        void FrameBuffer::ignore(std::size_t size) {
             checkSize(size);
             _dataOffset += size;
         }
 
-        bool Buffer::getBool() {
+        bool FrameBuffer::getBool() {
             checkSize(sizeof(uint8_t));
             uint8_t d(*(uint8_t*)(_dataPtr + _dataOffset));
             _dataOffset += sizeof(uint8_t);
@@ -57,77 +57,77 @@ namespace amqpAnalyze
             throw amqpAnalyze::Error(MSG("Illegal boolean value 0x") << std::hex << d);
         }
 
-        uint8_t Buffer::getUint8() {
+        uint8_t FrameBuffer::getUint8() {
             checkSize(sizeof(uint8_t));
             uint8_t d(*(uint8_t*)(_dataPtr + _dataOffset));
             _dataOffset += sizeof(uint8_t);
             return d;
         }
 
-        uint16_t Buffer::getUint16() {
+        uint16_t FrameBuffer::getUint16() {
             checkSize(sizeof(uint16_t));
             uint16_t d(be16toh(*(uint16_t*)(_dataPtr + _dataOffset)));
             _dataOffset += sizeof(uint16_t);
             return d;
         }
 
-        uint32_t Buffer::getUint32() {
+        uint32_t FrameBuffer::getUint32() {
             checkSize(sizeof(uint32_t));
             uint32_t d(be32toh(*(uint32_t*)(_dataPtr + _dataOffset)));
             _dataOffset += sizeof(uint32_t);
             return d;
         }
 
-        uint64_t Buffer::getUint64() {
+        uint64_t FrameBuffer::getUint64() {
             checkSize(sizeof(uint64_t));
             uint64_t d(be64toh(*(uint64_t*)(_dataPtr + _dataOffset)));
             _dataOffset += sizeof(uint64_t);
             return d;
         }
 
-        int8_t Buffer::getInt8() {
+        int8_t FrameBuffer::getInt8() {
             checkSize(sizeof(int8_t));
             int8_t d(*(int8_t*)(_dataPtr + _dataOffset));
             _dataOffset += sizeof(int8_t);
             return d;
         }
 
-        int16_t Buffer::getInt16() {
+        int16_t FrameBuffer::getInt16() {
             checkSize(sizeof(int16_t));
             int16_t d(be16toh(*(int16_t*)(_dataPtr + _dataOffset)));
             _dataOffset += sizeof(int16_t);
             return d;
         }
 
-        int32_t Buffer::getInt32() {
+        int32_t FrameBuffer::getInt32() {
             checkSize(sizeof(int32_t));
             int32_t d(be32toh(*(int32_t*)(_dataPtr + _dataOffset)));
             _dataOffset += sizeof(int32_t);
             return d;
         }
 
-        int64_t Buffer::getInt64() {
+        int64_t FrameBuffer::getInt64() {
             checkSize(sizeof(int64_t));
             int64_t d(be64toh(*(int64_t*)(_dataPtr + _dataOffset)));
             _dataOffset += sizeof(int64_t);
             return d;
         }
 
-        float Buffer::getFloat() {
+        float FrameBuffer::getFloat() {
             checkSize(sizeof(float));
             float d(be32toh(*(float*)(_dataPtr + _dataOffset)));
             _dataOffset += sizeof(float);
             return d;
        }
 
-        double Buffer::getDouble() {
+        double FrameBuffer::getDouble() {
             checkSize(sizeof(double));
             double d(be64toh(*(double*)(_dataPtr + _dataOffset)));
             _dataOffset += sizeof(double);
             return d;
         }
 
-        amqp_decimal32_t& Buffer::getDecimal32(amqp_decimal32_t& value) {
+        amqp_decimal32_t& FrameBuffer::getDecimal32(amqp_decimal32_t& value) {
             checkSize(sizeof(4));
             for (std::size_t i=0; i<4; ++i) {
                 value[i] = *(uint8_t*)(_dataPtr + _dataOffset);
@@ -136,7 +136,7 @@ namespace amqpAnalyze
             return value;
         }
 
-        amqp_decimal64_t& Buffer::getDecimal64(amqp_decimal64_t& value) {
+        amqp_decimal64_t& FrameBuffer::getDecimal64(amqp_decimal64_t& value) {
             checkSize(sizeof(8));
             for (std::size_t i=0; i<8; ++i) {
                 value[i] = *(uint8_t*)(_dataPtr + _dataOffset);
@@ -145,7 +145,7 @@ namespace amqpAnalyze
             return value;
         }
 
-        amqp_decimal128_t& Buffer::getDecimal128(amqp_decimal128_t& value) {
+        amqp_decimal128_t& FrameBuffer::getDecimal128(amqp_decimal128_t& value) {
             checkSize(sizeof(16));
             for (std::size_t i=0; i<16; ++i) {
                 value[i] = *(uint8_t*)(_dataPtr + _dataOffset);
@@ -154,14 +154,14 @@ namespace amqpAnalyze
             return value;
         }
 
-        char32_t Buffer::getChar() {
+        char32_t FrameBuffer::getChar() {
             checkSize(sizeof(char32_t));
             char32_t c(be32toh(*(char32_t*)(_dataPtr + _dataOffset)));
             _dataOffset += sizeof(char32_t);
             return c;
         }
 
-        amqp_uuid_t& Buffer::getUuid(amqp_uuid_t& value) {
+        amqp_uuid_t& FrameBuffer::getUuid(amqp_uuid_t& value) {
             checkSize(sizeof(16));
             for (std::size_t i=0; i<16; ++i) {
                 value[i] = *(uint8_t*)(_dataPtr + _dataOffset);
@@ -170,7 +170,7 @@ namespace amqpAnalyze
             return value;
         }
 
-        amqp_binary_t& Buffer::getBinary(amqp_binary_t& value, std::size_t size) {
+        amqp_binary_t& FrameBuffer::getBinary(amqp_binary_t& value, std::size_t size) {
             checkSize(size);
             for (std::size_t i=0; i<size; ++i) {
                 value.push_back(*(uint8_t*)(_dataPtr + _dataOffset + i));
@@ -179,28 +179,23 @@ namespace amqpAnalyze
             return value;
         }
 
-        amqp_string_t& Buffer::getString(amqp_string_t& value, std::size_t size) {
+        amqp_string_t& FrameBuffer::getString(amqp_string_t& value, std::size_t size) {
             checkSize(sizeof(size));
             value.assign((const char*)(_dataPtr + _dataOffset), size);
             _dataOffset += size;
             return value;
         }
 
-        amqp_symbol_t& Buffer::getSymbol(amqp_symbol_t& value, std::size_t size) {
+        amqp_symbol_t& FrameBuffer::getSymbol(amqp_symbol_t& value, std::size_t size) {
             checkSize(sizeof(size));
             value.assign((const char*)(_dataPtr + _dataOffset), size);
             _dataOffset += size;
             return value;
         }
 
-        amqp_list_t& Buffer::getList(amqp_list_t& value, std::size_t size, std::size_t count) {
+        amqp_list_t& FrameBuffer::getList(amqp_list_t& value, std::size_t size, std::size_t count) {
             const size_t startOffs = _dataOffset;
-            //std::cout << std::dec << "*** getList(size=" << size << ", count=" << count << "): soffs=" << startOffs << std::endl;
             for (std::size_t i=0; i<count; ++i) {
-                //std::cout << "  > " << i << " " << std::flush;
-                //AmqpType* t =  AmqpType::decode(*this);
-                //std::cout << t << " coffs=" << _dataOffset << std::endl;
-                //value.push_back(t);
                 value.push_back((PrimitiveType*)Type::decode(*this));
             }
             if (_dataOffset - startOffs != size) {
@@ -209,15 +204,12 @@ namespace amqpAnalyze
             return value;
         }
 
-        amqp_map_t& Buffer::getMap(amqp_map_t& value, std::size_t size, std::size_t count) {
+        amqp_map_t& FrameBuffer::getMap(amqp_map_t& value, std::size_t size, std::size_t count) {
             const size_t startOffs = _dataOffset;
-            //std::cout << std::dec << "*** getMap(size=" << size << ", count=" << count << "): soffs=" << startOffs << std::endl;
             for (std::size_t i=0; i<count; i+=2) {
-                //std::cout << "  > " << i << " " << std::flush;
                 PrimitiveType* key = (PrimitiveType*)Type::decode(*this);
                 PrimitiveType* mapVal = (PrimitiveType*)Type::decode(*this);
                 value[key] = mapVal;
-                //std::cout << " " << key << ": " << mapVal << " coffs=" << _dataOffset << std::flush;
             }
             if (_dataOffset - startOffs != size) {
                 throw amqpAnalyze::Error(MSG("Map size mismatch: expected 0x" << std::hex << size << ", found 0x" << (_dataOffset - startOffs)));
@@ -225,15 +217,10 @@ namespace amqpAnalyze
             return value;
         }
 
-        amqp_array_t& Buffer::getArray(amqp_array_t& value, std::size_t size, std::size_t count) {
+        amqp_array_t& FrameBuffer::getArray(amqp_array_t& value, std::size_t size, std::size_t count) {
             const size_t startOffs = _dataOffset;
-            //std::cout << std::dec << "*** getArray(size=" << size << ", count=" << count << "): soffs=" << startOffs << std::endl;
             uint8_t ctor = getUint8();
             for (std::size_t i=0; i<count; ++i) {
-                //std::cout << "  > " << i << " " << std::flush;
-                //AmqpType* t = AmqpType::decode(ctor, *this);
-                //std::cout << t << " coffs=" << _dataOffset << std::endl;
-                //value.push_back(t);
                 value.push_back((PrimitiveType*)Type::decodePrimitive(ctor, *this));
             }
             if (_dataOffset - startOffs != size) {
@@ -243,7 +230,7 @@ namespace amqpAnalyze
         }
 
         // protected
-        void Buffer::checkSize(std::size_t size) {
+        void FrameBuffer::checkSize(std::size_t size) {
             if (_dataLength - _dataOffset < size)
                 throw amqpAnalyze::Error(MSG("Insufficient buffer data to extract " << size << " bytes: data_size=" << _dataLength << "; curr_offs=" << _dataOffset));
         }

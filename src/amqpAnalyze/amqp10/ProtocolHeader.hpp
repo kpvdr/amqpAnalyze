@@ -30,14 +30,14 @@ namespace amqpAnalyze
                 uint8_t _revision;
                 hdr(const struct hdr* hdrPtr);
             };
-       protected:
-            struct hdr _hdr;
-            static std::map<uint8_t, const char*> s_protocolIdName;
         public:
             ProtocolHeader(std::size_t frameOffset, const struct ProtocolHeader::hdr* hdrPtr);
             ~ProtocolHeader();
             void appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const;
             std::size_t frameSize() const;
+        protected:
+             struct hdr _hdr;
+             static std::map<uint8_t, const char*> s_protocolIdName;
         };
 
     } /* namespace amqp10 */
