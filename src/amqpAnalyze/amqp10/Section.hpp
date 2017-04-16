@@ -40,7 +40,7 @@ namespace amqpAnalyze
         public:
             Section(std::size_t frameOffset);
             virtual ~Section();
-            virtual void appendString(std::ostringstream& oss, std::size_t margin) const = 0;
+            virtual void appendString(std::ostringstream& oss, std::size_t margin) const;
             virtual sectionType_t type() const = 0;
             static Section* decode(FrameBuffer& frameBuffer);
         protected:

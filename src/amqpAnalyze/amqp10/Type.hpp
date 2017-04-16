@@ -21,6 +21,8 @@ namespace amqpAnalyze
     {
 
         class CompositeType;
+        class FieldType;
+        typedef std::vector<FieldType> fieldTypeList_t;
         class PrimitiveType;
         class FrameBuffer;
 
@@ -53,12 +55,9 @@ namespace amqpAnalyze
             std::string typeValueStr(const char* valueDelim = "()") const; // formatted string type(value) without margins
             virtual std::string valueStr() const = 0; // value only as string
 
-            static Type* decode(FrameBuffer& b);
-            static PrimitiveType* decodePrimitive(uint8_t code, FrameBuffer& b);
-            static CompositeType* decodeComposite(FrameBuffer& b);
-
-        //protected:
-            //virtual std::string toString(const char* name, std::size_t margin) const = 0;
+            static Type* decode(FrameBuffer& framebuffer);
+            static PrimitiveType* decodePrimitive(uint8_t code, FrameBuffer& framebuffer);
+            static CompositeType* decodeComposite(FrameBuffer& framebuffer);
         };
 
 
@@ -140,10 +139,7 @@ namespace amqpAnalyze
             inline bool isComposite() const override { return false; };
             virtual amqpPrimitiveType_t type() const = 0;
             inline const char* typeStr() const override { return s_amqpSimpleTypeNames.at(type()); }
-
             static std::map<amqpPrimitiveType_t, const char*> s_amqpSimpleTypeNames;
-        protected:
-            //std::string toString(const char* name, std::size_t margin) const override;
         };
         typedef PrimitiveType amqp_primitive_t;
         
@@ -742,97 +738,6 @@ namespace amqpAnalyze
         };
 
 
-/*
-        typedef amqp_annotations_t amqp_delivery_annotations_t;
-        typedef amqp_delivery_annotations_t::iterator amqp_delivery_annotations_itr_t;
-        typedef amqp_delivery_annotations_t::const_iterator amqp_delivery_annotations_citr_t;
-        class AmqpDeliveryAnnotations: public AmqpAnnotations {
-        public:
-            AmqpDeliveryAnnotations();
-            virtual ~AmqpDeliveryAnnotations();
-            inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::DELIVERY_ANNOTATIONS_TYPE; }
-            inline amqp_delivery_annotations_t& value() { return _value; }
-            inline const amqp_delivery_annotations_t& value() const { return _value; }
-        };
-*/
-
-
-/*
-        typedef amqp_annotations_t amqp_message_annotations_t;
-        typedef amqp_message_annotations_t::iterator amqp_message_annotations_itr_t;
-        typedef amqp_message_annotations_t::const_iterator amqp_message_annotations_citr_t;
-        class AmqpMessageAnnotations: public AmqpAnnotations {
-        public:
-            AmqpMessageAnnotations();
-            virtual ~AmqpMessageAnnotations();
-            inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::MESSAGE_ANNOTATIONS_TYPE; }
-            inline amqp_message_annotations_t& value() { return _value; }
-            inline const amqp_message_annotations_t& value() const { return _value; }
-        };
-*/
-
-
-/*
-        typedef amqp_map_t amqp_application_properties_t;
-        typedef amqp_application_properties_t::iterator amqp_application_properties_itr_t;
-        typedef amqp_application_properties_t::const_iterator amqp_application_properties_citr_t;
-        class AmqpApplicationProperties: public AmqpMap {
-        public:
-            AmqpApplicationProperties();
-            virtual ~AmqpApplicationProperties();
-            inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::APPLICATION_PROPERTIES_TYPE; }
-            inline amqp_application_properties_t& value() { return _value; }
-            inline const amqp_application_properties_t& value() const { return _value; }
-        };
-*/
-
-
-/*
-        typedef amqp_binary_t amqp_raw_data_t;
-        typedef amqp_raw_data_t::iterator amqp_raw_data_itr_t;
-        typedef amqp_raw_data_t::const_iterator amqp_raw_data_citr_t;
-        class AmqpRawData: public AmqpBinary {
-        public:
-            AmqpRawData();
-            virtual ~AmqpRawData();
-            inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::RAW_DATA_TYPE; }
-            inline amqp_raw_data_t& value() { return _value; }
-            inline const amqp_raw_data_t& value() const { return _value; }
-        };
-*/
-
-
-/*
-        typedef amqp_list_t amqp_sequence_t;
-        typedef amqp_list_t::iterator amqp_sequence_itr_t;
-        typedef amqp_list_t::const_iterator amqp_sequence_citr_t;
-        class AmqpSequence: public AmqpList {
-        public:
-            AmqpSequence();
-            virtual ~AmqpSequence();
-            inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::AMQP_SEQUENCE_TYPE; }
-            inline amqp_sequence_t& value() { return _value; }
-            inline const amqp_sequence_t& value() const { return _value; }
-        };
-*/
-
-
-//        typedef amqp_primitive_t amqp_value_t;
-
-
-/*
-        typedef amqp_annotations_t amqp_footer_t;
-        typedef amqp_footer_t::iterator amqp_footer_itr_t;
-        typedef amqp_footer_t::const_iterator amqp_footer_citr_t;
-        class AmqpFooter: public AmqpAnnotations {
-        public:
-            AmqpFooter();
-            virtual ~AmqpFooter();
-            inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::FOOTER_TYPE; }
-            inline amqp_footer_t& value() { return _value; }
-            inline const amqp_footer_t& value() const { return _value; }
-        };
-*/
 
 
         typedef amqp_ulong_t amqp_msg_id_ulong_t;
@@ -1045,15 +950,6 @@ namespace amqpAnalyze
         //=========================================
 
         enum class amqpCompositeType_t:uint64_t {
-            //OPEN=0x10,
-            //BEGIN,
-            //ATTACH,
-            //FLOW,
-            //TRANSFER,
-            //DISPOSITION,
-            //DETACH,
-            //END,
-            //CLOSE,
             ERROR = 0x1d,
             RECEIVED = 0x23,
             ACCEPTED,
@@ -1075,39 +971,8 @@ namespace amqpAnalyze
             SASL_INIT,
             SASL_CHALLENGE,
             SASL_RESPONSE,
-            SASL_OUTCOME//,
-            //HEADER = 0x70,
-            //DELIVERY_ANNOTATIONS,
-            //MESSAGE_ANNOTATIONS,
-            //PROPERTIES = 0x73 //,
-            //APPLICATION_PROPERTIES,
-            //MESSAGE_DATA_RAW,
-            //MESSAGE_DATA_AMQP_SEQUENCE,
-            //MESSAGE_DATA_AMQP_VALUE,
-            //FOOTER
+            SASL_OUTCOME
         };
-
-/*
-        struct XXFieldTypeXX {
-            const char* _fieldName;
-            union ctype {
-                const amqpPrimitiveType_t _primitiveType;
-                const amqpCompositeType_t _compositeType;
-                const char _wildcard;
-                ctype(amqpPrimitiveType_t primitiveType): _primitiveType(primitiveType) {}
-                ctype(amqpCompositeType_t compositeType): _compositeType(compositeType) {}
-                ctype(char wildcard): _wildcard(wildcard) {}
-            } _types;
-            const bool _mandatoryFlag;
-            const bool _multipleFlag;
-            std::vector<amqpRequiresProvides_t> _requiresList;
-            XXFieldTypeXX(const char* fieldName, amqpPrimitiveType_t primitiveType, bool mandatoryFlag, bool multipleFlag, std::initializer_list<amqpRequiresProvides_t> _requiresInit = {});
-            XXFieldTypeXX(const char* fieldName, amqpCompositeType_t compositeType, bool mandatoryFlag, bool multipleFlag, std::initializer_list<amqpRequiresProvides_t> _requiresInit = {});
-            XXFieldTypeXX(const char* fieldName, char wildcard, bool mandatoryFlag, bool multipleFlag, std::initializer_list<amqpRequiresProvides_t> _requiresInit);
-        };
-        typedef std::vector<XXFieldTypeXX> XXFieldTypeCCList_t;
-        typedef XXFieldTypeCCList_t::const_iterator XXFieldTypeXXList_citr_t;
-*/
 
 
         class CompositeType: public Type {
@@ -1119,136 +984,18 @@ namespace amqpAnalyze
             inline const AmqpList* fieldList() const { return _fieldListPtr; }
             inline bool isComposite() const override { return true; };
             std::string toString(std::size_t margin) const;
-            //std::string toString(std::size_t margin, const fieldTypeList_t& fieldTypeList) const;
             virtual amqpCompositeType_t type() const = 0;
             inline const char* typeStr() const override { return s_amqpCompositeTypeNames.at(type()); }
             std::string valueStr() const override;
             static std::map<amqpCompositeType_t, const char*> s_amqpCompositeTypeNames;
-        protected:
-            //std::string toString(const char* name) const override;
         };
-/*
-
-
-        class AmqpOpen: public CompositeType {
-        public:
-            AmqpOpen(AmqpList* fieldList);
-            virtual ~AmqpOpen();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
-            inline amqpCompositeType_t type() const override { return amqpCompositeType_t::OPEN; }
-            //std::string valueStr() const override;
-        protected:
-            static fieldTypeList_t s_fieldTypeList;
-        };
-
-
-        class AmqpBegin: public CompositeType {
-        public:
-            AmqpBegin(AmqpList* fieldList);
-            virtual ~AmqpBegin();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
-            inline amqpCompositeType_t type() const override { return amqpCompositeType_t::BEGIN; }
-            //std::string valueStr() const override;
-        protected:
-            static fieldTypeList_t s_fieldTypeList;
-        };
-
-
-        class AmqpAttach: public CompositeType {
-        public:
-            AmqpAttach(AmqpList* fieldList);
-            virtual ~AmqpAttach();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
-            inline amqpCompositeType_t type() const override { return amqpCompositeType_t::ATTACH; }
-            //std::string valueStr() const override;
-        protected:
-            static fieldTypeList_t s_fieldTypeList;
-        };
-
-
-        class AmqpFlow: public CompositeType {
-        public:
-            AmqpFlow(AmqpList* fieldList);
-            virtual ~AmqpFlow();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
-            inline amqpCompositeType_t type() const override { return amqpCompositeType_t::FLOW; }
-            //std::string valueStr() const override;
-        protected:
-            static fieldTypeList_t s_fieldTypeList;
-        };
-
-
-        class AmqpTransfer: public CompositeType {
-        public:
-            AmqpTransfer(AmqpList* fieldList);
-            virtual ~AmqpTransfer();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
-            inline amqpCompositeType_t type() const override { return amqpCompositeType_t::TRANSFER; }
-            //std::string valueStr() const override;
-        protected:
-            static fieldTypeList_t s_fieldTypeList;
-        };
-
-
-        class AmqpDisposition: public CompositeType {
-        public:
-            AmqpDisposition(AmqpList* fieldList);
-            virtual ~AmqpDisposition();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
-            inline amqpCompositeType_t type() const override { return amqpCompositeType_t::DISPOSITION; }
-            //std::string valueStr() const override;
-        protected:
-            static fieldTypeList_t s_fieldTypeList;
-        };
-
-
-        class AmqpDetach: public CompositeType {
-        public:
-            AmqpDetach(AmqpList* fieldList);
-            virtual ~AmqpDetach();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
-            inline amqpCompositeType_t type() const override { return amqpCompositeType_t::DETACH; }
-            //std::string valueStr() const override;
-        protected:
-            static fieldTypeList_t s_fieldTypeList;
-        };
-
-
-        class AmqpEnd: public CompositeType {
-        public:
-            AmqpEnd(AmqpList* fieldList);
-            virtual ~AmqpEnd();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
-            inline amqpCompositeType_t type() const override { return amqpCompositeType_t::END; }
-            //std::string valueStr() const override;
-        protected:
-            static fieldTypeList_t s_fieldTypeList;
-        };
-
-
-        class AmqpClose: public CompositeType {
-        public:
-            AmqpClose(AmqpList* fieldList);
-            virtual ~AmqpClose();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
-            inline amqpCompositeType_t type() const override { return amqpCompositeType_t::CLOSE; }
-            //std::string valueStr() const override;
-        protected:
-            static fieldTypeList_t s_fieldTypeList;
-        };
-*/
-
-        class FieldType;
-        typedef std::vector<FieldType> fieldTypeList_t;
 
 
         class AmqpErrorRecord: public CompositeType {
         public:
             AmqpErrorRecord(AmqpList* fieldList);
             virtual ~AmqpErrorRecord();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
             inline amqpCompositeType_t type() const override { return amqpCompositeType_t::ERROR; }
-            //std::string valueStr() const override;
         protected:
             static fieldTypeList_t s_fieldTypeList;
         };
@@ -1258,9 +1005,7 @@ namespace amqpAnalyze
         public:
             AmqpReceived(AmqpList* fieldList);
             virtual ~AmqpReceived();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
             inline amqpCompositeType_t type() const override { return amqpCompositeType_t::RECEIVED; }
-            //std::string valueStr() const override;
         protected:
             static fieldTypeList_t s_fieldTypeList;
         	static amqp_provides_requires_list_t s_providesList;
@@ -1271,9 +1016,7 @@ namespace amqpAnalyze
         public:
             AmqpAccepted(AmqpList* fieldList);
             virtual ~AmqpAccepted();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
             inline amqpCompositeType_t type() const override { return amqpCompositeType_t::ACCEPTED; }
-            //std::string valueStr() const override;
         protected:
             static fieldTypeList_t s_fieldTypeList;
         	static amqp_provides_requires_list_t s_providesList;
@@ -1284,9 +1027,7 @@ namespace amqpAnalyze
         public:
             AmqpRejected(AmqpList* fieldList);
             virtual ~AmqpRejected();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
             inline amqpCompositeType_t type() const override { return amqpCompositeType_t::REJECTED; }
-            //std::string valueStr() const override;
         protected:
             static fieldTypeList_t s_fieldTypeList;
         	static amqp_provides_requires_list_t s_providesList;
@@ -1297,9 +1038,7 @@ namespace amqpAnalyze
         public:
             AmqpReleased(AmqpList* fieldList);
             virtual ~AmqpReleased();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
             inline amqpCompositeType_t type() const override { return amqpCompositeType_t::RELEASED; }
-            //std::string valueStr() const override;
         protected:
             static fieldTypeList_t s_fieldTypeList;
         	static amqp_provides_requires_list_t s_providesList;
@@ -1310,9 +1049,7 @@ namespace amqpAnalyze
         public:
             AmqpModified(AmqpList* fieldList);
             virtual ~AmqpModified();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
             inline amqpCompositeType_t type() const override { return amqpCompositeType_t::MODIFIED; }
-            //std::string valueStr() const override;
         protected:
             static fieldTypeList_t s_fieldTypeList;
         	static amqp_provides_requires_list_t s_providesList;
@@ -1323,9 +1060,7 @@ namespace amqpAnalyze
         public:
             AmqpSource(AmqpList* fieldList);
             virtual ~AmqpSource();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
             inline amqpCompositeType_t type() const override { return amqpCompositeType_t::SOURCE; }
-            //std::string valueStr() const override;
         protected:
             static fieldTypeList_t s_fieldTypeList;
         	static amqp_provides_requires_list_t s_providesList;
@@ -1336,9 +1071,7 @@ namespace amqpAnalyze
         public:
             AmqpTarget(AmqpList* fieldList);
             virtual ~AmqpTarget();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
             inline amqpCompositeType_t type() const override { return amqpCompositeType_t::TARGET; }
-            //std::string valueStr() const override;
         protected:
             static fieldTypeList_t s_fieldTypeList;
         	static amqp_provides_requires_list_t s_providesList;
@@ -1348,9 +1081,7 @@ namespace amqpAnalyze
         public:
             AmqpDeleteOnClose(AmqpList* fieldList);
             virtual ~AmqpDeleteOnClose();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
             inline amqpCompositeType_t type() const override { return amqpCompositeType_t::DELETE_ON_CLOSE; }
-            //std::string valueStr() const override;
         protected:
             static fieldTypeList_t s_fieldTypeList;
         };
@@ -1360,9 +1091,7 @@ namespace amqpAnalyze
         public:
             AmqpDeleteOnNoLinks(AmqpList* fieldList);
             virtual ~AmqpDeleteOnNoLinks();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
             inline amqpCompositeType_t type() const override { return amqpCompositeType_t::DELETE_ON_NO_LINKS; }
-            //std::string valueStr() const override;
         protected:
             static fieldTypeList_t s_fieldTypeList;
         };
@@ -1372,9 +1101,7 @@ namespace amqpAnalyze
         public:
             AmqpDeleteOnNoMessages(AmqpList* fieldList);
             virtual ~AmqpDeleteOnNoMessages();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
             inline amqpCompositeType_t type() const override { return amqpCompositeType_t::DELETE_ON_NO_MESSAGES; }
-            //std::string valueStr() const override;
         protected:
             static fieldTypeList_t s_fieldTypeList;
         };
@@ -1384,9 +1111,7 @@ namespace amqpAnalyze
         public:
             AmqpDeleteOnNoLinksOrMessages(AmqpList* fieldList);
             virtual ~AmqpDeleteOnNoLinksOrMessages();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
             inline amqpCompositeType_t type() const override { return amqpCompositeType_t::DELETE_ON_NO_LINKS_OR_MESSAGES; }
-            //std::string valueStr() const override;
         protected:
             static fieldTypeList_t s_fieldTypeList;
         };
@@ -1396,9 +1121,7 @@ namespace amqpAnalyze
         public:
             AmqpCoordinator(AmqpList* fieldList);
             virtual ~AmqpCoordinator();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
             inline amqpCompositeType_t type() const override { return amqpCompositeType_t::COORDINATOR; }
-            //std::string valueStr() const override;
         protected:
             static fieldTypeList_t s_fieldTypeList;
         	static amqp_provides_requires_list_t s_providesList;
@@ -1409,9 +1132,7 @@ namespace amqpAnalyze
         public:
             AmqpDeclare(AmqpList* fieldList);
             virtual ~AmqpDeclare();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
             inline amqpCompositeType_t type() const override { return amqpCompositeType_t::DECLARE; }
-            //std::string valueStr() const override;
         protected:
             static fieldTypeList_t s_fieldTypeList;
         };
@@ -1421,9 +1142,7 @@ namespace amqpAnalyze
         public:
             AmqpDischarge(AmqpList* fieldList);
             virtual ~AmqpDischarge();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
             inline amqpCompositeType_t type() const override { return amqpCompositeType_t::DISCHARGE; }
-            //std::string valueStr() const override;
         protected:
             static fieldTypeList_t s_fieldTypeList;
         };
@@ -1433,9 +1152,7 @@ namespace amqpAnalyze
         public:
             AmqpDeclared(AmqpList* fieldList);
             virtual ~AmqpDeclared();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
             inline amqpCompositeType_t type() const override { return amqpCompositeType_t::DECLARED; }
-            //std::string valueStr() const override;
         protected:
             static fieldTypeList_t s_fieldTypeList;
         	static amqp_provides_requires_list_t s_providesList;
@@ -1446,9 +1163,7 @@ namespace amqpAnalyze
         public:
             AmqpTransactionalState(AmqpList* fieldList);
             virtual ~AmqpTransactionalState();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
             inline amqpCompositeType_t type() const override { return amqpCompositeType_t::TRANSACTIONAL_STATE; }
-            //std::string valueStr() const override;
         protected:
             static fieldTypeList_t s_fieldTypeList;
         	static amqp_provides_requires_list_t s_providesList;
@@ -1459,9 +1174,7 @@ namespace amqpAnalyze
         public:
             AmqpSaslMechanisms(AmqpList* fieldList);
             virtual ~AmqpSaslMechanisms();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
             inline amqpCompositeType_t type() const override { return amqpCompositeType_t::SASL_MECHANISMS; }
-            //std::string valueStr() const override;
         protected:
             static fieldTypeList_t s_fieldTypeList;
         };
@@ -1471,9 +1184,7 @@ namespace amqpAnalyze
         public:
             AmqpSaslInit(AmqpList* fieldList);
             virtual ~AmqpSaslInit();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
             inline amqpCompositeType_t type() const override { return amqpCompositeType_t::SASL_INIT; }
-            //std::string valueStr() const override;
         protected:
             static fieldTypeList_t s_fieldTypeList;
         };
@@ -1483,9 +1194,7 @@ namespace amqpAnalyze
         public:
             AmqpSaslChallenge(AmqpList* fieldList);
             virtual ~AmqpSaslChallenge();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
             inline amqpCompositeType_t type() const override { return amqpCompositeType_t::SASL_CHALLENGE; }
-            //std::string valueStr() const override;
         protected:
             static fieldTypeList_t s_fieldTypeList;
         };
@@ -1495,9 +1204,7 @@ namespace amqpAnalyze
         public:
             AmqpSaslResponse(AmqpList* fieldList);
             virtual ~AmqpSaslResponse();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
             inline amqpCompositeType_t type() const override { return amqpCompositeType_t::SASL_RESPONSE; }
-            //std::string valueStr() const override;
         protected:
             static fieldTypeList_t s_fieldTypeList;
         };
@@ -1507,38 +1214,10 @@ namespace amqpAnalyze
         public:
             AmqpSaslOutcome(AmqpList* fieldList);
             virtual ~AmqpSaslOutcome();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
             inline amqpCompositeType_t type() const override { return amqpCompositeType_t::SASL_OUTCOME; }
-            //std::string valueStr() const override;
         protected:
             static fieldTypeList_t s_fieldTypeList;
         };
-
-
-/*
-        class AmqpMessageHeader: public CompositeType {
-        public:
-            AmqpMessageHeader(AmqpList* fieldList);
-            virtual ~AmqpMessageHeader();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
-            inline amqpCompositeType_t type() const override { return amqpCompositeType_t::HEADER; }
-            //std::string valueStr() const override;
-        protected:
-            static fieldTypeList_t s_fieldTypeList;
-        };
-
-
-        class AmqpMessageProperties: public CompositeType {
-        public:
-            AmqpMessageProperties(AmqpList* fieldList);
-            virtual ~AmqpMessageProperties();
-            //inline std::string toString(std::size_t margin) const override { return CompositeType::toString(margin, s_fieldTypeList); };
-            inline amqpCompositeType_t type() const override { return amqpCompositeType_t::PROPERTIES; }
-            //std::string valueStr() const override;
-        protected:
-            static fieldTypeList_t s_fieldTypeList;
-        };
-*/
 
 
     } /* namespace amqp10 */

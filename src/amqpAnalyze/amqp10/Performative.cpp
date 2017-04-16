@@ -55,7 +55,7 @@ namespace amqpAnalyze
             if (_extendedHeaderSize > 0) {
                 oss << " extHdrSize=0x" << _extendedHeaderSize;
             }
-            oss << ": " << typeStr();
+            oss << ": " << typeStr() << ":";
         }
         std::size_t FrameHeader::frameSize() const {
             return 8;
@@ -90,12 +90,12 @@ namespace amqpAnalyze
         void Performative::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
             FrameHeader::appendString(oss, margin, ignoreFirstMargin);
             if (_fieldListPtr != nullptr) {
-                oss << std::endl << std::string(margin + 9, ' ');
+                oss << std::endl << std::string(margin + 7, ' ') << "+ ";
                 _fieldListPtr->appendString(oss, margin + 9);
             }
             if (!_sectionPtrList.empty()) {
                 for (sectionPtrList_citr_t i=_sectionPtrList.cbegin(); i!=_sectionPtrList.cend(); ++i) {
-                    oss << std::endl << std::string(margin + 9, ' ');
+                    oss << std::endl << std::string(margin, ' ');
                     (*i)->appendString(oss, margin + 9);
                 }
             }

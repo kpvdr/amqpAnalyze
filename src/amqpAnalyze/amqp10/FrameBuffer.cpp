@@ -6,6 +6,7 @@
  */
 
 #include <amqpAnalyze/amqp10/FrameBuffer.hpp>
+
 #include <amqpAnalyze/Error.hpp>
 
 #include <endian.h>

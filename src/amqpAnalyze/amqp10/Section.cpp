@@ -19,6 +19,10 @@ namespace amqpAnalyze
 
         Section::Section(std::size_t frameOffset): _frameOffset(frameOffset) {}
         Section::~Section() {}
+        void Section::appendString(std::ostringstream& oss, std::size_t margin) const {
+            oss << "[" << std::setw(4) << std::setfill('0') << std::hex << _frameOffset
+                            << "] + ";
+        }
         // static
         Section* Section::decode(FrameBuffer& frameBuffer) {
             size_t frameOffset = frameBuffer.getOffset();
@@ -89,6 +93,7 @@ namespace amqpAnalyze
             }
         }
         void AmqpHeader::appendString(std::ostringstream& oss, std::size_t margin) const {
+            Section::appendString(oss, margin);
             _listPtr->appendString(oss, margin);
         }
 
@@ -105,6 +110,7 @@ namespace amqpAnalyze
             }
         }
         void AmqpDeliveryAnnotations::appendString(std::ostringstream& oss, std::size_t margin) const {
+            Section::appendString(oss, margin);
             _annotationsPtr->appendString(oss, margin);
         }
 
@@ -122,6 +128,7 @@ namespace amqpAnalyze
             }
         }
         void AmqpMessageAnnotations::appendString(std::ostringstream& oss, std::size_t margin) const {
+            Section::appendString(oss, margin);
             _annotationsPtr->appendString(oss, margin);
         }
 
@@ -139,6 +146,7 @@ namespace amqpAnalyze
             }
         }
         void AmqpProperties::appendString(std::ostringstream& oss, std::size_t margin) const {
+            Section::appendString(oss, margin);
             _listPtr->appendString(oss, margin);
         }
 
@@ -156,6 +164,7 @@ namespace amqpAnalyze
             }
         }
         void AmqpApplicationProperties::appendString(std::ostringstream& oss, std::size_t margin) const {
+            Section::appendString(oss, margin);
             _mapPtr->appendString(oss, margin);
         }
 
@@ -173,6 +182,7 @@ namespace amqpAnalyze
             }
         }
         void AmqpData::appendString(std::ostringstream& oss, std::size_t margin) const {
+            Section::appendString(oss, margin);
             oss << _binaryPtr->typeValueStr();
         }
 
@@ -190,6 +200,7 @@ namespace amqpAnalyze
             }
         }
         void AmqpSequence::appendString(std::ostringstream& oss, std::size_t margin) const {
+            Section::appendString(oss, margin);
             _listPtr->appendString(oss, margin);
         }
 
@@ -207,6 +218,7 @@ namespace amqpAnalyze
             }
         }
         void AmqpValue::appendString(std::ostringstream& oss, std::size_t margin) const {
+            Section::appendString(oss, margin);
             oss << _valuePtr->typeValueStr();
         }
 
@@ -224,6 +236,7 @@ namespace amqpAnalyze
             }
         }
         void AmqpFooter::appendString(std::ostringstream& oss, std::size_t margin) const {
+            Section::appendString(oss, margin);
             _annotationsPtr->appendString(oss, margin);
         }
 
