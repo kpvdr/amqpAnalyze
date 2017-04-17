@@ -24,13 +24,14 @@
 
 namespace amqpAnalyze {
 
-AmqpDissector::AmqpDissector(const struct pcap_pkthdr* pcapPacketHeaderPtr,
+AmqpDissector::AmqpDissector(uint64_t packetNum,
+                             const struct pcap_pkthdr* pcapPacketHeaderPtr,
                              const uint8_t* packetPtr,
                              uint32_t packetOffs,
                              std::deque<WireDissector*>& protocolList,
                              std::size_t amqpDataSize,
                              const TcpDissector* tcpDissectorPtr):
-		WireDissector(pcapPacketHeaderPtr, packetPtr, packetOffs, DISSECTOR_AMQP, protocolList),
+		WireDissector(packetNum, pcapPacketHeaderPtr, packetPtr, packetOffs, DISSECTOR_AMQP, protocolList),
 		_tcpDissectorPtr(tcpDissectorPtr),
 		_amqpFrameList()
 {
@@ -66,14 +67,16 @@ AmqpDissector::AmqpDissector(const struct pcap_pkthdr* pcapPacketHeaderPtr,
     try {
         while (amqpDataSize - amqpOffs >= 8) {
             std::string magic((const char*)(packetPtr+packetOffs+amqpOffs), 4);
-            if (magic.compare("AMQP") == 0) { // AMQP header
+            if (magic.compare("AMQP") == 0) {
+                // AMQP header
                 amqp10::ProtocolHeader* amqpHdrPtr = new amqp10::ProtocolHeader(amqpOffs, (const amqp10::ProtocolHeader::hdr*)(packetPtr+packetOffs+amqpOffs));
                 amqpOffs += amqpHdrPtr->frameSize();
                 _amqpFrameList.push_back(amqpHdrPtr);
-            } else { // AMQP frame
-                amqp10::FrameBuffer b(packetPtr+packetOffs+amqpOffs);
-                _amqpFrameList.push_back(amqp10::Performative::decode(amqpOffs, b));
-                amqpOffs += b.getSize();
+            } else {
+                // AMQP frame
+                amqp10::FrameBuffer frameBuffer(packetNum, packetOffs+amqpOffs, packetPtr+packetOffs+amqpOffs);
+                _amqpFrameList.push_back(amqp10::Performative::decode(frameBuffer));
+                amqpOffs += frameBuffer.getSize();
             }
         }
     } catch (const Error& e) {std::cout << " Error: " << e.what() << std::endl;}

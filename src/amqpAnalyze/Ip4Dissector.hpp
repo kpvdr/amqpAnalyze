@@ -19,7 +19,8 @@ class Ip4Dissector: public IpDissector {
 protected:
 	struct ip _ip4Header;
 public:
-	Ip4Dissector(const struct pcap_pkthdr* pcapPacketHeaderPtr,
+	Ip4Dissector(uint64_t packetNum,
+	             const struct pcap_pkthdr* pcapPacketHeaderPtr,
 	             const uint8_t* packetPtr,
                  const uint32_t packetOffs,
 	             std::deque<WireDissector*>& protocolList);

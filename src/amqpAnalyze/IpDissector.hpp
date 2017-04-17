@@ -16,7 +16,8 @@ namespace amqpAnalyze
     class IpDissector: public WireDissector
     {
     public:
-        IpDissector(const struct pcap_pkthdr* pcapPacketHeaderPtr,
+        IpDissector(uint64_t packetNum,
+                    const struct pcap_pkthdr* pcapPacketHeaderPtr,
                     const uint8_t* packetPtr,
                     const uint32_t packetOffs,
                     dissector_t dissectorType,

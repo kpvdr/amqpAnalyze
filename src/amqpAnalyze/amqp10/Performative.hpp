@@ -23,6 +23,7 @@ namespace amqpAnalyze
         class FieldType;
         typedef std::vector<FieldType> fieldTypeList_t;
         class FrameBuffer;
+        class Type;
         class Section;
         typedef std::vector<Section*> sectionPtrList_t;
 
@@ -70,23 +71,29 @@ namespace amqpAnalyze
             virtual performativeType_t type() const = 0;
             inline const char* typeStr() const { return s_performativeTypeName.at(type()); }
 
-            static FrameHeader* decode(std::size_t frameOffset, FrameBuffer& frameBuffer);
+            static FrameHeader* decode(FrameBuffer& frameBuffer);
         protected:
             AmqpList* _fieldListPtr;
             sectionPtrList_t _sectionPtrList;
 
-            static Performative* decodeAmqpFrame(std::size_t frameOffset,
-                                                 uint32_t frameSize,
+            static Performative* decodeAmqpFrame(uint32_t frameSize,
                                                  uint8_t dataOffset,
                                                  frameType_t type,
                                                  uint16_t typeSpecific,
                                                  FrameBuffer& frameBuffer);
-            static Performative* decodeSaslFrame(std::size_t frameOffset,
-                                                 uint32_t frameSize,
+            static Performative* decodeSaslFrame(uint32_t frameSize,
                                                  uint8_t dataOffset,
                                                  frameType_t type,
                                                  uint16_t typeSpecific,
                                                  FrameBuffer& frameBuffer);
+            static AmqpList* decodeFieldList(FrameBuffer& frameBuffer,
+                                             fieldTypeList_t& fieldTypeList);
+            static AmqpList* decodeFieldList(std::size_t size,
+                                             std::size_t count,
+                                             FrameBuffer& frameBuffer,
+                                             fieldTypeList_t& fieldTypeList);
+            static Type* decodeField(const FieldType& fieldType,
+                                     FrameBuffer& frameBuffer);
             static std::map<performativeType_t, const char*> s_performativeTypeName;
         };
 
@@ -96,7 +103,6 @@ namespace amqpAnalyze
             AmqpOpen(std::size_t frameOffset, uint32_t frameSize, uint8_t dataOffset, frameType_t type, uint16_t typeSpecific, AmqpList* fieldListPtr);
             virtual ~AmqpOpen();
             inline performativeType_t type() const override { return performativeType_t::OPEN; }
-        protected:
             static fieldTypeList_t s_fieldTypeList;
         };
 
@@ -106,7 +112,6 @@ namespace amqpAnalyze
             AmqpBegin(std::size_t frameOffset, uint32_t frameSize, uint8_t dataOffset, frameType_t type, uint16_t typeSpecific, AmqpList* fieldListPtr);
             virtual ~AmqpBegin();
             inline performativeType_t type() const override { return performativeType_t::BEGIN; }
-        protected:
             static fieldTypeList_t s_fieldTypeList;
         };
 
@@ -116,7 +121,6 @@ namespace amqpAnalyze
             AmqpAttach(std::size_t frameOffset, uint32_t frameSize, uint8_t dataOffset, frameType_t type, uint16_t typeSpecific, AmqpList* fieldListPtr);
             virtual ~AmqpAttach();
             inline performativeType_t type() const override { return performativeType_t::ATTACH; }
-        protected:
             static fieldTypeList_t s_fieldTypeList;
         };
 
@@ -126,7 +130,6 @@ namespace amqpAnalyze
             AmqpFlow(std::size_t frameOffset, uint32_t frameSize, uint8_t dataOffset, frameType_t type, uint16_t typeSpecific, AmqpList* fieldListPtr);
             virtual ~AmqpFlow();
             inline performativeType_t type() const override { return performativeType_t::FLOW; }
-        protected:
             static fieldTypeList_t s_fieldTypeList;
         };
 
@@ -136,7 +139,6 @@ namespace amqpAnalyze
             AmqpTransfer(std::size_t frameOffset, uint32_t frameSize, uint8_t dataOffset, frameType_t type, uint16_t typeSpecific, AmqpList* fieldListPtr);
             virtual ~AmqpTransfer();
             inline performativeType_t type() const override { return performativeType_t::TRANSFER; }
-        protected:
             static fieldTypeList_t s_fieldTypeList;
         };
 
@@ -146,7 +148,6 @@ namespace amqpAnalyze
             AmqpDisposition(std::size_t frameOffset, uint32_t frameSize, uint8_t dataOffset, frameType_t type, uint16_t typeSpecific, AmqpList* fieldListPtr);
             virtual ~AmqpDisposition();
             inline performativeType_t type() const override { return performativeType_t::DISPOSITION; }
-        protected:
             static fieldTypeList_t s_fieldTypeList;
         };
 
@@ -156,7 +157,6 @@ namespace amqpAnalyze
             AmqpDetach(std::size_t frameOffset, uint32_t frameSize, uint8_t dataOffset, frameType_t type, uint16_t typeSpecific, AmqpList* fieldListPtr);
             virtual ~AmqpDetach();
             inline performativeType_t type() const override { return performativeType_t::DETACH; }
-        protected:
             static fieldTypeList_t s_fieldTypeList;
         };
 
@@ -166,7 +166,6 @@ namespace amqpAnalyze
             AmqpEnd(std::size_t frameOffset, uint32_t frameSize, uint8_t dataOffset, frameType_t type, uint16_t typeSpecific, AmqpList* fieldListPtr);
             virtual ~AmqpEnd();
             inline performativeType_t type() const override { return performativeType_t::END; }
-        protected:
             static fieldTypeList_t s_fieldTypeList;
         };
 
@@ -176,7 +175,6 @@ namespace amqpAnalyze
             AmqpClose(std::size_t frameOffset, uint32_t frameSize, uint8_t dataOffset, frameType_t type, uint16_t typeSpecific, AmqpList* fieldListPtr);
             virtual ~AmqpClose();
             inline performativeType_t type() const override { return performativeType_t::CLOSE; }
-        protected:
             static fieldTypeList_t s_fieldTypeList;
         };
 

@@ -23,13 +23,16 @@ namespace amqpAnalyze
         class FrameBuffer
         {
         public:
-            FrameBuffer(const uint8_t* dataPtr);
+            FrameBuffer(uint64_t packetNum, std::size_t frameOffset, const uint8_t* dataPtr);
             virtual ~FrameBuffer();
             std::size_t getSize() const;
             std::size_t getOffset() const;
             std::size_t getRemaining() const;
             bool isEmpty() const;
-            const uint8_t* getDataPtr();
+            const uint8_t* getDataPtr() const;
+            std::string getErrorPrefix() const;
+            std::size_t getFrameOffset() const;
+            uint64_t getPacketNum() const;
 
             void ignore(std::size_t size);
             bool getBool();
@@ -55,6 +58,8 @@ namespace amqpAnalyze
             amqp_map_t& getMap(amqp_map_t& value, std::size_t size, std::size_t count);
             amqp_array_t& getArray(amqp_array_t& value, std::size_t size, std::size_t count);
         protected:
+            const uint64_t _packetNum;
+            const std::size_t _frameOffset;
             const uint8_t* _dataPtr;
             std::size_t _dataLength;
             std::size_t _dataOffset;

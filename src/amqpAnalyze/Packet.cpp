@@ -39,13 +39,13 @@ namespace amqpAnalyze
         const struct ether_header* ethernetHeader = (struct ether_header*)packetPtr;
         switch (::ntohs(ethernetHeader->ether_type)) {
         case ETHERTYPE_IP:
-        	_protocolList.push_front(new Ip4Dissector(pcapPacketHeaderPtr, packetPtr, sizeof(struct ether_header), _protocolList));
+        	_protocolList.push_front(new Ip4Dissector(_packetNum, pcapPacketHeaderPtr, packetPtr, sizeof(struct ether_header), _protocolList));
         	break;
         case ETHERTYPE_IPV6:
-        	_protocolList.push_front(new Ip6Dissector(pcapPacketHeaderPtr, packetPtr, sizeof(struct ether_header), _protocolList));
+        	_protocolList.push_front(new Ip6Dissector(_packetNum, pcapPacketHeaderPtr, packetPtr, sizeof(struct ether_header), _protocolList));
         	break;
         default:
-        	throw Error(MSG("Ethernet header: protocol not IP, found 0x" << std::hex << ethernetHeader->ether_type));
+        	throw Error(MSG("[" << _packetNum << "] Ethernet header: protocol not IP, found 0x" << std::hex << ethernetHeader->ether_type));
         }
     }
 
@@ -71,10 +71,10 @@ namespace amqpAnalyze
 
     std::string Packet::connectionIndex() const {
         if (_protocolList.size() < 2) {
-            throw Error(MSG("Insufficient protocol dissectors in list"));
+            throw Error(MSG("[" << _packetNum << "] Insufficient protocol dissectors in list"));
         }
         if (_protocolList[1]->dissectorType() != DISSECTOR_TCP) {
-            throw Error(MSG("Unexpected dissector type at index 1: 0x" << std::hex << (int)_protocolList[1]->dissectorType()));
+            throw Error(MSG("[" << _packetNum << "] Unexpected dissector type at index 1: 0x" << std::hex << (int)_protocolList[1]->dissectorType()));
         }
         TcpDissector* tcpDissector = (TcpDissector*)_protocolList[1];
         return tcpDissector->getConnectionIndex();

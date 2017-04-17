@@ -15,6 +15,7 @@ set(amqpAnalyze_HEADERS
     amqpAnalyze/amqp10/FrameBuffer.hpp
     amqpAnalyze/amqp10/Performative.hpp
     amqpAnalyze/amqp10/ProtocolHeader.hpp
+    amqpAnalyze/amqp10/ProvidesRequires.hpp
     amqpAnalyze/amqp10/Section.hpp
     amqpAnalyze/amqp10/Type.hpp
     amqpAnalyze/AmqpDissector.hpp
@@ -37,6 +38,7 @@ set(amqpAnalyze_SOURCES
     amqpAnalyze/amqp10/FrameBuffer.cpp
     amqpAnalyze/amqp10/Performative.cpp
     amqpAnalyze/amqp10/ProtocolHeader.cpp
+    amqpAnalyze/amqp10/ProvidesRequires.cpp
     amqpAnalyze/amqp10/Section.cpp
     amqpAnalyze/amqp10/Type.cpp
     amqpAnalyze/AmqpDissector.cpp

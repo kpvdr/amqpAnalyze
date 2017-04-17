@@ -13,36 +13,41 @@ namespace amqpAnalyze
     {
 
         FieldType::FieldType(const char* fieldName,
-                                     amqpPrimitiveType_t primitiveType,
-                                     bool mandatoryFlag,
-                                     bool multipleFlag,
-                                     std::initializer_list<amqpRequiresProvides_t> _requiresInitList):
+                             amqpPrimitiveType_t primitiveType,
+                             bool mandatoryFlag,
+                             bool multipleFlag,
+                             std::initializer_list<amqpRequiresProvides_t> _requiresInitList):
             _fieldName(fieldName),
+            _unionType(type::PRIMITIVE),
             _types(primitiveType),
             _mandatoryFlag(mandatoryFlag),
             _multipleFlag(multipleFlag),
             _requiresList(_requiresInitList)
         {}
 
+/*
         FieldType::FieldType(const char* fieldName,
-                                     amqpCompositeType_t compositeType,
-                                     bool mandatoryFlag,
-                                     bool multipleFlag,
-                                     std::initializer_list<amqpRequiresProvides_t> _requiresInitList):
+                             amqpCompositeType_t compositeType,
+                             bool mandatoryFlag,
+                             bool multipleFlag,
+                             std::initializer_list<amqpRequiresProvides_t> _requiresInitList):
             _fieldName(fieldName),
+            _unionType(type::COMPOSITE),
             _types(compositeType),
             _mandatoryFlag(mandatoryFlag),
             _multipleFlag(multipleFlag),
             _requiresList(_requiresInitList)
         {}
+*/
 
         FieldType::FieldType(const char* fieldName,
-                                     char wildcard,
-                                     bool mandatoryFlag,
-                                     bool multipleFlag,
-                                     std::initializer_list<amqpRequiresProvides_t> _requiresInitList):
+                             const char* type,
+                             bool mandatoryFlag,
+                             bool multipleFlag,
+                             std::initializer_list<amqpRequiresProvides_t> _requiresInitList):
             _fieldName(fieldName),
-            _types(wildcard),
+            _unionType(type::WILDCARD),
+            _types(type),
             _mandatoryFlag(mandatoryFlag),
             _multipleFlag(multipleFlag),
             _requiresList(_requiresInitList)

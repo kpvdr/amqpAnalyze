@@ -15,23 +15,25 @@
 
 namespace amqpAnalyze {
 
-Ip6Dissector::Ip6Dissector(const struct pcap_pkthdr* pcapPacketHeaderPtr,
+Ip6Dissector::Ip6Dissector(uint64_t packetNum,
+                           const struct pcap_pkthdr* pcapPacketHeaderPtr,
                            const uint8_t* packetPtr,
                            const uint32_t packetOffs,
                            std::deque<WireDissector*>& protocolList):
-				IpDissector(pcapPacketHeaderPtr, packetPtr, packetOffs, DISSECTOR_IP6, protocolList)
+				IpDissector(packetNum, pcapPacketHeaderPtr, packetPtr, packetOffs, DISSECTOR_IP6, protocolList)
 {
     std::memcpy((char*)&_ip6Header, (const char*)(packetPtr+packetOffs), sizeof(struct ip6_hdr));
     switch (_ip6Header.ip6_nxt) {
     case IPPROTO_TCP:
-        _protocolList.push_front(new TcpDissector(pcapPacketHeaderPtr,
+        _protocolList.push_front(new TcpDissector(_packetNum,
+                                                  pcapPacketHeaderPtr,
                                                   packetPtr,
                                                   _packetOffs + sizeof(struct ip6_hdr),
                                                   _protocolList,
                                                   this));
         break;
     default:
-        throw Error(MSG("IPv6 header: Unhandled IP protocol: 0x" << std::hex << (int)_ip6Header.ip6_nxt));
+        throw Error(MSG("[" << _packetNum << "] IPv6 header: Unhandled IP protocol: 0x" << std::hex << (int)_ip6Header.ip6_nxt));
     }
 }
 

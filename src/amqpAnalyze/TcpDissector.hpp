@@ -24,7 +24,8 @@ protected:
     uint32_t _remainingDataLength;
     const IpDissector* _parentIpDissctor;
 public:
-	TcpDissector(const struct pcap_pkthdr* pcapPacketHeaderPtr,
+	TcpDissector(uint64_t packetNum,
+	             const struct pcap_pkthdr* pcapPacketHeaderPtr,
 	             const uint8_t* packetPtr,
                  const uint32_t packetOffs,
 	             std::deque<WireDissector*>& protocolList,

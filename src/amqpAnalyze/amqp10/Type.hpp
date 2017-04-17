@@ -8,6 +8,8 @@
 #ifndef SRC_AMQPANALYZE_AMQP10_TYPE_HPP_
 #define SRC_AMQPANALYZE_AMQP10_TYPE_HPP_
 
+#include <amqpAnalyze/amqp10/ProvidesRequires.hpp>
+
 #include <array>
 #include <cstdint>
 #include <initializer_list>
@@ -26,38 +28,21 @@ namespace amqpAnalyze
         class PrimitiveType;
         class FrameBuffer;
 
-        // List of requires and provides values
-        enum class amqpRequiresProvides_t {
-            SOURCE,
-            TARGET,
-            DELIVERY_STATE,
-            ERROR_CONDITION,
-            MESSAGE_ID,
-            ADDRESS,
-            DISTRIBUTION_MODE,
-            OUTCOME,
-            TXN_CAPABILITY,
-			TXN_ID,
-            GLOBAL_TX_ID
-        };
-        typedef std::vector<amqpRequiresProvides_t> amqp_provides_requires_list_t;
-        typedef amqp_provides_requires_list_t::const_iterator amqp_provides_requires_list_citr_t;
-
-
         class Type {
-        protected:
-        	static amqp_provides_requires_list_t s_providesList;
         public:
             Type();
             virtual ~Type();
             virtual bool isComposite() const = 0;
+            virtual const amqp_provides_requires_list_t& providesList() const = 0;
             virtual const char* typeStr() const = 0; // type as string
             std::string typeValueStr(const char* valueDelim = "()") const; // formatted string type(value) without margins
             virtual std::string valueStr() const = 0; // value only as string
 
-            static Type* decode(FrameBuffer& framebuffer);
-            static PrimitiveType* decodePrimitive(uint8_t code, FrameBuffer& framebuffer);
-            static CompositeType* decodeComposite(FrameBuffer& framebuffer);
+            static Type* decode(FrameBuffer& frameBuffer);
+            static PrimitiveType* decodePrimitive(uint8_t code, FrameBuffer& frameBuffer);
+            static CompositeType* decodeComposite(FrameBuffer& frameBuffer);
+            static bool provides(amqpRequiresProvides_t requires, const amqp_provides_requires_list_t& prList);
+            static std::string providesListAsString(const amqp_provides_requires_list_t& prList);
         };
 
 
@@ -110,13 +95,6 @@ namespace amqpAnalyze
             SESSION_ERROR_TYPE,
             LINK_ERROR_TYPE,
             ANNOTATIONS_TYPE,
-            //DELIVERY_ANNOTATIONS_TYPE,
-            //MESSAGE_ANNOTATIONS_TYPE,
-            //APPLICATION_PROPERTIES_TYPE,
-            //RAW_DATA_TYPE,
-            //AMQP_SEQUENCE_TYPE,
-            // AMQP_VALUE_TYPE, // TODO
-            //FOOTER_TYPE,
             MESSAGE_ID_ULONG_TYPE,
             MESSAGE_ID_UUID_TYPE,
             MESSAGE_ID_BINARY_TYPE,
@@ -137,9 +115,12 @@ namespace amqpAnalyze
             PrimitiveType();
             virtual ~PrimitiveType();
             inline bool isComposite() const override { return false; };
+            inline const amqp_provides_requires_list_t& providesList() const { return s_providesList; }
             virtual amqpPrimitiveType_t type() const = 0;
             inline const char* typeStr() const override { return s_amqpSimpleTypeNames.at(type()); }
             static std::map<amqpPrimitiveType_t, const char*> s_amqpSimpleTypeNames;
+        protected:
+            static amqp_provides_requires_list_t s_providesList;
         };
         typedef PrimitiveType amqp_primitive_t;
         
@@ -434,13 +415,12 @@ namespace amqpAnalyze
             CompoundType();
             virtual ~CompoundType();
             virtual void appendString(std::ostringstream& oss, std::size_t margin) const = 0; // formatted one element-per-line output
-            //virtual std::string toString(std::size_t margin) const = 0; // formatted one element-per-line output
         protected:
             static void stringAppendHandler(std::ostringstream& oss, Type* ptr, std::size_t margin);
         };
 
 
-        typedef std::vector<PrimitiveType*> amqp_list_t;
+        typedef std::vector<Type*> amqp_list_t;
         typedef amqp_list_t::iterator amqp_list_itr_t;
         typedef amqp_list_t::const_iterator amqp_list_citr_t;
         class AmqpList: public CompoundType {
@@ -450,7 +430,6 @@ namespace amqpAnalyze
             AmqpList();
             virtual ~AmqpList();
             void appendString(std::ostringstream& oss, std::size_t margin) const override;
-            //std::string toString(std::size_t margin) const override;
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::LIST_TYPE; }
             inline std::string typeValueStr() const { return Type::typeValueStr("[]"); }
             inline amqp_list_t& value() { return _value; }
@@ -469,7 +448,6 @@ namespace amqpAnalyze
             AmqpMap();
             virtual ~AmqpMap();
             void appendString(std::ostringstream& oss, std::size_t margin) const override;
-            //std::string toString(std::size_t margin) const override;
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::MAP_TYPE; }
             inline std::string typeValueStr() const { return Type::typeValueStr("{}"); }
             inline amqp_map_t& value() { return _value; }
@@ -488,7 +466,6 @@ namespace amqpAnalyze
             AmqpArray();
             virtual ~AmqpArray();
             void appendString(std::ostringstream& oss, std::size_t margin) const override;
-            //std::string toString(std::size_t margin) const override;
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::ARRAY_TYPE; }
             inline std::string typeValueStr() const { return Type::typeValueStr("[]"); }
             inline amqp_array_t& value() { return _value; }
@@ -605,7 +582,7 @@ namespace amqpAnalyze
 
 
         typedef amqp_sequence_num_t amqp_delivery_num_t;
-        class AmqpDeliveryNum: public AmqpUint {
+        class AmqpDeliveryNum: public AmqpSequenceNum {
         public:
             AmqpDeliveryNum(amqp_delivery_num_t v);
             virtual ~AmqpDeliveryNum();
@@ -615,7 +592,7 @@ namespace amqpAnalyze
 
 
         typedef amqp_sequence_num_t amqp_transfer_num_t;
-        class AmqpTransferNum: public AmqpUint {
+        class AmqpTransferNum: public AmqpSequenceNum {
         public:
             AmqpTransferNum(amqp_transfer_num_t v);
             virtual ~AmqpTransferNum();
@@ -983,12 +960,15 @@ namespace amqpAnalyze
             virtual ~CompositeType();
             inline const AmqpList* fieldList() const { return _fieldListPtr; }
             inline bool isComposite() const override { return true; };
+            inline const amqp_provides_requires_list_t& providesList() const { return s_providesList; }
             std::string toString(std::size_t margin) const;
             virtual amqpCompositeType_t type() const = 0;
             inline const char* typeStr() const override { return s_amqpCompositeTypeNames.at(type()); }
             std::string valueStr() const override;
             static std::map<amqpCompositeType_t, const char*> s_amqpCompositeTypeNames;
-        };
+        protected:
+            static amqp_provides_requires_list_t s_providesList;
+       };
 
 
         class AmqpErrorRecord: public CompositeType {
@@ -1006,6 +986,7 @@ namespace amqpAnalyze
             AmqpReceived(AmqpList* fieldList);
             virtual ~AmqpReceived();
             inline amqpCompositeType_t type() const override { return amqpCompositeType_t::RECEIVED; }
+            const inline amqp_provides_requires_list_t& providesList() const override { return s_providesList; }
         protected:
             static fieldTypeList_t s_fieldTypeList;
         	static amqp_provides_requires_list_t s_providesList;
@@ -1017,6 +998,7 @@ namespace amqpAnalyze
             AmqpAccepted(AmqpList* fieldList);
             virtual ~AmqpAccepted();
             inline amqpCompositeType_t type() const override { return amqpCompositeType_t::ACCEPTED; }
+            const inline amqp_provides_requires_list_t& providesList() const override { return s_providesList; }
         protected:
             static fieldTypeList_t s_fieldTypeList;
         	static amqp_provides_requires_list_t s_providesList;
@@ -1028,6 +1010,7 @@ namespace amqpAnalyze
             AmqpRejected(AmqpList* fieldList);
             virtual ~AmqpRejected();
             inline amqpCompositeType_t type() const override { return amqpCompositeType_t::REJECTED; }
+            const inline amqp_provides_requires_list_t& providesList() const override { return s_providesList; }
         protected:
             static fieldTypeList_t s_fieldTypeList;
         	static amqp_provides_requires_list_t s_providesList;
@@ -1039,6 +1022,7 @@ namespace amqpAnalyze
             AmqpReleased(AmqpList* fieldList);
             virtual ~AmqpReleased();
             inline amqpCompositeType_t type() const override { return amqpCompositeType_t::RELEASED; }
+            const inline amqp_provides_requires_list_t& providesList() const override { return s_providesList; }
         protected:
             static fieldTypeList_t s_fieldTypeList;
         	static amqp_provides_requires_list_t s_providesList;
@@ -1050,6 +1034,7 @@ namespace amqpAnalyze
             AmqpModified(AmqpList* fieldList);
             virtual ~AmqpModified();
             inline amqpCompositeType_t type() const override { return amqpCompositeType_t::MODIFIED; }
+            const inline amqp_provides_requires_list_t& providesList() const override { return s_providesList; }
         protected:
             static fieldTypeList_t s_fieldTypeList;
         	static amqp_provides_requires_list_t s_providesList;
@@ -1061,6 +1046,7 @@ namespace amqpAnalyze
             AmqpSource(AmqpList* fieldList);
             virtual ~AmqpSource();
             inline amqpCompositeType_t type() const override { return amqpCompositeType_t::SOURCE; }
+            const inline amqp_provides_requires_list_t& providesList() const override { return s_providesList; }
         protected:
             static fieldTypeList_t s_fieldTypeList;
         	static amqp_provides_requires_list_t s_providesList;
@@ -1072,6 +1058,7 @@ namespace amqpAnalyze
             AmqpTarget(AmqpList* fieldList);
             virtual ~AmqpTarget();
             inline amqpCompositeType_t type() const override { return amqpCompositeType_t::TARGET; }
+            const inline amqp_provides_requires_list_t& providesList() const override { return s_providesList; }
         protected:
             static fieldTypeList_t s_fieldTypeList;
         	static amqp_provides_requires_list_t s_providesList;
@@ -1122,6 +1109,7 @@ namespace amqpAnalyze
             AmqpCoordinator(AmqpList* fieldList);
             virtual ~AmqpCoordinator();
             inline amqpCompositeType_t type() const override { return amqpCompositeType_t::COORDINATOR; }
+            const inline amqp_provides_requires_list_t& providesList() const override { return s_providesList; }
         protected:
             static fieldTypeList_t s_fieldTypeList;
         	static amqp_provides_requires_list_t s_providesList;
@@ -1153,6 +1141,7 @@ namespace amqpAnalyze
             AmqpDeclared(AmqpList* fieldList);
             virtual ~AmqpDeclared();
             inline amqpCompositeType_t type() const override { return amqpCompositeType_t::DECLARED; }
+            const inline amqp_provides_requires_list_t& providesList() const override { return s_providesList; }
         protected:
             static fieldTypeList_t s_fieldTypeList;
         	static amqp_provides_requires_list_t s_providesList;
@@ -1164,6 +1153,7 @@ namespace amqpAnalyze
             AmqpTransactionalState(AmqpList* fieldList);
             virtual ~AmqpTransactionalState();
             inline amqpCompositeType_t type() const override { return amqpCompositeType_t::TRANSACTIONAL_STATE; }
+            const inline amqp_provides_requires_list_t& providesList() const override { return s_providesList; }
         protected:
             static fieldTypeList_t s_fieldTypeList;
         	static amqp_provides_requires_list_t s_providesList;

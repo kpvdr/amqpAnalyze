@@ -24,7 +24,8 @@ protected:
     std::string _debugHexFrameData;
     std::deque<amqp10::FrameBase*> _amqpFrameList;
 public:
-	AmqpDissector(const struct pcap_pkthdr* pcapPacketHeaderPtr,
+	AmqpDissector(uint64_t packetNum,
+	              const struct pcap_pkthdr* pcapPacketHeaderPtr,
 	              const uint8_t* packetPtr,
 	              uint32_t packetOffs,
 	              std::deque<WireDissector*>& protocolList,

@@ -15,23 +15,25 @@
 
 namespace amqpAnalyze {
 
-Ip4Dissector::Ip4Dissector(const struct pcap_pkthdr* pcapPacketHeaderPtr,
+Ip4Dissector::Ip4Dissector(uint64_t packetNum,
+                           const struct pcap_pkthdr* pcapPacketHeaderPtr,
                            const uint8_t* packetPtr,
                            const uint32_t packetOffs,
                            std::deque<WireDissector*>& protocolList):
-		IpDissector(pcapPacketHeaderPtr, packetPtr, packetOffs, DISSECTOR_IP4, protocolList)
+		IpDissector(packetNum, pcapPacketHeaderPtr, packetPtr, packetOffs, DISSECTOR_IP4, protocolList)
 {
     std::memcpy((char*)&_ip4Header, (const char*)(packetPtr+packetOffs), sizeof(struct ip));
     switch (_ip4Header.ip_p) {
     case IPPROTO_TCP:
-        _protocolList.push_front(new TcpDissector(pcapPacketHeaderPtr,
+        _protocolList.push_front(new TcpDissector(_packetNum,
+                                                  pcapPacketHeaderPtr,
                                                   packetPtr,
                                                   _packetOffs + sizeof(struct ip),
                                                   _protocolList,
                                                   this));
         break;
     default:
-        throw Error(MSG("IPv4 header: Unhandled IP protocol: 0x" << std::hex << (int)_ip4Header.ip_p));
+        throw Error(MSG("[" << _packetNum << "] IPv4 header: Unhandled IP protocol: 0x" << std::hex << (int)_ip4Header.ip_p));
     }
 }
 

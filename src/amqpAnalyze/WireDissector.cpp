@@ -9,11 +9,13 @@
 
 namespace amqpAnalyze {
 
-WireDissector::WireDissector(const struct pcap_pkthdr* pcapPacketHeaderPtr,
+WireDissector::WireDissector(uint64_t packetNum,
+                             const struct pcap_pkthdr* pcapPacketHeaderPtr,
                              const uint8_t* packetPtr,
                              uint32_t packetOffs,
                              dissector_t dissectorType,
                              std::deque<WireDissector*>& protocolList):
+       _packetNum(packetNum),
        _packetOffs(packetOffs),
        _dissectorType(dissectorType),
        _protocolList(protocolList)

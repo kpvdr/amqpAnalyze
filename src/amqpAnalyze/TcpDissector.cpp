@@ -23,12 +23,13 @@
 
 namespace amqpAnalyze {
 
-TcpDissector::TcpDissector(const struct pcap_pkthdr* pcapPacketHeaderPtr,
+TcpDissector::TcpDissector(uint64_t packetNum,
+                           const struct pcap_pkthdr* pcapPacketHeaderPtr,
                            const uint8_t* packetPtr,
                            const uint32_t packetOffs,
                            std::deque<WireDissector*>& protocolList,
                            const IpDissector* parentIpDissctor):
-		WireDissector(pcapPacketHeaderPtr, packetPtr, packetOffs, DISSECTOR_TCP, protocolList),
+		WireDissector(packetNum, pcapPacketHeaderPtr, packetPtr, packetOffs, DISSECTOR_TCP, protocolList),
 		_parentIpDissctor(parentIpDissctor)
 {
     //std::cout << "*** TCP: offs=0x" << std::hex << packetOffs << std::dec << std::endl;
@@ -37,7 +38,8 @@ TcpDissector::TcpDissector(const struct pcap_pkthdr* pcapPacketHeaderPtr,
     _remainingDataLength = pcapPacketHeaderPtr->caplen - packetOffs - _hdrSizeBytes;
     if (_remainingDataLength) {
         try {
-            _protocolList.push_front(new AmqpDissector(pcapPacketHeaderPtr,
+            _protocolList.push_front(new AmqpDissector(_packetNum,
+                                                       pcapPacketHeaderPtr,
                                                        packetPtr,
                                                        packetOffs + _hdrSizeBytes,
                                                        protocolList,

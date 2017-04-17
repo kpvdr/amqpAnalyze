@@ -10,13 +10,17 @@
 #include <amqpAnalyze/Error.hpp>
 
 #include <endian.h>
+#include <iomanip>
+#include <sstream>
 
 namespace amqpAnalyze
 {
     namespace amqp10
     {
 
-        FrameBuffer::FrameBuffer(const uint8_t* dataPtr):
+        FrameBuffer::FrameBuffer(uint64_t packetNum, std::size_t frameOffset, const uint8_t* dataPtr):
+                _packetNum(packetNum),
+                _frameOffset(frameOffset),
                 _dataPtr(dataPtr),
                 _dataLength(be32toh(*(uint32_t*)dataPtr)),
                 _dataOffset(0)
@@ -40,8 +44,22 @@ namespace amqpAnalyze
             return _dataLength == _dataOffset;
         }
 
-        const uint8_t* FrameBuffer::getDataPtr() {
+        const uint8_t* FrameBuffer::getDataPtr() const {
             return _dataPtr + _dataOffset;
+        }
+
+        std::string FrameBuffer::getErrorPrefix() const {
+            std::ostringstream oss;
+            oss << "[" << _packetNum << ":" << std::hex << std::setfill('0') << std::setw(4) << _frameOffset << "] ";
+            return oss.str();
+        }
+
+        std::size_t FrameBuffer::getFrameOffset() const {
+            return _frameOffset;
+        }
+
+        uint64_t FrameBuffer::getPacketNum() const {
+            return _packetNum;
         }
 
         void FrameBuffer::ignore(std::size_t size) {
@@ -233,7 +251,7 @@ namespace amqpAnalyze
         // protected
         void FrameBuffer::checkSize(std::size_t size) {
             if (_dataLength - _dataOffset < size)
-                throw amqpAnalyze::Error(MSG("Insufficient buffer data to extract " << size << " bytes: data_size=" << _dataLength << "; curr_offs=" << _dataOffset));
+                throw amqpAnalyze::Error(MSG(getErrorPrefix() << "Insufficient buffer data to extract " << size << " bytes: data_size=" << _dataLength << "; curr_offs=" << _dataOffset));
         }
 
     } /* namespace amqp10 */

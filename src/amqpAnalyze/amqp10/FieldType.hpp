@@ -8,6 +8,7 @@
 #ifndef SRC_AMQPANALYZE_AMQP10_FIELDTYPE_HPP_
 #define SRC_AMQPANALYZE_AMQP10_FIELDTYPE_HPP_
 
+#include <amqpAnalyze/amqp10/ProvidesRequires.hpp>
 #include <amqpAnalyze/amqp10/Type.hpp>
 
 namespace amqpAnalyze
@@ -19,34 +20,37 @@ namespace amqpAnalyze
         {
         public:
             FieldType(const char* fieldName,
-                          amqpPrimitiveType_t primitiveType,
-                          bool mandatoryFlag,
-                          bool multipleFlag,
-                          std::initializer_list<amqpRequiresProvides_t> _requiresInit = {});
+                      amqpPrimitiveType_t primitiveType,
+                      bool mandatoryFlag,
+                      bool multipleFlag,
+                      std::initializer_list<amqpRequiresProvides_t> _requiresInit = {});
+/*
             FieldType(const char* fieldName,
                           amqpCompositeType_t compositeType,
                           bool mandatoryFlag,
                           bool multipleFlag,
                           std::initializer_list<amqpRequiresProvides_t> _requiresInit = {});
+*/
             FieldType(const char* fieldName,
-                          char wildcard,
-                          bool mandatoryFlag,
-                          bool multipleFlag,
-                          std::initializer_list<amqpRequiresProvides_t> _requiresInit);
+                      const char* type,
+                      bool mandatoryFlag,
+                      bool multipleFlag,
+                      std::initializer_list<amqpRequiresProvides_t> _requiresInit = {});
             virtual ~FieldType();
-        protected:
+            typedef enum class type {PRIMITIVE, /*COMPOSITE,*/ WILDCARD} type_t;
             const char* _fieldName;
+            type_t _unionType;
             union ctype {
                 const amqpPrimitiveType_t _primitiveType;
-                const amqpCompositeType_t _compositeType;
-                const char _wildcard;
+                //const amqpCompositeType_t _compositeType;
+                const char* _type;
                 ctype(amqpPrimitiveType_t primitiveType): _primitiveType(primitiveType) {}
-                ctype(amqpCompositeType_t compositeType): _compositeType(compositeType) {}
-                ctype(char wildcard): _wildcard(wildcard) {}
+                //ctype(amqpCompositeType_t compositeType): _compositeType(compositeType) {}
+                ctype(const char* type): _type(type) {}
             } _types;
             const bool _mandatoryFlag;
             const bool _multipleFlag;
-            std::vector<amqpRequiresProvides_t> _requiresList;
+            amqp_provides_requires_list_t _requiresList;
         };
 
         typedef std::vector<FieldType> fieldTypeList_t;
