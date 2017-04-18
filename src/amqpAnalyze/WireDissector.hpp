@@ -19,12 +19,14 @@ enum dissector_t:uint8_t { DISSECTOR_NONE = 0, DISSECTOR_IP4, DISSECTOR_IP6, DIS
 
 class WireDissector {
 protected:
+    const WireDissector* _parent;
     const uint64_t _packetNum;
     const uint32_t _packetOffs;
     const dissector_t _dissectorType;
 	std::deque<WireDissector*>& _protocolList;
 public:
-	WireDissector(uint64_t packetNum,
+	WireDissector(const WireDissector* parent,
+	              uint64_t packetNum,
 	              const struct pcap_pkthdr* pcapPacketHeaderPtr,
 	              const uint8_t* packetPtr,
 	              uint32_t packetOffs,

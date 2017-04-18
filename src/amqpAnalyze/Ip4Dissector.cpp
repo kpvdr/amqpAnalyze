@@ -25,12 +25,12 @@ Ip4Dissector::Ip4Dissector(uint64_t packetNum,
     std::memcpy((char*)&_ip4Header, (const char*)(packetPtr+packetOffs), sizeof(struct ip));
     switch (_ip4Header.ip_p) {
     case IPPROTO_TCP:
-        _protocolList.push_front(new TcpDissector(_packetNum,
+        _protocolList.push_front(new TcpDissector(this,
+                                                  _packetNum,
                                                   pcapPacketHeaderPtr,
                                                   packetPtr,
                                                   _packetOffs + sizeof(struct ip),
-                                                  _protocolList,
-                                                  this));
+                                                  _protocolList));
         break;
     default:
         throw Error(MSG("[" << _packetNum << "] IPv4 header: Unhandled IP protocol: 0x" << std::hex << (int)_ip4Header.ip_p));

@@ -25,12 +25,12 @@ Ip6Dissector::Ip6Dissector(uint64_t packetNum,
     std::memcpy((char*)&_ip6Header, (const char*)(packetPtr+packetOffs), sizeof(struct ip6_hdr));
     switch (_ip6Header.ip6_nxt) {
     case IPPROTO_TCP:
-        _protocolList.push_front(new TcpDissector(_packetNum,
+        _protocolList.push_front(new TcpDissector(this,
+                                                  _packetNum,
                                                   pcapPacketHeaderPtr,
                                                   packetPtr,
                                                   _packetOffs + sizeof(struct ip6_hdr),
-                                                  _protocolList,
-                                                  this));
+                                                  _protocolList));
         break;
     default:
         throw Error(MSG("[" << _packetNum << "] IPv6 header: Unhandled IP protocol: 0x" << std::hex << (int)_ip6Header.ip6_nxt));

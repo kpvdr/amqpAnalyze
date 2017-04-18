@@ -12,43 +12,42 @@
 #include <amqpAnalyze/IpDissector.hpp>
 #include <amqpAnalyze/Ip4Dissector.hpp>
 #include <amqpAnalyze/Ip6Dissector.hpp>
-
 #include <arpa/inet.h>
 #include <array>
-#include <pcap.h>
 #include <cstring>
+#include <pcap.h>
+#include <std/AnsiTermColors.hpp>
 
 // debug
 //#include <iostream>
 
 namespace amqpAnalyze {
 
-TcpDissector::TcpDissector(uint64_t packetNum,
+TcpDissector::TcpDissector(const WireDissector* parent,
+                           uint64_t packetNum,
                            const struct pcap_pkthdr* pcapPacketHeaderPtr,
                            const uint8_t* packetPtr,
                            const uint32_t packetOffs,
-                           std::deque<WireDissector*>& protocolList,
-                           const IpDissector* parentIpDissctor):
-		WireDissector(packetNum, pcapPacketHeaderPtr, packetPtr, packetOffs, DISSECTOR_TCP, protocolList),
-		_parentIpDissctor(parentIpDissctor)
+                           std::deque<WireDissector*>& protocolList):
+		WireDissector(parent, packetNum, pcapPacketHeaderPtr, packetPtr, packetOffs, DISSECTOR_TCP, protocolList)
 {
-    //std::cout << "*** TCP: offs=0x" << std::hex << packetOffs << std::dec << std::endl;
+    //std::cout << "*** TCP: offs=0x" << std::hex << packetOffs << std::dec << "\n";
     std::memcpy((char*)&_tcpHeader, (const char*)(packetPtr+packetOffs), sizeof(struct tcphdr));
     _hdrSizeBytes = _tcpHeader.doff * sizeof(uint32_t);  // doff is tcp header size in 32-bit words
     _remainingDataLength = pcapPacketHeaderPtr->caplen - packetOffs - _hdrSizeBytes;
     if (_remainingDataLength) {
         try {
-            _protocolList.push_front(new AmqpDissector(_packetNum,
+            _protocolList.push_front(new AmqpDissector(this,
+                                                       _packetNum,
                                                        pcapPacketHeaderPtr,
                                                        packetPtr,
                                                        packetOffs + _hdrSizeBytes,
                                                        protocolList,
-                                                       _remainingDataLength,
-                                                       this));
+                                                       _remainingDataLength));
         } catch (Error& e) {
             // ignore, non-AMQP
             // TODO, create specific error class for this!
-            //std::cout << e.what() << std::endl;
+            //std::cout << e.what() << "\n";
         }
     }
 }
@@ -56,27 +55,27 @@ TcpDissector::TcpDissector(uint64_t packetNum,
 TcpDissector::~TcpDissector() {}
 
 void TcpDissector::appendString(std::ostringstream& oss, size_t margin) const {
-    oss << std::endl << std::string(margin, ' ') << "TCP " << getSourceTcpAddrStr() << " -> "
+    oss << "\n" << std::string(margin, ' ') << std::b_green << "TCP" << std::res << ": " << getSourceTcpAddrStr() << " -> "
         << getDestinationAddrStr() << " [" << getFlagsAsString() << "]";
 }
 
 std::string TcpDissector::getSourceTcpAddrStr() const {
     std::stringstream oss;
-    oss << _parentIpDissctor->getSourceAddrStr() << ":" << getSourcePort();
+    oss << ((IpDissector*)_parent)->getSourceAddrStr() << ":" << std::b_blue << getSourcePort() << std::res;
     return oss.str();
 }
 
 std::string TcpDissector::getDestinationAddrStr() const {
     std::stringstream oss;
-    oss << _parentIpDissctor->getDestinationAddrStr() << ":" << getDestinationPort();
+    oss << ((IpDissector*)_parent)->getDestinationAddrStr() << ":" << std::b_blue << getDestinationPort() << std::res;
     return oss.str();
 }
 
 std::string TcpDissector::getConnectionIndex() const {
     bool srcAddrGreater = false;
-    if (_parentIpDissctor->isIp6()) {
+    if (((IpDissector*)_parent)->isIp6()) {
         // IPv6 hash
-        Ip6Dissector* ip6ParentDissector = (Ip6Dissector*)_parentIpDissctor;
+        Ip6Dissector* ip6ParentDissector = (Ip6Dissector*)_parent;
         std::array<uint32_t, 4> srcAddr;
         ip6ParentDissector->getSourceAddr(srcAddr);
         std::array<uint32_t, 4> destAddr;
@@ -91,7 +90,7 @@ std::string TcpDissector::getConnectionIndex() const {
         }
     } else {
         // IPv4 hash
-        Ip4Dissector* ip4Dissector = (Ip4Dissector*)_parentIpDissctor;
+        Ip4Dissector* ip4Dissector = (Ip4Dissector*)_parent;
         uint32_t srcAddr = ip4Dissector->getSourceAddr();
         uint32_t destAddr = ip4Dissector->getDestinationAddr();
         // Order so that addr1<addr2 when taking hash
@@ -124,11 +123,11 @@ std::string TcpDissector::getFlagsAsString() const {
     std::ostringstream oss;
     bool spacer = false;
     if (_tcpHeader.fin) { oss << "FIN"; spacer = true; }
-    if (_tcpHeader.syn) { oss << (spacer?" ":"")  << "SYN"; spacer = true; }
-    if (_tcpHeader.rst) { oss << (spacer?" ":"")  << "RST"; spacer = true; }
-    if (_tcpHeader.psh) { oss << (spacer?" ":"")  << "PSH"; spacer = true; }
-    if (_tcpHeader.ack) { oss << (spacer?" ":"")  << "ACK"; spacer = true; }
-    if (_tcpHeader.urg) { oss << (spacer?" ":"")  << "URG"; }
+    if (_tcpHeader.syn) { oss << (spacer?" ":"") << "SYN"; spacer = true; }
+    if (_tcpHeader.rst) { oss << (spacer?" ":"") << std::b_red << "RST" << std::res; spacer = true; }
+    if (_tcpHeader.psh) { oss << (spacer?" ":"") << "PSH"; spacer = true; }
+    if (_tcpHeader.ack) { oss << (spacer?" ":"") << "ACK"; spacer = true; }
+    if (_tcpHeader.urg) { oss << (spacer?" ":"") << "URG"; }
     return oss.str();
 }
 

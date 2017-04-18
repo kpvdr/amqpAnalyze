@@ -600,7 +600,7 @@ namespace amqpAnalyze
             std::string m(l, ' ');
             oss << t << ": [";
             for (amqp_list_citr_t i=_value.cbegin(); i<_value.cend(); ++i) {
-                if (i!=_value.cbegin()) oss << std::endl << m;
+                if (i!=_value.cbegin()) oss << "\n" << m;
                 stringAppendHandler(oss, *i, l);
             }
             oss << "]";
@@ -633,13 +633,13 @@ namespace amqpAnalyze
             std::string m(l, ' ');
             oss << t << ": {";
             for (amqp_map_citr_t i=_value.cbegin(); i!=_value.cend(); ++i) {
-                if (i!=_value.cbegin()) oss << std::endl << m;
+                if (i!=_value.cbegin()) oss << "\n" << m;
                 oss << "{";
                 CompoundType* kPtr(dynamic_cast<CompoundType*>(i->first));
                 if (kPtr != nullptr) {
                     // key is a compound type
                     kPtr->appendString(oss, l);
-                    oss << std::endl << m << ":";
+                    oss << "\n" << m << ":";
                 } else {
                     std::string kStr(i->first->typeValueStr());
                     oss << kStr << ": ";
@@ -673,7 +673,7 @@ namespace amqpAnalyze
             std::string m(l, ' ');
             oss << t << ": [";
             for (amqp_array_citr_t i=_value.cbegin(); i!=_value.cend(); ++i) {
-                if (i!=_value.cbegin()) oss << std::endl << m;
+                if (i!=_value.cbegin()) oss << "\n" << m;
                 stringAppendHandler(oss, *i, l);
             }
             oss << "]";
@@ -1068,7 +1068,7 @@ namespace amqpAnalyze
         }
         std::string CompositeType::toString(std::size_t margin) const {
             std::ostringstream oss;
-            oss << typeStr() << ":" << std::endl << std::string(margin, ' ');
+            oss << typeStr() << ":" << "\n" << std::string(margin, ' ');
             _fieldListPtr->appendString(oss, margin);
             return oss.str();
         }

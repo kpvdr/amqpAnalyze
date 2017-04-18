@@ -24,7 +24,7 @@ void packetHandler(u_char *userData, const struct ::pcap_pkthdr* pkthdr, const u
 }
 
 int main(int argc, char** argv) {
-    std::cout << basename(argv[0]) << " v" << amqpAnalyze_VERSION_MAJOR << "." << amqpAnalyze_VERSION_MINOR << std::endl;
+    std::cout << basename(argv[0]) << " v" << amqpAnalyze_VERSION_MAJOR << "." << amqpAnalyze_VERSION_MINOR << "\n";
     try {
         if (argc != 2) throw amqpAnalyze::Error(MSG("Incorrect number of arguments. Usage: amapAnalyze <pcapng_file>"));
         // Create global file parser

@@ -8,13 +8,13 @@
 #include <amqpAnalyze/amqp10/Performative.hpp>
 
 #include <amqpAnalyze/amqp10/FieldType.hpp>
-#include <amqpAnalyze/amqp10/Type.hpp>
-#include <amqpAnalyze/Error.hpp>
 #include <amqpAnalyze/amqp10/FrameBuffer.hpp>
 #include <amqpAnalyze/amqp10/Section.hpp>
-
+#include <amqpAnalyze/amqp10/Type.hpp>
+#include <amqpAnalyze/Error.hpp>
 #include <iomanip>
 #include <netinet/in.h>
+#include <std/AnsiTermColors.hpp>
 
 namespace amqpAnalyze
 {
@@ -45,9 +45,9 @@ namespace amqpAnalyze
         FrameHeader::~FrameHeader() {}
 
         void FrameHeader::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
-            if (margin > 0 && !ignoreFirstMargin) oss << std::endl << std::string(margin, ' ');
+            if (margin > 0 && !ignoreFirstMargin) oss << "\n" << std::string(margin, ' ');
             oss << "[" << std::setw(4) << std::setfill('0') << std::hex << _frameOffset
-                << "] AMQP frame: size=0x" << _frameSize << " doff=0x" << (int)_dataOffset
+                << "] " << std::b_cyan << "AMQP frame" << std::res << ": size=0x" << _frameSize << " doff=0x" << (int)_dataOffset
                 << " type=0x" << (int)_type << " (" << s_frameTypeName[_type] << ")";
             if (_type == 0) { // AMQP frame
                 oss << " chnl=0x" << _typeSpecific;
@@ -55,7 +55,7 @@ namespace amqpAnalyze
             if (_extendedHeaderSize > 0) {
                 oss << " extHdrSize=0x" << _extendedHeaderSize;
             }
-            oss << ": " << typeStr() << ":";
+            oss << ": " << std::b_yellow << typeStr() << std::res << ":";
         }
         std::size_t FrameHeader::frameSize() const {
             return 8;
@@ -90,12 +90,12 @@ namespace amqpAnalyze
         void Performative::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
             FrameHeader::appendString(oss, margin, ignoreFirstMargin);
             if (_fieldListPtr != nullptr) {
-                oss << std::endl << std::string(margin + 7, ' ') << "+ ";
+                oss << "\n" << std::string(margin + 7, ' ') << "+ ";
                 _fieldListPtr->appendString(oss, margin + 9);
             }
             if (!_sectionPtrList.empty()) {
                 for (sectionPtrList_citr_t i=_sectionPtrList.cbegin(); i!=_sectionPtrList.cend(); ++i) {
-                    oss << std::endl << std::string(margin, ' ');
+                    oss << "\n" << std::string(margin, ' ');
                     (*i)->appendString(oss, margin + 9);
                 }
             }

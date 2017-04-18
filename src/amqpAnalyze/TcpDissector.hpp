@@ -22,14 +22,13 @@ protected:
     struct tcphdr _tcpHeader;
     uint32_t _hdrSizeBytes;
     uint32_t _remainingDataLength;
-    const IpDissector* _parentIpDissctor;
 public:
-	TcpDissector(uint64_t packetNum,
+	TcpDissector(const WireDissector* parent,
+	             uint64_t packetNum,
 	             const struct pcap_pkthdr* pcapPacketHeaderPtr,
 	             const uint8_t* packetPtr,
                  const uint32_t packetOffs,
-	             std::deque<WireDissector*>& protocolList,
-	             const IpDissector* parentIpDissctor);
+	             std::deque<WireDissector*>& protocolList);
 	virtual ~TcpDissector();
 	void appendString(std::ostringstream& oss, size_t margin) const;
 

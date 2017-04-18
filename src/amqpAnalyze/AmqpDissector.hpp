@@ -20,17 +20,16 @@ namespace amqpAnalyze {
 
 class AmqpDissector: public WireDissector {
 protected:
-    const TcpDissector* _tcpDissectorPtr;
     std::string _debugHexFrameData;
     std::deque<amqp10::FrameBase*> _amqpFrameList;
 public:
-	AmqpDissector(uint64_t packetNum,
+	AmqpDissector(const WireDissector* parent,
+	              uint64_t packetNum,
 	              const struct pcap_pkthdr* pcapPacketHeaderPtr,
 	              const uint8_t* packetPtr,
 	              uint32_t packetOffs,
 	              std::deque<WireDissector*>& protocolList,
-	              std::size_t amqpDataSize,
-	              const TcpDissector* tcpDissectorPtr);
+	              std::size_t amqpDataSize);
 	virtual ~AmqpDissector();
 	void appendString(std::ostringstream& oss, size_t margin) const;
 };

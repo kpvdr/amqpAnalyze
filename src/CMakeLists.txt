@@ -28,6 +28,7 @@ set(amqpAnalyze_HEADERS
     amqpAnalyze/Packet.hpp
     amqpAnalyze/TcpDissector.hpp
     amqpAnalyze/WireDissector.hpp
+    std/TermColors.hpp
 )
 
 set(amqpAnalyze_SOURCES

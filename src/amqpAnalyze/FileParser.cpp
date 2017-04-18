@@ -45,20 +45,20 @@ namespace amqpAnalyze
 
         // Print results
         for (std::vector<Packet*>::const_iterator i=_packetList.cbegin(); i!=_packetList.cend(); ++i) {
-        	std::cout << (*i)->toString() << std::endl;
+        	std::cout << (*i)->toString() << "\n";
         }
-        std::cout << std::endl;
+        std::cout << "\n";
 
 /*
         // print hashList
         std::deque<std::size_t> hashList;
         uint32_t hashCount = _ipConnectionMap.getIpHashList(hashList);
-        std::cout << std::endl << " Found " << hashCount << " connections:" << std::endl;
+        std::cout << "\n" << " Found " << hashCount << " connections:" << "\n";
         for (std::deque<std::size_t>::const_iterator i=hashList.cbegin(); i!=hashList.cend(); ++i) {
-            std::cout << std::endl << "Hash=0x" << std::setw(16) << std::setfill('0') << std::hex << *i << std::dec << std::endl << "-----------------------" << std::endl;
+            std::cout << "\n" << "Hash=0x" << std::setw(16) << std::setfill('0') << std::hex << *i << std::dec << "\n" << "-----------------------" << "\n";
             const std::deque<const Packet*>* packetListPtr = _ipConnectionMap.getPacketList(*i);
             for (std::deque<const Packet*>::const_iterator j=packetListPtr->cbegin(); j!=packetListPtr->cend(); ++j) {
-                std::cout << (*j)->toString() << std::endl;
+                std::cout << (*j)->toString() << "\n";
             }
         }
 */
@@ -66,12 +66,12 @@ namespace amqpAnalyze
         // print indexList
         std::deque<std::pair<std::string, std::size_t>> indexList;
         uint32_t count = _ipConnectionMap.getIpConnectionIndexList(indexList);
-        std::cout << std::endl << " Found " << count << " connections:" << std::endl;
+        std::cout << "\n" << " Found " << count << " connections:" << "\n";
         for (std::deque<std::pair<std::string, std::size_t>>::const_iterator i=indexList.cbegin(); i!=indexList.cend(); ++i) {
-            std::cout << std::endl << "Connection: [" << i->first << "]:" << std::endl << std::string(i->first.length() + 15, '-') << std::endl << std::endl;
+            std::cout << "\n" << "Connection: [" << i->first << "]:" << "\n" << std::string(i->first.length() + 15, '-') << "\n\n";
             const std::deque<const Packet*>* packetListPtr = _ipConnectionMap.getPacketList(i->second);
             for (std::deque<const Packet*>::const_iterator j=packetListPtr->cbegin(); j!=packetListPtr->cend(); ++j) {
-                std::cout << (*j)->toString() << std::endl;
+                std::cout << (*j)->toString() << "\n";
             }
         }
 */

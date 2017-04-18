@@ -11,9 +11,9 @@
 #include <amqpAnalyze/amqp10/Performative.hpp>
 #include <amqpAnalyze/amqp10/ProtocolHeader.hpp>
 #include <amqpAnalyze/Error.hpp>
-
 #include <deque>
 #include <pcap.h>
+#include <std/AnsiTermColors.hpp>
 
 // debug
 #include <iomanip>
@@ -24,23 +24,21 @@
 
 namespace amqpAnalyze {
 
-AmqpDissector::AmqpDissector(uint64_t packetNum,
+AmqpDissector::AmqpDissector(const WireDissector* parent,
+                             uint64_t packetNum,
                              const struct pcap_pkthdr* pcapPacketHeaderPtr,
                              const uint8_t* packetPtr,
                              uint32_t packetOffs,
                              std::deque<WireDissector*>& protocolList,
-                             std::size_t amqpDataSize,
-                             const TcpDissector* tcpDissectorPtr):
-		WireDissector(packetNum, pcapPacketHeaderPtr, packetPtr, packetOffs, DISSECTOR_AMQP, protocolList),
-		_tcpDissectorPtr(tcpDissectorPtr),
+                             std::size_t amqpDataSize):
+		WireDissector(parent, packetNum, pcapPacketHeaderPtr, packetPtr, packetOffs, DISSECTOR_AMQP, protocolList),
 		_amqpFrameList()
 {
-/*
     // TODO: use a flag or switch to turn this on/off - it consumes memory!
     std::ostringstream oss;
     for (std::size_t i=0; i<std::ceil(amqpDataSize/16.0); ++i) {
         std::size_t numChars = amqpDataSize >= ((i+1)*16) ? 16 : amqpDataSize - (i*16);
-        oss << "  " << std::hex << std::setw(8) << std::setfill('0') << (i*16) << "  ";
+        oss << "  " << std::hex << std::setw(4) << std::setfill('0') << (i*16) << "  ";
         for (size_t c=0; c<16; ++c) {
             oss << (c==8?"  ":" ");
             if (c < numChars)
@@ -60,7 +58,6 @@ AmqpDissector::AmqpDissector(uint64_t packetNum,
         oss << "|" << std::endl;
     }
     _debugHexFrameData.assign(oss.str());
-*/
 
 
     std::size_t amqpOffs = 0;
@@ -74,7 +71,7 @@ AmqpDissector::AmqpDissector(uint64_t packetNum,
                 _amqpFrameList.push_back(amqpHdrPtr);
             } else {
                 // AMQP frame
-                amqp10::FrameBuffer frameBuffer(packetNum, packetOffs+amqpOffs, packetPtr+packetOffs+amqpOffs);
+                amqp10::FrameBuffer frameBuffer(packetNum, amqpOffs, packetPtr+packetOffs+amqpOffs);
                 _amqpFrameList.push_back(amqp10::Performative::decode(frameBuffer));
                 amqpOffs += frameBuffer.getSize();
             }
@@ -90,7 +87,8 @@ AmqpDissector::~AmqpDissector() {
 }
 
 void AmqpDissector::appendString(std::ostringstream& oss, size_t margin) const {
-    oss << std::endl << std::string(margin, ' ') << "AMQP: ";
+    oss << "\n" << _debugHexFrameData;
+    oss << "\n" << std::string(margin, ' ') << std::b_green << "AMQP" << std::res << ": ";
     for (std::deque<amqp10::FrameBase*>::const_iterator i=_amqpFrameList.begin(); i!=_amqpFrameList.end(); ++i) {
         (*i)->appendString(oss, margin + 6, i == _amqpFrameList.begin());
      }

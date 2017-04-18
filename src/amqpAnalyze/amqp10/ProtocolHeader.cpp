@@ -6,11 +6,12 @@
  */
 
 #include <amqpAnalyze/amqp10/ProtocolHeader.hpp>
-#include <amqpAnalyze/Error.hpp>
 
+#include <amqpAnalyze/Error.hpp>
 #include <cstring>
 #include <iomanip>
 #include <netinet/in.h>
+#include <std/AnsiTermColors.hpp>
 
 namespace amqpAnalyze
 {
@@ -45,9 +46,9 @@ namespace amqpAnalyze
         ProtocolHeader::~ProtocolHeader() {}
 
         void ProtocolHeader::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
-            if (margin > 0 && !ignoreFirstMargin) oss << std::endl << std::string(margin, ' ');
+            if (margin > 0 && !ignoreFirstMargin) oss << "\n" << std::string(margin, ' ');
             oss << "[" << std::setw(4) << std::setfill('0') << std::hex << _frameOffset << std::dec
-                << "] AMQP header v1.0." << (int)_hdr._revision << " pid=0x" << std::hex << (int)_hdr._protocolId
+                << "] " << std::b_cyan << "AMQP header v1.0." << (int)_hdr._revision << std::res << " pid=0x" << std::hex << (int)_hdr._protocolId
                 << " (" << s_protocolIdName[_hdr._protocolId] << ")";
         }
 
