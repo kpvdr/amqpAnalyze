@@ -7,6 +7,7 @@
 
 #include <amqpAnalyze/amqp10/ProtocolHeader.hpp>
 
+#include <amqpAnalyze/amqp10/FrameBuffer.hpp>
 #include <amqpAnalyze/Error.hpp>
 #include <cstring>
 #include <iomanip>
@@ -26,9 +27,9 @@ namespace amqpAnalyze
                 _revision(hdrPtr->_revision)
         {}
 
-        ProtocolHeader::ProtocolHeader(std::size_t frameOffset, const struct ProtocolHeader::hdr* hdrPtr):
-                FrameBase(frameOffset),
-                _hdr(hdrPtr)
+        ProtocolHeader::ProtocolHeader(FrameBuffer& frameBuffer):
+                FrameBase(frameBuffer.getOffset()),
+                _hdr((hdr*)frameBuffer.getStructPtr(sizeof(hdr)))
         {
             if (_hdr._magic != 0x414d5150 || // "AMQP"
                 _hdr._major != 1 ||

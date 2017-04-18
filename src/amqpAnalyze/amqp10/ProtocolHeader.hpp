@@ -19,6 +19,8 @@ namespace amqpAnalyze
     namespace amqp10
     {
 
+        class FrameBuffer;
+
         class ProtocolHeader: public FrameBase
         {
         public:
@@ -31,7 +33,7 @@ namespace amqpAnalyze
                 hdr(const struct hdr* hdrPtr);
             };
         public:
-            ProtocolHeader(std::size_t frameOffset, const struct ProtocolHeader::hdr* hdrPtr);
+            ProtocolHeader(FrameBuffer& frameBuffer);
             ~ProtocolHeader();
             void appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const;
             std::size_t frameSize() const;

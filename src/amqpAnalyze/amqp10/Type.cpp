@@ -604,7 +604,6 @@ namespace amqpAnalyze
                 stringAppendHandler(oss, *i, l);
             }
             oss << "]";
-
         }
 
 

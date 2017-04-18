@@ -55,7 +55,7 @@ namespace amqpAnalyze
             if (_extendedHeaderSize > 0) {
                 oss << " extHdrSize=0x" << _extendedHeaderSize;
             }
-            oss << ": " << std::b_yellow << typeStr() << std::res << ":";
+            oss << ":";
         }
         std::size_t FrameHeader::frameSize() const {
             return 8;
@@ -69,7 +69,12 @@ namespace amqpAnalyze
 
         //-- class Performative ---
 
-        Performative::Performative(std::size_t frameOffset, uint32_t frameSize, uint8_t dataOffset, frameType_t type, uint16_t typeSpecific, AmqpList* fieldListPtr):
+        Performative::Performative(std::size_t frameOffset,
+                                   uint32_t frameSize,
+                                   uint8_t dataOffset,
+                                   frameType_t type,
+                                   uint16_t typeSpecific,
+                                   AmqpList* fieldListPtr):
                 FrameHeader(frameOffset, frameSize, dataOffset, type, typeSpecific),
                 _fieldListPtr(fieldListPtr),
                 _sectionPtrList()
@@ -90,8 +95,9 @@ namespace amqpAnalyze
         void Performative::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
             FrameHeader::appendString(oss, margin, ignoreFirstMargin);
             if (_fieldListPtr != nullptr) {
-                oss << "\n" << std::string(margin + 7, ' ') << "+ ";
-                _fieldListPtr->appendString(oss, margin + 9);
+                oss << "\n" << std::string(margin, ' ') << "[" << std::setfill('0') << std::setw(4) << _frameOffset << "] + ";
+                //_fieldListPtr->appendString(oss, margin + 9);
+                appendFieldList(oss, margin + 9);
             }
             if (!_sectionPtrList.empty()) {
                 for (sectionPtrList_citr_t i=_sectionPtrList.cbegin(); i!=_sectionPtrList.cend(); ++i) {
@@ -101,22 +107,49 @@ namespace amqpAnalyze
             }
         }
 
+        void Performative::appendFieldList(std::ostringstream& oss, std::size_t margin) const {
+            std::string t(typeStr());
+            std::size_t l(margin + t.length() + 3);
+            std::string m(l, ' ');
+            oss << std::b_yellow << t << std::res << ": [";
+            int fieldNumberIndex = 0;
+            for (amqp_list_citr_t i=_fieldListPtr->value().cbegin(); i<_fieldListPtr->value().cend(); ++i) {
+                if (i!=_fieldListPtr->value().cbegin()) oss << "\n" << m;
+                CompoundType* cPtr(dynamic_cast<CompoundType*>(*i));
+                if (cPtr) {
+                    cPtr->appendString(oss, margin);
+                } else {
+                    CompositeType* compositePtr(dynamic_cast<CompositeType*>(*i));
+                    if (compositePtr) {
+                        oss << compositePtr->toString(margin + 2);
+                    } else {
+                        FieldType& ft = fieldTypeList()[fieldNumberIndex];
+                        oss << ft._fieldName << "(" << (*i)->valueStr() << ")";
+                    }
+                }
+                fieldNumberIndex++;
+            }
+            oss << "]";
+        }
+
         std::size_t Performative::frameSize() const {
             return _frameSize;;
         }
 
         // static
         FrameHeader* Performative::decode(FrameBuffer& frameBuffer) {
+            frameBuffer.setFrameOffsetSnapshot();
             const uint32_t frameSize = frameBuffer.getUint32();
             const uint8_t dataOffset = frameBuffer.getUint8();
             const frameType_t type = (frameType_t)frameBuffer.getUint8(); // TODO: ugly cast, fix by performing validity check
             const uint16_t typeSpecific = frameBuffer.getUint16();
             if (frameBuffer.getRemaining() == 0) { // empty frame (heartbeat)
-                return new FrameHeader(frameBuffer.getFrameOffset(), frameSize, dataOffset, type, typeSpecific);
+                return new FrameHeader(frameBuffer.getFrameOffsetSnapshot(), frameSize, dataOffset, type, typeSpecific);
             }
             switch (type) {
                 case frameType_t::AMQP_FRAME: return decodeAmqpFrame(frameSize, dataOffset, type, typeSpecific, frameBuffer);
                 case frameType_t::SASL_FRAME: return decodeSaslFrame(frameSize, dataOffset, type, typeSpecific, frameBuffer);
+                default: throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Unknown frame type: 0x" << (int)type));
             };
         }
 
@@ -126,7 +159,7 @@ namespace amqpAnalyze
                                                     frameType_t type,
                                                     uint16_t typeSpecific,
                                                     FrameBuffer& frameBuffer) {
-
+            frameBuffer.setFrameOffsetSnapshot();
             const uint8_t lfb = frameBuffer.getUint8();
             if (lfb != 0) {
                 throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Unexpected leading frame byte: expected 0x0, found 0x" << (int)lfb));
@@ -138,7 +171,7 @@ namespace amqpAnalyze
                     AmqpUlong* longDescriptorPtr = (AmqpUlong*)descriptorPtr.get();
                     switch((performativeType_t)longDescriptorPtr->value()) {
                         case performativeType_t::OPEN:
-                            performativePtr = new AmqpOpen(frameBuffer.getFrameOffset(),
+                            performativePtr = new AmqpOpen(frameBuffer.getFrameOffsetSnapshot(),
                                                            frameSize,
                                                            dataOffset,
                                                            type,
@@ -146,7 +179,7 @@ namespace amqpAnalyze
                                                            decodeFieldList(frameBuffer, AmqpOpen::s_fieldTypeList));
                             break;
                         case performativeType_t::BEGIN:
-                            performativePtr = new AmqpBegin(frameBuffer.getFrameOffset(),
+                            performativePtr = new AmqpBegin(frameBuffer.getFrameOffsetSnapshot(),
                                                             frameSize,
                                                             dataOffset,
                                                             type,
@@ -154,7 +187,7 @@ namespace amqpAnalyze
                                                             decodeFieldList(frameBuffer, AmqpBegin::s_fieldTypeList));
                             break;
                         case performativeType_t::ATTACH:
-                            performativePtr = new AmqpAttach(frameBuffer.getFrameOffset(),
+                            performativePtr = new AmqpAttach(frameBuffer.getFrameOffsetSnapshot(),
                                                              frameSize,
                                                              dataOffset,
                                                              type,
@@ -162,7 +195,7 @@ namespace amqpAnalyze
                                                              decodeFieldList(frameBuffer, AmqpAttach::s_fieldTypeList));
                             break;
                         case performativeType_t::FLOW:
-                            performativePtr = new AmqpFlow(frameBuffer.getFrameOffset(),
+                            performativePtr = new AmqpFlow(frameBuffer.getFrameOffsetSnapshot(),
                                                            frameSize,
                                                            dataOffset,
                                                            type,
@@ -170,7 +203,7 @@ namespace amqpAnalyze
                                                            decodeFieldList(frameBuffer, AmqpFlow::s_fieldTypeList));
                             break;
                         case performativeType_t::TRANSFER:
-                            performativePtr = new AmqpTransfer(frameBuffer.getFrameOffset(),
+                            performativePtr = new AmqpTransfer(frameBuffer.getFrameOffsetSnapshot(),
                                                                frameSize,
                                                                dataOffset,
                                                                type,
@@ -178,7 +211,7 @@ namespace amqpAnalyze
                                                                decodeFieldList(frameBuffer, AmqpTransfer::s_fieldTypeList));
                             break;
                         case performativeType_t::DISPOSITION:
-                            performativePtr = new AmqpDisposition(frameBuffer.getFrameOffset(),
+                            performativePtr = new AmqpDisposition(frameBuffer.getFrameOffsetSnapshot(),
                                                                   frameSize,
                                                                   dataOffset,
                                                                   type,
@@ -186,7 +219,7 @@ namespace amqpAnalyze
                                                                   decodeFieldList(frameBuffer, AmqpDisposition::s_fieldTypeList));
                             break;
                         case performativeType_t::DETACH:
-                            performativePtr = new AmqpDetach(frameBuffer.getFrameOffset(),
+                            performativePtr = new AmqpDetach(frameBuffer.getFrameOffsetSnapshot(),
                                                              frameSize,
                                                              dataOffset,
                                                              type,
@@ -194,7 +227,7 @@ namespace amqpAnalyze
                                                              decodeFieldList(frameBuffer, AmqpDetach::s_fieldTypeList));
                             break;
                         case performativeType_t::END:
-                            performativePtr = new AmqpEnd(frameBuffer.getFrameOffset(),
+                            performativePtr = new AmqpEnd(frameBuffer.getFrameOffsetSnapshot(),
                                                           frameSize,
                                                           dataOffset,
                                                           type,
@@ -202,7 +235,7 @@ namespace amqpAnalyze
                                                           decodeFieldList(frameBuffer, AmqpEnd::s_fieldTypeList));
                             break;
                         case performativeType_t::CLOSE:
-                            performativePtr = new AmqpClose(frameBuffer.getFrameOffset(),
+                            performativePtr = new AmqpClose(frameBuffer.getFrameOffsetSnapshot(),
                                                             frameSize,
                                                             dataOffset,
                                                             type,
@@ -397,7 +430,7 @@ namespace amqpAnalyze
                         default:
                             return Type::decodePrimitive(code, frameBuffer);
                     }
-                case FieldType::type::WILDCARD:
+                case FieldType::type::WILDCARD: {
                     CompositeType* compositeTypePtr = Type::decodeComposite(frameBuffer);
                     if (fieldType._requiresList.size() == 1) {
                         amqpRequiresProvides_t requires = fieldType._requiresList.front();
@@ -408,6 +441,9 @@ namespace amqpAnalyze
                         throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "fieldType._requiresList.size()!=1: " << fieldType._requiresList.size()));
                     }
                     return compositeTypePtr;
+                }
+                default:
+                    throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Unknown field type: 0x" << std::hex << (int)fieldType._unionType));
             }
         }
 

@@ -62,16 +62,16 @@ AmqpDissector::AmqpDissector(const WireDissector* parent,
 
     std::size_t amqpOffs = 0;
     try {
+        amqp10::FrameBuffer frameBuffer(packetNum, packetPtr+packetOffs);
         while (amqpDataSize - amqpOffs >= 8) {
             std::string magic((const char*)(packetPtr+packetOffs+amqpOffs), 4);
             if (magic.compare("AMQP") == 0) {
                 // AMQP header
-                amqp10::ProtocolHeader* amqpHdrPtr = new amqp10::ProtocolHeader(amqpOffs, (const amqp10::ProtocolHeader::hdr*)(packetPtr+packetOffs+amqpOffs));
+                amqp10::ProtocolHeader* amqpHdrPtr = new amqp10::ProtocolHeader(frameBuffer);
                 amqpOffs += amqpHdrPtr->frameSize();
                 _amqpFrameList.push_back(amqpHdrPtr);
             } else {
                 // AMQP frame
-                amqp10::FrameBuffer frameBuffer(packetNum, amqpOffs, packetPtr+packetOffs+amqpOffs);
                 _amqpFrameList.push_back(amqp10::Performative::decode(frameBuffer));
                 amqpOffs += frameBuffer.getSize();
             }

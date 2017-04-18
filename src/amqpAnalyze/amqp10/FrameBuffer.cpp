@@ -18,9 +18,9 @@ namespace amqpAnalyze
     namespace amqp10
     {
 
-        FrameBuffer::FrameBuffer(uint64_t packetNum, std::size_t frameOffset, const uint8_t* dataPtr):
+        FrameBuffer::FrameBuffer(uint64_t packetNum, const uint8_t* dataPtr):
                 _packetNum(packetNum),
-                _frameOffset(frameOffset),
+                _frameOffsetSnapshot(0),
                 _dataPtr(dataPtr),
                 _dataLength(be32toh(*(uint32_t*)dataPtr)),
                 _dataOffset(0)
@@ -50,21 +50,32 @@ namespace amqpAnalyze
 
         std::string FrameBuffer::getErrorPrefix() const {
             std::ostringstream oss;
-            oss << "[" << _packetNum << ":" << std::hex << std::setfill('0') << std::setw(4) << _frameOffset << "] ";
+            oss << "[" << _packetNum << ":" << std::hex << std::setfill('0') << std::setw(4) << _frameOffsetSnapshot << "] ";
             return oss.str();
         }
 
-        std::size_t FrameBuffer::getFrameOffset() const {
-            return _frameOffset;
+        std::size_t FrameBuffer::getFrameOffsetSnapshot() const {
+            return _frameOffsetSnapshot;
         }
 
         uint64_t FrameBuffer::getPacketNum() const {
             return _packetNum;
         }
 
+        void FrameBuffer::setFrameOffsetSnapshot() {
+            _frameOffsetSnapshot = _dataOffset;
+        }
+
         void FrameBuffer::ignore(std::size_t size) {
             checkSize(size);
             _dataOffset += size;
+        }
+
+        uint8_t* FrameBuffer::getStructPtr(std::size_t size) {
+            checkSize(size);
+            uint8_t* ptr = (uint8_t*)(_dataPtr + _dataOffset);
+            _dataOffset += size;
+            return ptr;
         }
 
         bool FrameBuffer::getBool() {

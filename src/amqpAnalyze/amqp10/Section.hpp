@@ -22,6 +22,8 @@ namespace amqpAnalyze
         class AmqpBinary;
         class AmqpList;
         class AmqpMap;
+        class FieldType;
+        typedef std::vector<FieldType> fieldTypeList_t;
         class FrameBuffer;
         class PrimitiveType;
 
@@ -61,6 +63,7 @@ namespace amqpAnalyze
             inline sectionType_t type() const { return sectionType_t::HEADER; };
         protected:
             AmqpList* _listPtr;
+            static fieldTypeList_t s_fieldTypeList;
         };
 
 
@@ -99,6 +102,7 @@ namespace amqpAnalyze
             inline sectionType_t type() const { return sectionType_t::PROPERTIES; };
         protected:
             AmqpList* _listPtr;
+            static fieldTypeList_t s_fieldTypeList;
         };
 
 

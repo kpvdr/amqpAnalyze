@@ -7,8 +7,10 @@
 
 #include <amqpAnalyze/amqp10/Section.hpp>
 
+#include <amqpAnalyze/amqp10/FieldType.hpp>
 #include <amqpAnalyze/amqp10/FrameBuffer.hpp>
 #include <amqpAnalyze/Error.hpp>
+#include <std/AnsiTermColors.hpp>
 
 #include <iomanip>
 
@@ -94,8 +96,16 @@ namespace amqpAnalyze
         }
         void AmqpHeader::appendString(std::ostringstream& oss, std::size_t margin) const {
             Section::appendString(oss, margin);
-            _listPtr->appendString(oss, margin);
+            oss << std::b_yellow << s_sectionTypeName[type()] << std::res << ": [" << _listPtr->valueStr() << "]";
         }
+        // static
+        fieldTypeList_t AmqpHeader::s_fieldTypeList = {
+            FieldType("durable", amqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
+            FieldType("priority", amqpPrimitiveType_t::UBYTE_TYPE, false, false),
+            FieldType("ttl", amqpPrimitiveType_t::MILLISECONDS_TYPE, false, false),
+            FieldType("first-acquirer", amqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
+            FieldType("delivery-count", amqpPrimitiveType_t::UINT_TYPE, false, false)
+        };
 
 
 
@@ -111,6 +121,7 @@ namespace amqpAnalyze
         }
         void AmqpDeliveryAnnotations::appendString(std::ostringstream& oss, std::size_t margin) const {
             Section::appendString(oss, margin);
+            oss << std::b_yellow << s_sectionTypeName[type()] << std::res << ": ";
             _annotationsPtr->appendString(oss, margin);
         }
 
@@ -129,6 +140,7 @@ namespace amqpAnalyze
         }
         void AmqpMessageAnnotations::appendString(std::ostringstream& oss, std::size_t margin) const {
             Section::appendString(oss, margin);
+            oss << std::b_yellow << s_sectionTypeName[type()] << std::res << ": ";
             _annotationsPtr->appendString(oss, margin);
         }
 
@@ -147,8 +159,24 @@ namespace amqpAnalyze
         }
         void AmqpProperties::appendString(std::ostringstream& oss, std::size_t margin) const {
             Section::appendString(oss, margin);
-            _listPtr->appendString(oss, margin);
+            oss << std::b_yellow << s_sectionTypeName[type()] << std::res << ": [" << _listPtr->valueStr() << "]";
         }
+        // static
+        fieldTypeList_t AmqpProperties::s_fieldTypeList = {
+            FieldType("message-id", "*", false, false, {amqpRequiresProvides_t::MESSAGE_ID}),
+            FieldType("user-id", amqpPrimitiveType_t::BINARY_TYPE, false, false),
+            FieldType("to", "*", false, false, {amqpRequiresProvides_t::ADDRESS}),
+            FieldType("subject", amqpPrimitiveType_t::STRING_TYPE, false, false),
+            FieldType("reply-to", "*", false, false, {amqpRequiresProvides_t::ADDRESS}),
+            FieldType("correlation-id", "*", false, false, {amqpRequiresProvides_t::MESSAGE_ID}),
+            FieldType("content-type", amqpPrimitiveType_t::SYMBOL_TYPE, false, false),
+            FieldType("content-encoding", amqpPrimitiveType_t::SYMBOL_TYPE, false, false),
+            FieldType("absolute-expiry-time", amqpPrimitiveType_t::TIMESTAMP_TYPE, false, false),
+            FieldType("creation-time", amqpPrimitiveType_t::TIMESTAMP_TYPE, false, false),
+            FieldType("group-id", amqpPrimitiveType_t::STRING_TYPE, false, false),
+            FieldType("group-sequence", amqpPrimitiveType_t::SEQUENCE_NUMBER_TYPE, false, false),
+            FieldType("reply-to-group-id", amqpPrimitiveType_t::STRING_TYPE, false, false)
+        };
 
 
 
@@ -165,6 +193,7 @@ namespace amqpAnalyze
         }
         void AmqpApplicationProperties::appendString(std::ostringstream& oss, std::size_t margin) const {
             Section::appendString(oss, margin);
+            oss << std::b_yellow << s_sectionTypeName[type()] << std::res << ": ";
             _mapPtr->appendString(oss, margin);
         }
 
@@ -183,7 +212,7 @@ namespace amqpAnalyze
         }
         void AmqpData::appendString(std::ostringstream& oss, std::size_t margin) const {
             Section::appendString(oss, margin);
-            oss << _binaryPtr->typeValueStr();
+            oss << std::b_yellow << s_sectionTypeName[type()] << std::res << ": " << _binaryPtr->typeValueStr();
         }
 
 
@@ -201,7 +230,7 @@ namespace amqpAnalyze
         }
         void AmqpSequence::appendString(std::ostringstream& oss, std::size_t margin) const {
             Section::appendString(oss, margin);
-            _listPtr->appendString(oss, margin);
+            oss << std::b_yellow << s_sectionTypeName[type()] << std::res << ": [" << _listPtr->valueStr() << "]";
         }
 
 
@@ -219,7 +248,7 @@ namespace amqpAnalyze
         }
         void AmqpValue::appendString(std::ostringstream& oss, std::size_t margin) const {
             Section::appendString(oss, margin);
-            oss << _valuePtr->typeValueStr();
+            oss << std::b_yellow << s_sectionTypeName[type()] << std::res << ": " << _valuePtr->typeValueStr();
         }
 
 
@@ -237,6 +266,7 @@ namespace amqpAnalyze
         }
         void AmqpFooter::appendString(std::ostringstream& oss, std::size_t margin) const {
             Section::appendString(oss, margin);
+            oss << std::b_yellow << s_sectionTypeName[type()] << std::res << ": ";
             _annotationsPtr->appendString(oss, margin);
         }
 

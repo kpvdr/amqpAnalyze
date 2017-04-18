@@ -62,10 +62,16 @@ namespace amqpAnalyze
         };
         class Performative: public FrameHeader {
         public:
-            Performative(std::size_t frameOffset, uint32_t frameSize, uint8_t dataOffset, frameType_t type, uint16_t typeSpecific, AmqpList* fieldListPtr);
+            Performative(std::size_t frameOffset,
+                         uint32_t frameSize,
+                         uint8_t dataOffset,
+                         frameType_t type,
+                         uint16_t typeSpecific,
+                         AmqpList* fieldListPtr);
             virtual ~Performative();
             void appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;
             inline const AmqpList* fieldList() const { return _fieldListPtr; }
+            virtual fieldTypeList_t& fieldTypeList() const = 0;
             std::size_t frameSize() const override;
             inline const sectionPtrList_t& sectionPtrList() const { return _sectionPtrList; }
             virtual performativeType_t type() const = 0;
@@ -75,6 +81,7 @@ namespace amqpAnalyze
         protected:
             AmqpList* _fieldListPtr;
             sectionPtrList_t _sectionPtrList;
+            void appendFieldList(std::ostringstream& oss, std::size_t margin) const;
 
             static Performative* decodeAmqpFrame(uint32_t frameSize,
                                                  uint8_t dataOffset,
@@ -102,6 +109,7 @@ namespace amqpAnalyze
         public:
             AmqpOpen(std::size_t frameOffset, uint32_t frameSize, uint8_t dataOffset, frameType_t type, uint16_t typeSpecific, AmqpList* fieldListPtr);
             virtual ~AmqpOpen();
+            inline fieldTypeList_t& fieldTypeList() const { return s_fieldTypeList; };
             inline performativeType_t type() const override { return performativeType_t::OPEN; }
             static fieldTypeList_t s_fieldTypeList;
         };
@@ -111,6 +119,7 @@ namespace amqpAnalyze
         public:
             AmqpBegin(std::size_t frameOffset, uint32_t frameSize, uint8_t dataOffset, frameType_t type, uint16_t typeSpecific, AmqpList* fieldListPtr);
             virtual ~AmqpBegin();
+            inline fieldTypeList_t& fieldTypeList() const { return s_fieldTypeList; };
             inline performativeType_t type() const override { return performativeType_t::BEGIN; }
             static fieldTypeList_t s_fieldTypeList;
         };
@@ -120,6 +129,7 @@ namespace amqpAnalyze
         public:
             AmqpAttach(std::size_t frameOffset, uint32_t frameSize, uint8_t dataOffset, frameType_t type, uint16_t typeSpecific, AmqpList* fieldListPtr);
             virtual ~AmqpAttach();
+            inline fieldTypeList_t& fieldTypeList() const { return s_fieldTypeList; };
             inline performativeType_t type() const override { return performativeType_t::ATTACH; }
             static fieldTypeList_t s_fieldTypeList;
         };
@@ -129,6 +139,7 @@ namespace amqpAnalyze
         public:
             AmqpFlow(std::size_t frameOffset, uint32_t frameSize, uint8_t dataOffset, frameType_t type, uint16_t typeSpecific, AmqpList* fieldListPtr);
             virtual ~AmqpFlow();
+            inline fieldTypeList_t& fieldTypeList() const { return s_fieldTypeList; };
             inline performativeType_t type() const override { return performativeType_t::FLOW; }
             static fieldTypeList_t s_fieldTypeList;
         };
@@ -138,6 +149,7 @@ namespace amqpAnalyze
         public:
             AmqpTransfer(std::size_t frameOffset, uint32_t frameSize, uint8_t dataOffset, frameType_t type, uint16_t typeSpecific, AmqpList* fieldListPtr);
             virtual ~AmqpTransfer();
+            inline fieldTypeList_t& fieldTypeList() const { return s_fieldTypeList; };
             inline performativeType_t type() const override { return performativeType_t::TRANSFER; }
             static fieldTypeList_t s_fieldTypeList;
         };
@@ -147,6 +159,7 @@ namespace amqpAnalyze
         public:
             AmqpDisposition(std::size_t frameOffset, uint32_t frameSize, uint8_t dataOffset, frameType_t type, uint16_t typeSpecific, AmqpList* fieldListPtr);
             virtual ~AmqpDisposition();
+            inline fieldTypeList_t& fieldTypeList() const { return s_fieldTypeList; };
             inline performativeType_t type() const override { return performativeType_t::DISPOSITION; }
             static fieldTypeList_t s_fieldTypeList;
         };
@@ -156,6 +169,7 @@ namespace amqpAnalyze
         public:
             AmqpDetach(std::size_t frameOffset, uint32_t frameSize, uint8_t dataOffset, frameType_t type, uint16_t typeSpecific, AmqpList* fieldListPtr);
             virtual ~AmqpDetach();
+            inline fieldTypeList_t& fieldTypeList() const { return s_fieldTypeList; };
             inline performativeType_t type() const override { return performativeType_t::DETACH; }
             static fieldTypeList_t s_fieldTypeList;
         };
@@ -165,6 +179,7 @@ namespace amqpAnalyze
         public:
             AmqpEnd(std::size_t frameOffset, uint32_t frameSize, uint8_t dataOffset, frameType_t type, uint16_t typeSpecific, AmqpList* fieldListPtr);
             virtual ~AmqpEnd();
+            inline fieldTypeList_t& fieldTypeList() const { return s_fieldTypeList; };
             inline performativeType_t type() const override { return performativeType_t::END; }
             static fieldTypeList_t s_fieldTypeList;
         };
@@ -174,6 +189,7 @@ namespace amqpAnalyze
         public:
             AmqpClose(std::size_t frameOffset, uint32_t frameSize, uint8_t dataOffset, frameType_t type, uint16_t typeSpecific, AmqpList* fieldListPtr);
             virtual ~AmqpClose();
+            inline fieldTypeList_t& fieldTypeList() const { return s_fieldTypeList; };
             inline performativeType_t type() const override { return performativeType_t::CLOSE; }
             static fieldTypeList_t s_fieldTypeList;
         };

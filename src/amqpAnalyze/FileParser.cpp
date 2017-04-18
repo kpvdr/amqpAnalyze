@@ -45,7 +45,7 @@ namespace amqpAnalyze
 
         // Print results
         for (std::vector<Packet*>::const_iterator i=_packetList.cbegin(); i!=_packetList.cend(); ++i) {
-        	std::cout << (*i)->toString() << "\n";
+            std::cout << (*i)->toString() << "\n";
         }
         std::cout << "\n";
 
