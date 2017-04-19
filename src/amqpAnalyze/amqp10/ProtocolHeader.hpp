@@ -8,8 +8,7 @@
 #ifndef SRC_AMQPANALYZE_AMQP10_PROTOCOLHEADER_HPP_
 #define SRC_AMQPANALYZE_AMQP10_PROTOCOLHEADER_HPP_
 
-#include <amqpAnalyze/amqp10/FrameBase.hpp>
-
+#include <amqpAnalyze/amqp10/AmqpBlock.hpp>
 #include <cstdint>
 #include <map>
 #include <sstream>
@@ -21,25 +20,32 @@ namespace amqpAnalyze
 
         class FrameBuffer;
 
-        class ProtocolHeader: public FrameBase
+        enum protocolId_t:uint8_t {
+            AMQP = 0,
+            TLS,
+            SASL
+        };
+
+        class ProtocolHeader: public AmqpBlock
         {
         public:
             struct hdr {
                 uint32_t _magic;
-                uint8_t _protocolId;
+                protocolId_t _protocolId;
                 uint8_t _major;
                 uint8_t _minor;
                 uint8_t _revision;
                 hdr(const struct hdr* hdrPtr);
             };
-        public:
+
             ProtocolHeader(FrameBuffer& frameBuffer);
             ~ProtocolHeader();
-            void appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const;
-            std::size_t frameSize() const;
+
+            std::ostringstream& appendString(std::ostringstream& oss, std::size_t margin, bool ignoreMargin) const override;
+            protocolId_t protocolId() const;
         protected:
-             struct hdr _hdr;
-             static std::map<uint8_t, const char*> s_protocolIdName;
+            struct hdr _hdr;
+            static std::map<uint8_t, const char*> s_protocolIdName;
         };
 
     } /* namespace amqp10 */

@@ -8,31 +8,28 @@
 #ifndef SRC_AMQPANALYZE_AMQPDISSECTOR_HPP_
 #define SRC_AMQPANALYZE_AMQPDISSECTOR_HPP_
 
-#include <amqpAnalyze/TcpDissector.hpp>
+#include <amqpAnalyze/amqp10/AmqpBlock.hpp>
 #include <amqpAnalyze/WireDissector.hpp>
 
-#include <vector>
-
 namespace amqpAnalyze {
-    namespace amqp10 {
-        class FrameBase;
-    }
 
-class AmqpDissector: public WireDissector {
-protected:
-    std::string _debugHexFrameData;
-    std::deque<amqp10::FrameBase*> _amqpFrameList;
-public:
-	AmqpDissector(const WireDissector* parent,
-	              uint64_t packetNum,
-	              const struct pcap_pkthdr* pcapPacketHeaderPtr,
-	              const uint8_t* packetPtr,
-	              uint32_t packetOffs,
-	              std::deque<WireDissector*>& protocolList,
-	              std::size_t amqpDataSize);
-	virtual ~AmqpDissector();
-	void appendString(std::ostringstream& oss, size_t margin) const;
-};
+
+    class AmqpDissector: public WireDissector {
+    public:
+        AmqpDissector(const WireDissector* parent,
+                      uint64_t packetNum,
+                      const struct pcap_pkthdr* pcapPacketHeaderPtr,
+                      const uint8_t* packetPtr,
+                      uint32_t packetOffs,
+                      std::deque<WireDissector*>& protocolList,
+                      std::size_t amqpDataSize);
+        virtual ~AmqpDissector();
+
+        void appendString(std::ostringstream& oss, size_t margin) const;
+    protected:
+        std::string _debugHexFrameData;
+        amqp10::amqp_block_list_t _amqpBlockList;
+    };
 
 } /* namespace amqpAnalyze */
 

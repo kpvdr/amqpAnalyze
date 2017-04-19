@@ -24,13 +24,6 @@ namespace amqpAnalyze
                       bool mandatoryFlag,
                       bool multipleFlag,
                       std::initializer_list<amqpRequiresProvides_t> _requiresInit = {});
-/*
-            FieldType(const char* fieldName,
-                          amqpCompositeType_t compositeType,
-                          bool mandatoryFlag,
-                          bool multipleFlag,
-                          std::initializer_list<amqpRequiresProvides_t> _requiresInit = {});
-*/
             FieldType(const char* fieldName,
                       const char* type,
                       bool mandatoryFlag,

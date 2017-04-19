@@ -25,21 +25,6 @@ namespace amqpAnalyze
             _requiresList(_requiresInitList)
         {}
 
-/*
-        FieldType::FieldType(const char* fieldName,
-                             amqpCompositeType_t compositeType,
-                             bool mandatoryFlag,
-                             bool multipleFlag,
-                             std::initializer_list<amqpRequiresProvides_t> _requiresInitList):
-            _fieldName(fieldName),
-            _unionType(type::COMPOSITE),
-            _types(compositeType),
-            _mandatoryFlag(mandatoryFlag),
-            _multipleFlag(multipleFlag),
-            _requiresList(_requiresInitList)
-        {}
-*/
-
         FieldType::FieldType(const char* fieldName,
                              const char* type,
                              bool mandatoryFlag,

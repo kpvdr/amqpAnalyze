@@ -28,40 +28,42 @@ namespace amqpAnalyze
         {}
 
         ProtocolHeader::ProtocolHeader(FrameBuffer& frameBuffer):
-                FrameBase(frameBuffer.getOffset()),
+                AmqpBlock(frameBuffer.setFrameOffsetSnapshot()),
                 _hdr((hdr*)frameBuffer.getStructPtr(sizeof(hdr)))
         {
             if (_hdr._magic != 0x414d5150 || // "AMQP"
                 _hdr._major != 1 ||
                 _hdr._minor != 0) {
-                throw amqpAnalyze::Error(MSG("Not AMQP 1.0 header: magic=0x" << std::hex << _hdr._magic
+                throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Not AMQP 1.0 header: magic=0x" << std::hex << _hdr._magic
                                              << " major=0x" << (int)_hdr._major << " minor=0x" << (int)_hdr._minor));
             }
             if (_hdr._protocolId != 0 &&
                 _hdr._protocolId != 2 &&
                 _hdr._protocolId != 3) {
-                throw amqpAnalyze::Error(MSG("Invalid AMQP protocol id: 0x" << std::hex << (int)_hdr._protocolId));
+                throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Invalid AMQP protocol id: 0x" << std::hex << (int)_hdr._protocolId));
             }
         }
 
         ProtocolHeader::~ProtocolHeader() {}
 
-        void ProtocolHeader::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
-            if (margin > 0 && !ignoreFirstMargin) oss << "\n" << std::string(margin, ' ');
-            oss << "[" << std::setw(4) << std::setfill('0') << std::hex << _frameOffset << std::dec
-                << "] " << std::b_cyan << "AMQP header v1.0." << (int)_hdr._revision << std::res << " pid=0x" << std::hex << (int)_hdr._protocolId
-                << " (" << s_protocolIdName[_hdr._protocolId] << ")";
+        std::ostringstream& ProtocolHeader::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreMargin) const {
+            if (margin > 0 && !ignoreMargin) oss << "\n" << std::string(margin, ' ');
+            oss << "[" << std::hex << std::setfill('0') << std::setw(4) << _dataOffset << "] h " << std::dec;
+            oss << std::b_cyan << "AMQP header v" << (int)_hdr._major << "." << (int)_hdr._minor << "." << (int)_hdr._revision;
+            oss << std::res << " pid=0x" << std::hex << (int)_hdr._protocolId << " (" << s_protocolIdName[_hdr._protocolId] << ")";
+            return oss;
         }
 
-        std::size_t ProtocolHeader::frameSize() const {
-            return sizeof(struct hdr);
+        protocolId_t ProtocolHeader::protocolId() const {
+            return _hdr._protocolId;
         }
 
         // static
         std::map<uint8_t, const char*> ProtocolHeader::s_protocolIdName = {
-            {0, "AMQP"},
-            {2, "TLS"},
-            {3, "SASL"}};
+            {protocolId_t::AMQP, "AMQP"},
+            {protocolId_t::TLS, "TLS"},
+            {protocolId_t::SASL, "SASL"}
+        };
 
     } /* namespace amqp10 */
 } /* namespace amqpAnalyze */

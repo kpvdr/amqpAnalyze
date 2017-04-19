@@ -17,7 +17,7 @@ namespace amqpAnalyze
     {
 
         enum class amqpRequiresProvides_t {
-            ADDRESS,
+            ADDRESS = 1,
             DELIVERY_STATE,
             DISTRIBUTION_MODE,
             ERROR_CONDITION,
