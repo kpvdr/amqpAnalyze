@@ -10,6 +10,7 @@
 #include <amqpAnalyze/amqp10/FieldType.hpp>
 #include <amqpAnalyze/amqp10/FrameBuffer.hpp>
 #include <amqpAnalyze/amqp10/Performative.hpp>
+#include <amqpAnalyze/amqp10/Section.hpp>
 #include <amqpAnalyze/amqp10/Type.hpp>
 #include <amqpAnalyze/Error.hpp>
 #include <memory>
@@ -326,6 +327,49 @@ namespace amqpAnalyze
                     throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Invalid AMQP descriptor type:" << descriptorPtr->typeStr()));
             }
             return performativePtr;
+        }
+
+
+        // static
+        Section* Decoder::decodeSection(FrameBuffer& frameBuffer) {
+            size_t frameOffset = frameBuffer.getOffset();
+            const uint8_t lfb = frameBuffer.getUint8();
+            if (lfb != 0) {
+                throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Unexpected leading frame byte: expected 0x0, found 0x" << (int)lfb));
+            }
+            std::unique_ptr<PrimitiveType> descriptorPtr((PrimitiveType*)Decoder::decode(frameBuffer));
+            switch (descriptorPtr->type()) {
+                case amqpPrimitiveType_t::ULONG_TYPE: {
+                    AmqpUlong* longDescriptorPtr = (AmqpUlong*)descriptorPtr.get(); // TODO: This feels ugly, need more elegant solution here
+                    switch((sectionType_t)longDescriptorPtr->value()) {
+                        case sectionType_t::HEADER:
+                            return new AmqpHeader(frameOffset, Decoder::decodeFieldList(frameBuffer, AmqpHeader::s_fieldTypeList));
+                        case sectionType_t::DELIVERY_ANNOTATIONS:
+                            return new AmqpDeliveryAnnotations(frameOffset, (AmqpAnnotations*)Decoder::decode(frameBuffer));
+                        case sectionType_t::MESSAGE_ANNOTATIONS:
+                            return new AmqpMessageAnnotations(frameOffset, (AmqpAnnotations*)Decoder::decode(frameBuffer));
+                        case sectionType_t::PROPERTIES:
+                            return new AmqpProperties(frameOffset, Decoder::decodeFieldList(frameBuffer, AmqpProperties::s_fieldTypeList));
+                        case sectionType_t::APPLICATION_PROPERTIES:
+                            return new AmqpApplicationProperties(frameOffset, (AmqpMap*)Decoder::decode(frameBuffer));
+                        case sectionType_t::RAW_DATA:
+                            return new AmqpData(frameOffset, (AmqpBinary*)Decoder::decode(frameBuffer));
+                        case sectionType_t::AMQP_SEQUENCE:
+                            return new AmqpSequence(frameOffset, (AmqpList*)Decoder::decode(frameBuffer));
+                        case sectionType_t::AMQP_VALUE:
+                            return new AmqpValue(frameOffset, (PrimitiveType*)Decoder::decode(frameBuffer));
+                        case sectionType_t::FOOTER:
+                            return new AmqpFooter(frameOffset, (AmqpAnnotations*)Decoder::decode(frameBuffer));
+                        default:;
+                            throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Invalid AMQP section descriptor: " << longDescriptorPtr->valueStr()));
+                    }
+                }
+                case  amqpPrimitiveType_t::SYMBOL_TYPE: {
+                    throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "AMQP symbol descriptors not handled (" << descriptorPtr->typeStr() << ")"));
+                }
+                default:
+                    throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Invalid AMQP descriptor type: " << descriptorPtr->typeStr()));
+            }
         }
 
 

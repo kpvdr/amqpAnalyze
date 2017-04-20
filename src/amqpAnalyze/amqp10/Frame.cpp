@@ -46,7 +46,7 @@ namespace amqpAnalyze
                     while (frameBuffer.getOffset() - _dataOffset < _hdr._frameSize) {
                         offs = frameBuffer.getOffset();
                         try {
-                            _sectionPtrList.push_back(Section::decode(frameBuffer));
+                            _sectionPtrList.push_back(Decoder::decodeSection(frameBuffer));
                         } catch (const amqpAnalyze::Error& e) {
                             _sectionPtrList.push_back(new FrameError(offs, e));
                             frameBuffer.ignore(_hdr._frameSize - (frameBuffer.getOffset() - _dataOffset)); // ignore rest of frame
@@ -83,7 +83,6 @@ namespace amqpAnalyze
             if (_performative == nullptr) {
                 oss << ": heartbeat";
             } else {
-                //oss << ":\n" << std::string(margin + 7, ' ') << "+ " << std::b_yellow << _performative->typeStr() << std::res;
                 oss << ":";
                 _performative->appendString(oss, margin, false);
                 for (amqp_block_list_citr_t i=_sectionPtrList.cbegin(); i!=_sectionPtrList.cend(); ++i) {

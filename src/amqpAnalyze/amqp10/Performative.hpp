@@ -47,7 +47,6 @@ namespace amqpAnalyze
 
         protected:
             AmqpList* _fieldListPtr;
-            void appendFieldList(std::ostringstream& oss, std::size_t margin) const;
 
             static std::map<performativeType_t, const char*> s_performativeTypeName;
         };

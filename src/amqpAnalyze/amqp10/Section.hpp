@@ -46,7 +46,6 @@ namespace amqpAnalyze
             virtual ~Section();
             virtual std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;
             virtual sectionType_t type() const = 0;
-            static Section* decode(FrameBuffer& frameBuffer);
         protected:
             static std::map<sectionType_t, const char*> s_sectionTypeName;
         };
@@ -62,9 +61,9 @@ namespace amqpAnalyze
             virtual ~AmqpHeader();
             std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;
             inline sectionType_t type() const { return sectionType_t::HEADER; };
+            static fieldTypeList_t s_fieldTypeList;
         protected:
             AmqpList* _listPtr;
-            static fieldTypeList_t s_fieldTypeList;
         };
 
 
@@ -101,9 +100,9 @@ namespace amqpAnalyze
             virtual ~AmqpProperties();
             std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;
             inline sectionType_t type() const { return sectionType_t::PROPERTIES; };
+            static fieldTypeList_t s_fieldTypeList;
         protected:
             AmqpList* _listPtr;
-            static fieldTypeList_t s_fieldTypeList;
         };
 
 

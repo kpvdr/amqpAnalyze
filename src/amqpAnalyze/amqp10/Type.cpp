@@ -383,7 +383,7 @@ namespace amqpAnalyze
         void CompoundType::stringAppendHandler(std::ostringstream& oss, Type* ptr, std::size_t margin, bool nameFlag) {
             CompositeType* compositePtr(dynamic_cast<CompositeType*>(ptr));
             if (compositePtr) {
-                oss << compositePtr->toString(margin + 2);
+                compositePtr->appendString(oss, margin, true);
             } else {
                 CompoundType* compoundPtr(dynamic_cast<CompoundType*>(ptr));
                 if (compoundPtr) {
@@ -414,10 +414,7 @@ namespace amqpAnalyze
         void AmqpList::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
             std::string m(margin + 3, ' ');
             if (!ignoreFirstMargin) oss << "\n" << m;
-            //std::string t(typeStr());
-            //std::size_t l(margin + t.length() + 3);
-            //std::string m(l, ' ');
-            oss << /*t <<*/ ": [";
+            oss << ": [";
             for (amqp_list_citr_t i=_value.cbegin(); i<_value.cend(); ++i) {
                 if (i!=_value.cbegin()) oss << "\n" << m;
                 stringAppendHandler(oss, *i, margin + 3, true);
@@ -962,11 +959,16 @@ namespace amqpAnalyze
                 _fieldListPtr = nullptr;
             }
         }
-        std::string CompositeType::toString(std::size_t margin) const {
-            std::ostringstream oss;
-            oss << typeStr() << ":" << "\n" << std::string(margin, ' ');
-            _fieldListPtr->appendString(oss, margin, false);
-            return oss.str();
+        std::ostringstream& CompositeType::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
+            std::string n(name());
+            std::string t(typeStr());
+            std::size_t l(margin + n.length() + t.length() + 1);
+            if (!ignoreFirstMargin) oss << "\n" << std::string(l, ' ');
+            oss << n << ":" << t;
+            if (_fieldListPtr != nullptr) {
+                _fieldListPtr->appendString(oss, l, true);
+            }
+            return oss;
         }
         std::string CompositeType::valueStr() const {
             return _fieldListPtr->valueStr();

@@ -16,13 +16,14 @@ namespace amqpAnalyze
     namespace amqp10
     {
         class AmqpList;
+        class CompositeType;
         class FieldType;
         typedef std::vector<FieldType> fieldTypeList_t;
         class FrameBuffer;
         class Type;
         class Performative;
         class PrimitiveType;
-        class CompositeType;
+        class Section;
 
         class Decoder
         {
@@ -37,6 +38,9 @@ namespace amqpAnalyze
 
             // Decode AMQP performative
             static Performative* decodePerformative(FrameBuffer& frameBuffer);
+
+            // Decode AMQP section
+            static Section* decodeSection(FrameBuffer& frameBuffer);
 
         protected:
             static AmqpList* decodeFieldList(FrameBuffer& frameBuffer, fieldTypeList_t& fieldTypeList);

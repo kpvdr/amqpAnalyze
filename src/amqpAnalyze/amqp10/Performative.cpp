@@ -40,32 +40,8 @@ namespace amqpAnalyze
             oss  << "p " << std::b_yellow << typeStr() << std::res;
             if (_fieldListPtr != nullptr) {
                 _fieldListPtr->appendString(oss, margin + 9 + ::strlen(typeStr()), true);
-                //appendFieldList(oss, margin + strlen(typeStr()) + 9);
             }
             return oss;
-        }
-
-        void Performative::appendFieldList(std::ostringstream& oss, std::size_t margin) const {
-            std::string m(margin + 3, ' ');
-            oss << ": [";
-            int fieldNumberIndex = 0;
-            for (amqp_list_citr_t i=_fieldListPtr->value().cbegin(); i<_fieldListPtr->value().cend(); ++i) {
-                if (i!=_fieldListPtr->value().cbegin()) oss << "\n" << m;
-                CompoundType* cPtr(dynamic_cast<CompoundType*>(*i));
-                if (cPtr) {
-                    cPtr->appendString(oss, margin, false);
-                } else {
-                    CompositeType* compositePtr(dynamic_cast<CompositeType*>(*i));
-                    if (compositePtr) {
-                        oss << compositePtr->toString(margin + 2);
-                    } else {
-                        FieldType& ft = fieldTypeList()[fieldNumberIndex];
-                        oss << ft._fieldName << "(" << (*i)->valueStr() << ")";
-                    }
-                }
-                fieldNumberIndex++;
-            }
-            oss << "]";
         }
 
         // static
