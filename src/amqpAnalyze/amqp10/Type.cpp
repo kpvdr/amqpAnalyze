@@ -9,7 +9,9 @@
 
 #include <amqpAnalyze/amqp10/FieldType.hpp>
 #include <amqpAnalyze/amqp10/FrameBuffer.hpp>
+#include <amqpAnalyze/amqp10/ProvidesRequires.hpp>
 #include <amqpAnalyze/Error.hpp>
+#include <cstring>
 #include <ctime>
 #include <iomanip>
 #include <std/AnsiTermColors.hpp>
@@ -29,17 +31,17 @@ namespace amqpAnalyze
         }
         std::string Type::nameValueStr(const char* valueDelim) const {
             std::ostringstream oss;
-            oss << (_name == nullptr ? "<no-name>" : _name) << valueDelim[0] << std::b_white << valueStr() << std::res << valueDelim[1];
+            oss << (_name == nullptr ? "<no-name>" : _name) << valueDelim[0] << std::fgnd_b_white << valueStr() << std::res << valueDelim[1];
             return oss.str();
         }
         std::string Type::nameTypeValueStr(const char* valueDelim) const {
             std::ostringstream oss;
-            oss << (_name == nullptr ? "<no-name>" : _name) << ":" << typeStr() << valueDelim[0] << std::b_white << valueStr() << std::res << valueDelim[1];
+            oss << (_name == nullptr ? "<no-name>" : _name) << ":" << typeStr() << valueDelim[0] << std::fgnd_b_white << valueStr() << std::res << valueDelim[1];
             return oss.str();
         }
         std::string Type::typeValueStr(const char* valueDelim) const {
             std::ostringstream oss;
-            oss << typeStr() << valueDelim[0] << std::b_white << valueStr() << std::res << valueDelim[1];
+            oss << typeStr() << valueDelim[0] << std::fgnd_b_white << valueStr() << std::res << valueDelim[1];
             return oss.str();
         }
         // static
@@ -59,7 +61,7 @@ namespace amqpAnalyze
             oss << "[";
             for (amqp_provides_requires_list_citr_t i=prList.cbegin(); i!=prList.cend(); ++i) {
                 if (i != prList.cbegin()) oss << ", ";
-                oss << ProvidesRequiresNames[*i];
+                oss << providesRequiresNames[*i];
             }
             oss << "]";
             return oss.str();
@@ -421,6 +423,53 @@ namespace amqpAnalyze
             }
             oss << "]";
         }
+        void AmqpList::validate(const fieldTypeList_t& fieldTypeList, addErrorFp errorHandler, AmqpBlock* errorHandlerInstance) {
+            // 1. Check field list not larger than fieldTypeList
+            if (_value.size() > fieldTypeList.size()) {
+                (errorHandlerInstance->*errorHandler)(new AmqpValidationError(error_severity_t::ERROR,
+                                errorHandlerInstance->packetNum(),
+                                errorHandlerInstance->dataOffset(),
+                                MSG("FieldTypeList size mismatch: FieldTypeList size=" << fieldTypeList.size() << ", fieldList size=" << _value.size())));
+            }
+
+            // 2. Iterate through fields
+            int index = 0;
+            for (amqp_list_citr_t i=_value.cbegin(); i!=_value.cend(); ++i) {
+                const FieldType& fieldType = fieldTypeList[index++];
+
+                // 3. Check that null not present for required field
+                if (fieldType._mandatoryFlag && (*i)->isNull()) {
+                    (errorHandlerInstance->*errorHandler)(new AmqpValidationError(errorHandlerInstance->packetNum(),
+                                    errorHandlerInstance->dataOffset(),
+                                    MSG("Mandatory field \"" << (*i)->name() << "\" is null")));
+                }
+
+                // 4. Check that fieldTypeList requires is met in value (if not null)
+                if (!(*i)->isNull()) {
+                    for (amqp_provides_requires_list_citr_t j=fieldType._requiresList.cbegin(); j!=fieldType._requiresList.cend(); ++j) {
+                        if (!(*i)->provides(*j, (*i)->providesList())) {
+                            (errorHandlerInstance->*errorHandler)(new AmqpValidationError(errorHandlerInstance->packetNum(),
+                                            errorHandlerInstance->dataOffset(),
+                                            MSG("Field \"" << fieldType._fieldName << "\" requires \"" << providesRequiresNames[*j]
+                                                << "\", but is not provided by value type \"" << (*i)->typeStr() << "\"")));
+                        }
+                    }
+                }
+
+                // 5. Check that fieldTypeList multiple has array type
+                if (!(*i)->isNull() && fieldType._multipleFlag) {
+                    if (std::strncmp((*i)->typeStr(), "array", 5) != 0) {
+                        (errorHandlerInstance->*errorHandler)(new AmqpValidationError(errorHandlerInstance->packetNum(),
+                                        errorHandlerInstance->dataOffset(),
+                                        MSG("Field \"" << fieldType._fieldName << "\" allows multiple values, but is not of type \"array\"")));
+                    }
+                }
+
+                // 6. Validate value itself
+                (*i)->validate(errorHandler, errorHandlerInstance);
+
+            }
+        }
 
 
         AmqpMap::AmqpMap(): CompoundType(), _value() {}
@@ -613,7 +662,6 @@ namespace amqpAnalyze
             if (!found) throw amqpAnalyze::Error(MSG("Illegal value for AmqpError: \"" << v << "\""));
             _value.assign(v);
         }
-
         // static
         amqp_provides_requires_list_t AmqpError::s_providesList = {
             amqpRequiresProvides_t::ERROR_CONDITION
@@ -970,6 +1018,11 @@ namespace amqpAnalyze
             }
             return oss;
         }
+        void CompositeType::validate(addErrorFp errorHandler, AmqpBlock* errorHandlerInstance) {
+            if (_fieldListPtr != nullptr) {
+                _fieldListPtr->validate(fieldTypeList(), errorHandler, errorHandlerInstance);
+            }
+        }
         std::string CompositeType::valueStr() const {
             return _fieldListPtr->valueStr();
         }
@@ -1006,7 +1059,7 @@ namespace amqpAnalyze
         AmqpErrorRecord::AmqpErrorRecord(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpErrorRecord::~AmqpErrorRecord() {}
         // static
-        fieldTypeList_t AmqpErrorRecord::s_fieldTypeList = {
+        const fieldTypeList_t AmqpErrorRecord::s_fieldTypeList = {
             FieldType("condition", amqpPrimitiveType_t::SYMBOL_TYPE, true, false, {amqpRequiresProvides_t::ERROR_CONDITION}),
             FieldType("description", amqpPrimitiveType_t::STRING_TYPE, false, false),
             FieldType("info", amqpPrimitiveType_t::FIELDS_TYPE, false, false)
@@ -1017,7 +1070,7 @@ namespace amqpAnalyze
         AmqpReceived::AmqpReceived(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpReceived::~AmqpReceived() {}
         // static
-        fieldTypeList_t AmqpReceived::s_fieldTypeList = {
+        const fieldTypeList_t AmqpReceived::s_fieldTypeList = {
             FieldType("section-number", amqpPrimitiveType_t::UINT_TYPE, true, false),
             FieldType("section-offset", amqpPrimitiveType_t::ULONG_TYPE, true, false)
         };
@@ -1030,7 +1083,7 @@ namespace amqpAnalyze
         AmqpAccepted::AmqpAccepted(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpAccepted::~AmqpAccepted() {}
         // static
-        fieldTypeList_t AmqpAccepted::s_fieldTypeList = {};
+        const fieldTypeList_t AmqpAccepted::s_fieldTypeList = {};
         // static
         amqp_provides_requires_list_t AmqpAccepted::s_providesList = {
         	amqpRequiresProvides_t::DELIVERY_STATE,
@@ -1042,7 +1095,7 @@ namespace amqpAnalyze
         AmqpRejected::AmqpRejected(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpRejected::~AmqpRejected() {}
         // static
-        fieldTypeList_t AmqpRejected::s_fieldTypeList = {
+        const fieldTypeList_t AmqpRejected::s_fieldTypeList = {
             FieldType("error", amqpPrimitiveType_t::AMQP_ERROR_TYPE, false, false)
         };
         // static
@@ -1056,7 +1109,7 @@ namespace amqpAnalyze
         AmqpReleased::AmqpReleased(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpReleased::~AmqpReleased() {}
         // static
-        fieldTypeList_t AmqpReleased::s_fieldTypeList = {};
+        const fieldTypeList_t AmqpReleased::s_fieldTypeList = {};
         // static
         amqp_provides_requires_list_t AmqpReleased::s_providesList = {
         	amqpRequiresProvides_t::DELIVERY_STATE,
@@ -1068,7 +1121,7 @@ namespace amqpAnalyze
         AmqpModified::AmqpModified(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpModified::~AmqpModified() {}
         // static
-        fieldTypeList_t AmqpModified::s_fieldTypeList = {
+        const fieldTypeList_t AmqpModified::s_fieldTypeList = {
             FieldType("delivery-failed", amqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
             FieldType("undeliverable-here", amqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
             FieldType("message-annotations", amqpPrimitiveType_t::FIELDS_TYPE, false, false)
@@ -1084,7 +1137,7 @@ namespace amqpAnalyze
         AmqpSource::AmqpSource(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpSource::~AmqpSource() {}
         // static
-        fieldTypeList_t AmqpSource::s_fieldTypeList = {
+        const fieldTypeList_t AmqpSource::s_fieldTypeList = {
             FieldType("address", "*", false, false, {amqpRequiresProvides_t::ADDRESS}),
             FieldType("durable", amqpPrimitiveType_t::TERMINUS_DURABILITY_TYPE, false, false),
             FieldType("expiry-policy", amqpPrimitiveType_t::TERMINUS_EXPIRY_POLICY_TYPE, false, false),
@@ -1107,7 +1160,7 @@ namespace amqpAnalyze
         AmqpTarget::AmqpTarget(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpTarget::~AmqpTarget() {}
         // static
-        fieldTypeList_t AmqpTarget::s_fieldTypeList = {
+        const fieldTypeList_t AmqpTarget::s_fieldTypeList = {
             FieldType("address", "*", false, false, {amqpRequiresProvides_t::ADDRESS}),
             FieldType("durable", amqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
             FieldType("expiry-policy", amqpPrimitiveType_t::TERMINUS_EXPIRY_POLICY_TYPE, false, false),
@@ -1125,35 +1178,35 @@ namespace amqpAnalyze
         AmqpDeleteOnClose::AmqpDeleteOnClose(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpDeleteOnClose::~AmqpDeleteOnClose() {}
         // static
-        fieldTypeList_t AmqpDeleteOnClose::s_fieldTypeList = {};
+        const fieldTypeList_t AmqpDeleteOnClose::s_fieldTypeList = {};
 
 
         AmqpDeleteOnNoLinks::AmqpDeleteOnNoLinks(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpDeleteOnNoLinks::AmqpDeleteOnNoLinks(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpDeleteOnNoLinks::~AmqpDeleteOnNoLinks() {}
         // static
-        fieldTypeList_t AmqpDeleteOnNoLinks::s_fieldTypeList = {};
+        const fieldTypeList_t AmqpDeleteOnNoLinks::s_fieldTypeList = {};
 
 
         AmqpDeleteOnNoMessages::AmqpDeleteOnNoMessages(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpDeleteOnNoMessages::AmqpDeleteOnNoMessages(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpDeleteOnNoMessages::~AmqpDeleteOnNoMessages() {}
         // static
-        fieldTypeList_t AmqpDeleteOnNoMessages::s_fieldTypeList = {};
+        const fieldTypeList_t AmqpDeleteOnNoMessages::s_fieldTypeList = {};
 
 
         AmqpDeleteOnNoLinksOrMessages::AmqpDeleteOnNoLinksOrMessages(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpDeleteOnNoLinksOrMessages::AmqpDeleteOnNoLinksOrMessages(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpDeleteOnNoLinksOrMessages::~AmqpDeleteOnNoLinksOrMessages() {}
         // static
-        fieldTypeList_t AmqpDeleteOnNoLinksOrMessages::s_fieldTypeList = {};
+        const fieldTypeList_t AmqpDeleteOnNoLinksOrMessages::s_fieldTypeList = {};
 
 
         AmqpCoordinator::AmqpCoordinator(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpCoordinator::AmqpCoordinator(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpCoordinator::~AmqpCoordinator() {}
         // static
-        fieldTypeList_t AmqpCoordinator::s_fieldTypeList = {
+        const fieldTypeList_t AmqpCoordinator::s_fieldTypeList = {
             FieldType("capabilities", amqpPrimitiveType_t::SYMBOL_TYPE, false, true, {amqpRequiresProvides_t::TXN_CAPABILITY})
         };
         // static
@@ -1166,7 +1219,7 @@ namespace amqpAnalyze
         AmqpDeclare::AmqpDeclare(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpDeclare::~AmqpDeclare() {}
         // static
-        fieldTypeList_t AmqpDeclare::s_fieldTypeList = {
+        const fieldTypeList_t AmqpDeclare::s_fieldTypeList = {
             FieldType("global-id", "*", false, false, {amqpRequiresProvides_t::GLOBAL_TX_ID}) // NOTE: GLOBAL_TX_ID is not yet defined by AMQP 1.0 spec
         };
 
@@ -1175,7 +1228,7 @@ namespace amqpAnalyze
         AmqpDischarge::AmqpDischarge(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpDischarge::~AmqpDischarge() {}
         // static
-        fieldTypeList_t AmqpDischarge::s_fieldTypeList = {
+        const fieldTypeList_t AmqpDischarge::s_fieldTypeList = {
             FieldType("txn-id", "*", true, false, {amqpRequiresProvides_t::TXN_ID}),
             FieldType("fail", amqpPrimitiveType_t::BOOLEAN_TYPE, false, false)
         };
@@ -1185,7 +1238,7 @@ namespace amqpAnalyze
         AmqpDeclared::AmqpDeclared(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpDeclared::~AmqpDeclared() {}
         // static
-        fieldTypeList_t AmqpDeclared::s_fieldTypeList = {
+        const fieldTypeList_t AmqpDeclared::s_fieldTypeList = {
             FieldType("txn-id", "*", true, false, {amqpRequiresProvides_t::TXN_ID})
         };
         // static
@@ -1199,7 +1252,7 @@ namespace amqpAnalyze
         AmqpTransactionalState::AmqpTransactionalState(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpTransactionalState::~AmqpTransactionalState() {}
         // static
-        fieldTypeList_t AmqpTransactionalState::s_fieldTypeList = {
+        const fieldTypeList_t AmqpTransactionalState::s_fieldTypeList = {
             FieldType("txn-id", "*", true, false, {amqpRequiresProvides_t::TXN_ID}),
             FieldType("outcome", "*", false, false, {amqpRequiresProvides_t::OUTCOME})
         };
@@ -1213,7 +1266,7 @@ namespace amqpAnalyze
         AmqpSaslMechanisms::AmqpSaslMechanisms(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpSaslMechanisms::~AmqpSaslMechanisms() {}
         // static
-        fieldTypeList_t AmqpSaslMechanisms::s_fieldTypeList = {
+        const fieldTypeList_t AmqpSaslMechanisms::s_fieldTypeList = {
             FieldType("sasl-server-mechanisms", amqpPrimitiveType_t::SYMBOL_TYPE, true, true)
         };
 
@@ -1222,7 +1275,7 @@ namespace amqpAnalyze
         AmqpSaslInit::AmqpSaslInit(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpSaslInit::~AmqpSaslInit() {}
         // static
-        fieldTypeList_t AmqpSaslInit::s_fieldTypeList = {
+        const fieldTypeList_t AmqpSaslInit::s_fieldTypeList = {
             FieldType("mechanism", amqpPrimitiveType_t::SYMBOL_TYPE, true, false),
             FieldType("initial-response", amqpPrimitiveType_t::BINARY_TYPE, false, false),
             FieldType("hostname", amqpPrimitiveType_t::STRING_TYPE, false, false)
@@ -1233,7 +1286,7 @@ namespace amqpAnalyze
         AmqpSaslChallenge::AmqpSaslChallenge(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpSaslChallenge::~AmqpSaslChallenge() {}
         // static
-        fieldTypeList_t AmqpSaslChallenge::s_fieldTypeList = {
+        const fieldTypeList_t AmqpSaslChallenge::s_fieldTypeList = {
             FieldType("challenge", amqpPrimitiveType_t::BINARY_TYPE, true, false)
         };
 
@@ -1242,7 +1295,7 @@ namespace amqpAnalyze
         AmqpSaslResponse::AmqpSaslResponse(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpSaslResponse::~AmqpSaslResponse() {}
         // static
-        fieldTypeList_t AmqpSaslResponse::s_fieldTypeList = {
+        const fieldTypeList_t AmqpSaslResponse::s_fieldTypeList = {
             FieldType("response", amqpPrimitiveType_t::BINARY_TYPE, true, false)
         };
 
@@ -1251,7 +1304,7 @@ namespace amqpAnalyze
         AmqpSaslOutcome::AmqpSaslOutcome(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpSaslOutcome::~AmqpSaslOutcome() {}
         // static
-        fieldTypeList_t AmqpSaslOutcome::s_fieldTypeList = {
+        const fieldTypeList_t AmqpSaslOutcome::s_fieldTypeList = {
             FieldType("code", amqpPrimitiveType_t::SASL_CODE_TYPE, true, false),
             FieldType("additional-data", amqpPrimitiveType_t::BINARY_TYPE, false, false)
         };

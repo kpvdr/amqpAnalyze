@@ -21,10 +21,11 @@ namespace amqpAnalyze
         class FrameError: public AmqpBlock
         {
         public:
-            FrameError(std::size_t dataOffset, const amqpAnalyze::Error& error);
+            FrameError(uint64_t packetNum, std::size_t dataOffset, const amqpAnalyze::Error& error);
             virtual ~FrameError();
 
             std::ostringstream& appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;
+            void validate() override;
 
         protected:
             std::string _errMsg;

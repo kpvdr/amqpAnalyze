@@ -18,9 +18,6 @@
 #include <pcap.h>
 #include <std/AnsiTermColors.hpp>
 
-// debug
-//#include <iostream>
-
 namespace amqpAnalyze {
 
 TcpDissector::TcpDissector(const WireDissector* parent,
@@ -31,7 +28,6 @@ TcpDissector::TcpDissector(const WireDissector* parent,
                            std::deque<WireDissector*>& protocolList):
 		WireDissector(parent, packetNum, pcapPacketHeaderPtr, packetPtr, packetOffs, DISSECTOR_TCP, protocolList)
 {
-    //std::cout << "*** TCP: offs=0x" << std::hex << packetOffs << std::dec << "\n";
     std::memcpy((char*)&_tcpHeader, (const char*)(packetPtr+packetOffs), sizeof(struct tcphdr));
     _hdrSizeBytes = _tcpHeader.doff * sizeof(uint32_t);  // doff is tcp header size in 32-bit words
     _remainingDataLength = pcapPacketHeaderPtr->caplen - packetOffs - _hdrSizeBytes;
@@ -47,7 +43,6 @@ TcpDissector::TcpDissector(const WireDissector* parent,
         } catch (Error& e) {
             // ignore, non-AMQP
             // TODO, create specific error class for this!
-            //std::cout << e.what() << "\n";
         }
     }
 }
@@ -55,19 +50,19 @@ TcpDissector::TcpDissector(const WireDissector* parent,
 TcpDissector::~TcpDissector() {}
 
 void TcpDissector::appendString(std::ostringstream& oss, size_t margin) const {
-    oss << "\n" << std::string(margin, ' ') << std::b_green << "TCP" << std::res << ": " << getSourceTcpAddrStr() << " -> "
+    oss << "\n" << std::string(margin, ' ') << std::fgnd_green << "TCP" << std::res << ": " << getSourceTcpAddrStr() << " -> "
         << getDestinationAddrStr() << " [" << getFlagsAsString() << "]";
 }
 
 std::string TcpDissector::getSourceTcpAddrStr() const {
     std::stringstream oss;
-    oss << ((IpDissector*)_parent)->getSourceAddrStr() << ":" << std::b_blue << getSourcePort() << std::res;
+    oss << ((IpDissector*)_parent)->getSourceAddrStr() << ":" << std::fgnd_b_blue << getSourcePort() << std::res;
     return oss.str();
 }
 
 std::string TcpDissector::getDestinationAddrStr() const {
     std::stringstream oss;
-    oss << ((IpDissector*)_parent)->getDestinationAddrStr() << ":" << std::b_blue << getDestinationPort() << std::res;
+    oss << ((IpDissector*)_parent)->getDestinationAddrStr() << ":" << std::fgnd_b_blue << getDestinationPort() << std::res;
     return oss.str();
 }
 
@@ -124,7 +119,7 @@ std::string TcpDissector::getFlagsAsString() const {
     bool spacer = false;
     if (_tcpHeader.fin) { oss << "FIN"; spacer = true; }
     if (_tcpHeader.syn) { oss << (spacer?" ":"") << "SYN"; spacer = true; }
-    if (_tcpHeader.rst) { oss << (spacer?" ":"") << std::b_red << "RST" << std::res; spacer = true; }
+    if (_tcpHeader.rst) { oss << (spacer?" ":"") << std::fgnd_b_red << "RST" << std::res; spacer = true; }
     if (_tcpHeader.psh) { oss << (spacer?" ":"") << "PSH"; spacer = true; }
     if (_tcpHeader.ack) { oss << (spacer?" ":"") << "ACK"; spacer = true; }
     if (_tcpHeader.urg) { oss << (spacer?" ":"") << "URG"; }

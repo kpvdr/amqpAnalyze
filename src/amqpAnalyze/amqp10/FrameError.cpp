@@ -16,8 +16,8 @@ namespace amqpAnalyze
     namespace amqp10
     {
 
-        FrameError::FrameError(std::size_t dataOffset, const amqpAnalyze::Error& error):
-            AmqpBlock(dataOffset),
+        FrameError::FrameError(uint64_t packetNum, std::size_t dataOffset, const amqpAnalyze::Error& error):
+            AmqpBlock(packetNum, dataOffset),
             _errMsg(error.what())
         {}
 
@@ -25,9 +25,12 @@ namespace amqpAnalyze
 
         std::ostringstream& FrameError::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
             if (!ignoreFirstMargin) oss << "\n" << std::string(margin, ' ');
-            oss << "[" << std::setw(4) << std::setfill('0') << std::hex << _dataOffset  << "] ";
-            oss << std::b_red << _errMsg << std::res;
-            return oss;
+            oss << "[" << std::setw(4) << std::setfill('0') << std::hex << _dataOffset  << "] e ";
+            oss << std::fgnd_b_red << _errMsg << std::res;
+            return appendStringEpilog(oss, margin);
         }
+
+        void FrameError::validate() {}
+
     } /* namespace amqp10 */
 } /* namespace amqpAnalyze */

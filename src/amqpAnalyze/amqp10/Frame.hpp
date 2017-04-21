@@ -50,6 +50,7 @@ namespace amqpAnalyze
             frameType_t frameType() const;
             const amqp_block_list_t& sectionPtrList() const;
             uint16_t typeSpecific() const;
+            void validate() override;
 
         protected:
             const struct hdr _hdr;

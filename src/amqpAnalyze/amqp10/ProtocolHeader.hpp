@@ -43,6 +43,7 @@ namespace amqpAnalyze
 
             std::ostringstream& appendString(std::ostringstream& oss, std::size_t margin, bool ignoreMargin) const override;
             protocolId_t protocolId() const;
+            void validate();
         protected:
             struct hdr _hdr;
             static std::map<uint8_t, const char*> s_protocolIdName;

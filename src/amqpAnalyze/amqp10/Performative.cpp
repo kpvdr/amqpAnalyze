@@ -22,8 +22,8 @@ namespace amqpAnalyze
     namespace amqp10
     {
 
-        Performative::Performative(std::size_t dataOffset, AmqpList* fieldListPtr):
-                AmqpBlock(dataOffset),
+        Performative::Performative(uint64_t packetNum, std::size_t dataOffset, AmqpList* fieldListPtr):
+                AmqpBlock(packetNum, dataOffset),
                 _fieldListPtr(fieldListPtr)
         {}
 
@@ -37,11 +37,18 @@ namespace amqpAnalyze
 
         std::ostringstream& Performative::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
             if (!ignoreFirstMargin) oss << "\n" << std::string(margin, ' ') << "[" << std::hex << std::setfill('0') << std::setw(4) << _dataOffset << "] ";
-            oss  << "p " << std::b_yellow << typeStr() << std::res;
+            oss  << "p " << std::fgnd_b_yellow << typeStr() << std::res;
             if (_fieldListPtr != nullptr) {
                 _fieldListPtr->appendString(oss, margin + 9 + ::strlen(typeStr()), true);
             }
-            return oss;
+            return appendStringEpilog(oss, margin + 9);
+        }
+
+        void Performative::validate() {
+            // Validate field list
+            if (_fieldListPtr != nullptr) {
+                _fieldListPtr->validate(fieldTypeList(), &AmqpBlock::addError, this);
+            }
         }
 
         // static
@@ -60,14 +67,14 @@ namespace amqpAnalyze
 
         //-- class AmqpOpen ---
 
-        AmqpOpen::AmqpOpen(std::size_t frameOffset, AmqpList* fieldListPtr):
-            Performative(frameOffset, fieldListPtr)
+        AmqpOpen::AmqpOpen(uint64_t packetNum, std::size_t dataOffset, AmqpList* fieldListPtr):
+            Performative(packetNum, dataOffset, fieldListPtr)
         {}
 
         AmqpOpen::~AmqpOpen() {}
 
         // static
-        fieldTypeList_t AmqpOpen::s_fieldTypeList = {
+        const fieldTypeList_t AmqpOpen::s_fieldTypeList = {
             FieldType("container-id", amqpPrimitiveType_t::STRING_TYPE, true, false),
             FieldType("hostname", amqpPrimitiveType_t::STRING_TYPE, false, false),
             FieldType("max-frame-size", amqpPrimitiveType_t::UINT_TYPE, false, false),
@@ -80,17 +87,21 @@ namespace amqpAnalyze
             FieldType("properties", amqpPrimitiveType_t::FIELDS_TYPE, false, false)
         };
 
+        void AmqpOpen::validate() {
+            Performative::validate();
+        }
+
 
         //-- class AmqpBegin ---
 
-        AmqpBegin::AmqpBegin(std::size_t frameOffset, AmqpList* fieldListPtr):
-            Performative(frameOffset, fieldListPtr)
+        AmqpBegin::AmqpBegin(uint64_t packetNum, std::size_t dataOffset, AmqpList* fieldListPtr):
+            Performative(packetNum, dataOffset, fieldListPtr)
         {}
 
         AmqpBegin::~AmqpBegin() {}
 
         // static
-        fieldTypeList_t AmqpBegin::s_fieldTypeList = {
+        const fieldTypeList_t AmqpBegin::s_fieldTypeList = {
             FieldType("remote-channel", amqpPrimitiveType_t::USHORT_TYPE, false, false),
             FieldType("next-outgoing-id", amqpPrimitiveType_t::TRANSFER_NUMBER_TYPE, true, false),
             FieldType("incoming-window", amqpPrimitiveType_t::UINT_TYPE, true, false),
@@ -101,17 +112,21 @@ namespace amqpAnalyze
             FieldType("properties", amqpPrimitiveType_t::FIELDS_TYPE, false, false)
         };
 
+        void AmqpBegin::validate() {
+            Performative::validate();
+        }
+
 
         //-- class AmqpAttach ---
 
-        AmqpAttach::AmqpAttach(std::size_t frameOffset, AmqpList* fieldListPtr):
-            Performative(frameOffset, fieldListPtr)
+        AmqpAttach::AmqpAttach(uint64_t packetNum, std::size_t dataOffset, AmqpList* fieldListPtr):
+            Performative(packetNum, dataOffset, fieldListPtr)
         {}
 
         AmqpAttach::~AmqpAttach() {}
 
         // static
-        fieldTypeList_t AmqpAttach::s_fieldTypeList = {
+        const fieldTypeList_t AmqpAttach::s_fieldTypeList = {
             FieldType("name", amqpPrimitiveType_t::STRING_TYPE, true, false),
             FieldType("handle", amqpPrimitiveType_t::HANDLE_TYPE, true, false),
             FieldType("role", amqpPrimitiveType_t::ROLE_TYPE, true, false),
@@ -128,17 +143,21 @@ namespace amqpAnalyze
             FieldType("properties", amqpPrimitiveType_t::FIELDS_TYPE, false, false)
         };
 
+        void AmqpAttach::validate() {
+            Performative::validate();
+        }
+
 
         //-- class AmqpFlow ---
 
-        AmqpFlow::AmqpFlow(std::size_t frameOffset, AmqpList* fieldListPtr):
-            Performative(frameOffset, fieldListPtr)
+        AmqpFlow::AmqpFlow(uint64_t packetNum, std::size_t dataOffset, AmqpList* fieldListPtr):
+            Performative(packetNum, dataOffset, fieldListPtr)
         {}
 
         AmqpFlow::~AmqpFlow() {}
 
         // static
-        fieldTypeList_t AmqpFlow::s_fieldTypeList = {
+        const fieldTypeList_t AmqpFlow::s_fieldTypeList = {
             FieldType("next-incoming-id", amqpPrimitiveType_t::TRANSFER_NUMBER_TYPE, false, false),
             FieldType("incoming-window", amqpPrimitiveType_t::UINT_TYPE, true, false),
             FieldType("next-outgoing-id", amqpPrimitiveType_t::TRANSFER_NUMBER_TYPE, true, false),
@@ -152,17 +171,21 @@ namespace amqpAnalyze
             FieldType("properties", amqpPrimitiveType_t::FIELDS_TYPE, false, false)
         };
 
+        void AmqpFlow::validate() {
+            Performative::validate();
+        }
+
 
         //-- class AmqpTransfer ---
 
-        AmqpTransfer::AmqpTransfer(std::size_t frameOffset, AmqpList* fieldListPtr):
-            Performative(frameOffset, fieldListPtr)
+        AmqpTransfer::AmqpTransfer(uint64_t packetNum, std::size_t dataOffset, AmqpList* fieldListPtr):
+            Performative(packetNum, dataOffset, fieldListPtr)
         {}
 
         AmqpTransfer::~AmqpTransfer() {}
 
         // static
-        fieldTypeList_t AmqpTransfer::s_fieldTypeList = {
+        const fieldTypeList_t AmqpTransfer::s_fieldTypeList = {
             FieldType("handle", amqpPrimitiveType_t::HANDLE_TYPE, true, false),
             FieldType("delivery-id", amqpPrimitiveType_t::DELIVERY_NUMBER_TYPE, false, false),
             FieldType("delivery-tag", amqpPrimitiveType_t::DELIVERY_TAG_TYPE, false, false),
@@ -176,17 +199,21 @@ namespace amqpAnalyze
             FieldType("batchable", amqpPrimitiveType_t::BOOLEAN_TYPE, false, false)
         };
 
+        void AmqpTransfer::validate() {
+            Performative::validate();
+        }
+
 
         //-- class AmqpDisposition ---
 
-        AmqpDisposition::AmqpDisposition(std::size_t frameOffset, AmqpList* fieldListPtr):
-            Performative(frameOffset, fieldListPtr)
+        AmqpDisposition::AmqpDisposition(uint64_t packetNum, std::size_t dataOffset, AmqpList* fieldListPtr):
+            Performative(packetNum, dataOffset, fieldListPtr)
         {}
 
         AmqpDisposition::~AmqpDisposition() {}
 
         // static
-        fieldTypeList_t AmqpDisposition::s_fieldTypeList = {
+        const fieldTypeList_t AmqpDisposition::s_fieldTypeList = {
             FieldType("role", amqpPrimitiveType_t::ROLE_TYPE, true, false),
             FieldType("first", amqpPrimitiveType_t::DELIVERY_NUMBER_TYPE, true, false),
             FieldType("last", amqpPrimitiveType_t::DELIVERY_NUMBER_TYPE, false, false),
@@ -195,49 +222,65 @@ namespace amqpAnalyze
             FieldType("batchable", amqpPrimitiveType_t::BOOLEAN_TYPE, false, false)
         };
 
+        void AmqpDisposition::validate() {
+            Performative::validate();
+        }
+
 
         //-- class AmqpDetach ---
 
-        AmqpDetach::AmqpDetach(std::size_t frameOffset, AmqpList* fieldListPtr):
-            Performative(frameOffset, fieldListPtr)
+        AmqpDetach::AmqpDetach(uint64_t packetNum, std::size_t dataOffset, AmqpList* fieldListPtr):
+            Performative(packetNum, dataOffset, fieldListPtr)
         {}
 
         AmqpDetach::~AmqpDetach() {}
 
         // static
-        fieldTypeList_t AmqpDetach::s_fieldTypeList = {
+        const fieldTypeList_t AmqpDetach::s_fieldTypeList = {
             FieldType("handle", amqpPrimitiveType_t::HANDLE_TYPE, true, false),
             FieldType("closed", amqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
             FieldType("error", "error", false, false)
         };
 
+        void AmqpDetach::validate() {
+            Performative::validate();
+        }
+
 
         //-- class AmqpEnd ---
 
-        AmqpEnd::AmqpEnd(std::size_t frameOffset, AmqpList* fieldListPtr):
-            Performative(frameOffset, fieldListPtr)
+        AmqpEnd::AmqpEnd(uint64_t packetNum, std::size_t dataOffset, AmqpList* fieldListPtr):
+            Performative(packetNum, dataOffset, fieldListPtr)
         {}
 
         AmqpEnd::~AmqpEnd() {}
 
         // static
-        fieldTypeList_t AmqpEnd::s_fieldTypeList = {
+        const fieldTypeList_t AmqpEnd::s_fieldTypeList = {
             FieldType("error", "error", false, false)
         };
+
+        void AmqpEnd::validate() {
+            Performative::validate();
+        }
 
 
         //-- class AmqpClose ---
 
-        AmqpClose::AmqpClose(std::size_t frameOffset, AmqpList* fieldListPtr):
-            Performative(frameOffset, fieldListPtr)
+        AmqpClose::AmqpClose(uint64_t packetNum, std::size_t dataOffset, AmqpList* fieldListPtr):
+            Performative(packetNum, dataOffset, fieldListPtr)
         {}
 
         AmqpClose::~AmqpClose() {}
 
         // static
-        fieldTypeList_t AmqpClose::s_fieldTypeList = {
+        const fieldTypeList_t AmqpClose::s_fieldTypeList = {
             FieldType("error", "error", false, false)
         };
+
+        void AmqpClose::validate() {
+            Performative::validate();
+        }
 
 
 

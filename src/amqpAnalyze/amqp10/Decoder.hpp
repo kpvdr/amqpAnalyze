@@ -43,8 +43,8 @@ namespace amqpAnalyze
             static Section* decodeSection(FrameBuffer& frameBuffer);
 
         protected:
-            static AmqpList* decodeFieldList(FrameBuffer& frameBuffer, fieldTypeList_t& fieldTypeList);
-            static AmqpList* decodeFieldList(std::size_t size, std::size_t count, FrameBuffer& frameBuffer, fieldTypeList_t& fieldTypeList);
+            static AmqpList* decodeFieldList(FrameBuffer& frameBuffer, const fieldTypeList_t& fieldTypeList);
+            static AmqpList* decodeFieldList(std::size_t size, std::size_t count, FrameBuffer& frameBuffer, const fieldTypeList_t& fieldTypeList);
             static Type* decodeField(FrameBuffer& frameBuffer, const FieldType& fieldType);
        };
 

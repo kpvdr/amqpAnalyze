@@ -32,7 +32,7 @@ namespace amqpAnalyze
         typedef std::vector<amqpRequiresProvides_t> amqp_provides_requires_list_t;
         typedef amqp_provides_requires_list_t::const_iterator amqp_provides_requires_list_citr_t;
 
-        extern std::map<amqpRequiresProvides_t, const char*> ProvidesRequiresNames;
+        extern std::map<amqpRequiresProvides_t, const char*> providesRequiresNames;
 
 
     } /* namespace amqp10 */

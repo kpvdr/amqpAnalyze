@@ -11,21 +11,23 @@
 #include <amqpAnalyze/amqp10/FieldType.hpp>
 #include <amqpAnalyze/amqp10/FrameBuffer.hpp>
 #include <amqpAnalyze/Error.hpp>
-#include <std/AnsiTermColors.hpp>
-
 #include <iomanip>
+#include <std/AnsiTermColors.hpp>
 
 namespace amqpAnalyze
 {
     namespace amqp10
     {
 
-        Section::Section(std::size_t dataOffset): AmqpBlock(dataOffset) {}
+        Section::Section(uint64_t packetNum, std::size_t dataOffset): AmqpBlock(packetNum, dataOffset) {}
         Section::~Section() {}
         std::ostringstream& Section::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
-            if (!ignoreFirstMargin) oss << "\n" << std::string(margin, ' ');
+            std::string m(margin, ' ');
+            if (!ignoreFirstMargin) oss << "\n" << m;
             oss << "[" << std::setw(4) << std::setfill('0') << std::hex << _dataOffset << "] s ";
+            return oss;
         }
+        void Section::validate() {}
         // static
         std::map<sectionType_t, const char*> Section::s_sectionTypeName = {
             {sectionType_t::HEADER, "header"},
@@ -40,8 +42,8 @@ namespace amqpAnalyze
         };
 
 
-        AmqpHeader::AmqpHeader(std::size_t frameOffset, AmqpList* listPtr):
-            Section(frameOffset),
+        AmqpHeader::AmqpHeader(uint64_t packetNum, std::size_t dataOffset, AmqpList* listPtr):
+            Section(packetNum, dataOffset),
             _listPtr(listPtr)
         {}
         AmqpHeader::~AmqpHeader() {
@@ -53,12 +55,18 @@ namespace amqpAnalyze
         std::ostringstream& AmqpHeader::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
             Section::appendString(oss, margin, ignoreFirstMargin);
             std::string t(s_sectionTypeName[type()]);
-            oss << std::b_yellow << t << std::res;
+            oss << std::fgnd_b_yellow << t << std::res;
             _listPtr->appendString(oss, margin + t.length() + 9, true);
-            return oss;
+            return appendStringEpilog(oss, margin + 9);
+        }
+        void AmqpHeader::validate() {
+            Section::validate();
+            if (_listPtr != nullptr) {
+                _listPtr->validate(s_fieldTypeList, &AmqpBlock::addError, this);
+            }
         }
         // static
-        fieldTypeList_t AmqpHeader::s_fieldTypeList = {
+        const fieldTypeList_t AmqpHeader::s_fieldTypeList = {
             FieldType("durable", amqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
             FieldType("priority", amqpPrimitiveType_t::UBYTE_TYPE, false, false),
             FieldType("ttl", amqpPrimitiveType_t::MILLISECONDS_TYPE, false, false),
@@ -68,8 +76,8 @@ namespace amqpAnalyze
 
 
 
-        AmqpDeliveryAnnotations::AmqpDeliveryAnnotations(std::size_t frameOffset, AmqpAnnotations* annotationsPtr):
-            Section(frameOffset),
+        AmqpDeliveryAnnotations::AmqpDeliveryAnnotations(uint64_t packetNum, std::size_t dataOffset, AmqpAnnotations* annotationsPtr):
+            Section(packetNum, dataOffset),
             _annotationsPtr(annotationsPtr)
         {}
         AmqpDeliveryAnnotations::~AmqpDeliveryAnnotations() {
@@ -80,16 +88,19 @@ namespace amqpAnalyze
         }
         std::ostringstream& AmqpDeliveryAnnotations::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
             Section::appendString(oss, margin, ignoreFirstMargin);
-            oss << std::b_yellow << s_sectionTypeName[type()] << std::res << ": ";
+            oss << std::fgnd_b_yellow << s_sectionTypeName[type()] << std::res << ": ";
             _annotationsPtr->appendString(oss, margin, true);
-            return oss;
+            return appendStringEpilog(oss, margin + 9);
+        }
+        void AmqpDeliveryAnnotations::validate() {
+            Section::validate();
         }
 
 
 
 
-        AmqpMessageAnnotations::AmqpMessageAnnotations(std::size_t frameOffset, AmqpAnnotations* annotationsPtr):
-            Section(frameOffset),
+        AmqpMessageAnnotations::AmqpMessageAnnotations(uint64_t packetNum, std::size_t dataOffset, AmqpAnnotations* annotationsPtr):
+            Section(packetNum, dataOffset),
             _annotationsPtr(annotationsPtr)
         {}
         AmqpMessageAnnotations::~AmqpMessageAnnotations() {
@@ -100,16 +111,19 @@ namespace amqpAnalyze
         }
         std::ostringstream& AmqpMessageAnnotations::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
             Section::appendString(oss, margin, ignoreFirstMargin);
-            oss << std::b_yellow << s_sectionTypeName[type()] << std::res << ": ";
+            oss << std::fgnd_b_yellow << s_sectionTypeName[type()] << std::res << ": ";
             _annotationsPtr->appendString(oss, margin, true);
-            return oss;
+            return appendStringEpilog(oss, margin + 9);
+        }
+        void AmqpMessageAnnotations::validate() {
+            Section::validate();
         }
 
 
 
 
-        AmqpProperties::AmqpProperties(std::size_t frameOffset, AmqpList* listPtr):
-            Section(frameOffset),
+        AmqpProperties::AmqpProperties(uint64_t packetNum, std::size_t dataOffset, AmqpList* listPtr):
+            Section(packetNum, dataOffset),
             _listPtr(listPtr)
         {}
         AmqpProperties::~AmqpProperties() {
@@ -121,12 +135,18 @@ namespace amqpAnalyze
         std::ostringstream& AmqpProperties::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
             Section::appendString(oss, margin, ignoreFirstMargin);
             std::string t(s_sectionTypeName[type()]);
-            oss << std::b_yellow << t << std::res;
+            oss << std::fgnd_b_yellow << t << std::res;
             _listPtr->appendString(oss, margin + t.length() + 9, true);
-            return oss;
+            return appendStringEpilog(oss, margin + 9);
+        }
+        void AmqpProperties::validate() {
+            Section::validate();
+            if (_listPtr != nullptr) {
+                _listPtr->validate(s_fieldTypeList, &AmqpBlock::addError, this);
+            }
         }
         // static
-        fieldTypeList_t AmqpProperties::s_fieldTypeList = {
+        const fieldTypeList_t AmqpProperties::s_fieldTypeList = {
             FieldType("message-id", "*", false, false, {amqpRequiresProvides_t::MESSAGE_ID}),
             FieldType("user-id", amqpPrimitiveType_t::BINARY_TYPE, false, false),
             FieldType("to", "*", false, false, {amqpRequiresProvides_t::ADDRESS}),
@@ -145,8 +165,8 @@ namespace amqpAnalyze
 
 
 
-        AmqpApplicationProperties::AmqpApplicationProperties(std::size_t frameOffset, AmqpMap* mapPtr):
-            Section(frameOffset),
+        AmqpApplicationProperties::AmqpApplicationProperties(uint64_t packetNum, std::size_t dataOffset, AmqpMap* mapPtr):
+            Section(packetNum, dataOffset),
             _mapPtr(mapPtr)
         {}
         AmqpApplicationProperties::~AmqpApplicationProperties() {
@@ -157,16 +177,19 @@ namespace amqpAnalyze
         }
         std::ostringstream& AmqpApplicationProperties::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
             Section::appendString(oss, margin, ignoreFirstMargin);
-            oss << std::b_yellow << s_sectionTypeName[type()] << std::res << ": ";
+            oss << std::fgnd_b_yellow << s_sectionTypeName[type()] << std::res << ": ";
             _mapPtr->appendString(oss, margin, true);
-            return oss;
+            return appendStringEpilog(oss, margin + 9);
+        }
+        void AmqpApplicationProperties::validate() {
+            Section::validate();
         }
 
 
 
 
-        AmqpData::AmqpData(std::size_t frameOffset, AmqpBinary* binaryPtr):
-            Section(frameOffset),
+        AmqpData::AmqpData(uint64_t packetNum, std::size_t dataOffset, AmqpBinary* binaryPtr):
+            Section(packetNum, dataOffset),
             _binaryPtr(binaryPtr)
         {}
         AmqpData::~AmqpData() {
@@ -177,15 +200,18 @@ namespace amqpAnalyze
         }
         std::ostringstream& AmqpData::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
             Section::appendString(oss, margin, ignoreFirstMargin);
-            oss << std::b_yellow << s_sectionTypeName[type()] << std::res << ": " << _binaryPtr->typeValueStr();
-            return oss;
+            oss << std::fgnd_b_yellow << s_sectionTypeName[type()] << std::res << ": " << _binaryPtr->typeValueStr();
+            return appendStringEpilog(oss, margin + 9);
+        }
+        void AmqpData::validate() {
+            Section::validate();
         }
 
 
 
 
-        AmqpSequence::AmqpSequence(std::size_t frameOffset, AmqpList* listPtr):
-            Section(frameOffset),
+        AmqpSequence::AmqpSequence(uint64_t packetNum, std::size_t dataOffset, AmqpList* listPtr):
+            Section(packetNum, dataOffset),
             _listPtr(listPtr)
         {}
         AmqpSequence::~AmqpSequence() {
@@ -197,16 +223,19 @@ namespace amqpAnalyze
         std::ostringstream& AmqpSequence::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
             Section::appendString(oss, margin, ignoreFirstMargin);
             std::string t(s_sectionTypeName[type()]);
-            oss << std::b_yellow << t << std::res;
+            oss << std::fgnd_b_yellow << t << std::res;
             _listPtr->appendString(oss, margin + t.length() + 9, true);
-            return oss;
+            return appendStringEpilog(oss, margin + 9);
+        }
+        void AmqpSequence::validate() {
+            Section::validate();
         }
 
 
 
 
-        AmqpValue::AmqpValue(std::size_t frameOffset, PrimitiveType* valuePtr):
-            Section(frameOffset),
+        AmqpValue::AmqpValue(uint64_t packetNum, std::size_t dataOffset, PrimitiveType* valuePtr):
+            Section(packetNum, dataOffset),
             _valuePtr(valuePtr)
         {}
         AmqpValue::~AmqpValue() {
@@ -217,15 +246,18 @@ namespace amqpAnalyze
         }
         std::ostringstream& AmqpValue::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
             Section::appendString(oss, margin, ignoreFirstMargin);
-            oss << std::b_yellow << s_sectionTypeName[type()] << std::res << ": " << _valuePtr->typeValueStr();
-            return oss;
+            oss << std::fgnd_b_yellow << s_sectionTypeName[type()] << std::res << ": " << _valuePtr->typeValueStr();
+            return appendStringEpilog(oss, margin + 9);
+        }
+        void AmqpValue::validate() {
+            Section::validate();
         }
 
 
 
 
-        AmqpFooter::AmqpFooter(std::size_t frameOffset, AmqpAnnotations* annotationsPtr):
-            Section(frameOffset),
+        AmqpFooter::AmqpFooter(uint64_t packetNum, std::size_t dataOffset, AmqpAnnotations* annotationsPtr):
+            Section(packetNum, dataOffset),
             _annotationsPtr(annotationsPtr)
         {}
         AmqpFooter::~AmqpFooter() {
@@ -236,9 +268,12 @@ namespace amqpAnalyze
         }
         std::ostringstream& AmqpFooter::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
             Section::appendString(oss, margin, ignoreFirstMargin);
-            oss << std::b_yellow << s_sectionTypeName[type()] << std::res << ": ";
+            oss << std::fgnd_b_yellow << s_sectionTypeName[type()] << std::res << ": ";
             _annotationsPtr->appendString(oss, margin, ignoreFirstMargin);
-            return oss;
+            return appendStringEpilog(oss, margin + 9);
+        }
+        void AmqpFooter::validate() {
+            Section::validate();
         }
 
 

@@ -30,15 +30,13 @@ namespace amqpAnalyze
                       bool multipleFlag,
                       std::initializer_list<amqpRequiresProvides_t> _requiresInit = {});
             virtual ~FieldType();
-            typedef enum class type {PRIMITIVE, /*COMPOSITE,*/ WILDCARD} type_t;
+            typedef enum class type {PRIMITIVE, WILDCARD} type_t;
             const char* _fieldName;
             type_t _unionType;
             union ctype {
                 const amqpPrimitiveType_t _primitiveType;
-                //const amqpCompositeType_t _compositeType;
                 const char* _type;
                 ctype(amqpPrimitiveType_t primitiveType): _primitiveType(primitiveType) {}
-                //ctype(amqpCompositeType_t compositeType): _compositeType(compositeType) {}
                 ctype(const char* type): _type(type) {}
             } _types;
             const bool _mandatoryFlag;

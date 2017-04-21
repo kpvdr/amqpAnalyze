@@ -21,10 +21,10 @@ namespace amqpAnalyze
 
         FrameBuffer::FrameBuffer(uint64_t packetNum, const uint8_t* dataPtr, std::size_t dataLength):
             _packetNum(packetNum),
-            _frameOffsetSnapshot(0),
             _dataPtr(dataPtr),
             _dataLength(dataLength),
-            _dataOffset(0)
+            _dataOffset(0),
+            _offsetSnapshotStack()
         {}
 
         FrameBuffer::~FrameBuffer() {}
@@ -49,23 +49,25 @@ namespace amqpAnalyze
             return _dataPtr + _dataOffset;
         }
 
-        std::string FrameBuffer::getErrorPrefix() const {
-            std::ostringstream oss;
-            oss << "[" << _packetNum << ":" << std::hex << std::setfill('0') << std::setw(4) << _frameOffsetSnapshot << "] ";
-            return oss.str();
-        }
-
         std::size_t FrameBuffer::getFrameOffsetSnapshot() const {
-            return _frameOffsetSnapshot;
+            return _offsetSnapshotStack.back();
         }
 
         uint64_t FrameBuffer::getPacketNum() const {
             return _packetNum;
         }
+        std::size_t FrameBuffer::popFrameOffsetSnapshot() {
+            if (_offsetSnapshotStack.empty()) {
+                throw amqpAnalyze::Error(MSG("FrameBuffer::popFrameOffsetSnapshot(): Stack empty"));
+            }
+            std::size_t offs(_offsetSnapshotStack.back());
+            _offsetSnapshotStack.pop_back();
+            return offs;
+        }
 
-        std::size_t FrameBuffer::setFrameOffsetSnapshot() {
-            _frameOffsetSnapshot = _dataOffset;
-            return _frameOffsetSnapshot;
+        std::size_t FrameBuffer::pushFrameOffsetSnapshot() {
+            _offsetSnapshotStack.push_back(_dataOffset);
+            return _dataOffset;
         }
 
         void FrameBuffer::ignore(std::size_t size) {
@@ -231,7 +233,7 @@ namespace amqpAnalyze
                 value.push_back((PrimitiveType*)Decoder::decode(*this));
             }
             if (_dataOffset - startOffs != size) {
-                throw amqpAnalyze::Error(MSG(getErrorPrefix() << "List size mismatch: expected 0x" << std::hex << size << ", found 0x" << (_dataOffset - startOffs)));
+                throw amqpAnalyze::AmqpDecodeError(*this, MSG("FrameBuffer::getList(): List size mismatch: expected 0x" << std::hex << size << ", found 0x" << (_dataOffset - startOffs)));
             }
             return value;
         }
@@ -244,7 +246,7 @@ namespace amqpAnalyze
                 value[key] = mapVal;
             }
             if (_dataOffset - startOffs != size) {
-                throw amqpAnalyze::Error(MSG(getErrorPrefix() << "Map size mismatch: expected 0x" << std::hex << size << ", found 0x" << (_dataOffset - startOffs)));
+                throw amqpAnalyze::AmqpDecodeError(*this, MSG("FrameBuffer::getMap(): Map size mismatch: expected 0x" << std::hex << size << ", found 0x" << (_dataOffset - startOffs)));
             }
             return value;
         }
@@ -256,7 +258,7 @@ namespace amqpAnalyze
                 value.push_back((PrimitiveType*)Decoder::decodePrimitive(ctor, *this));
             }
             if (_dataOffset - startOffs != size) {
-                throw amqpAnalyze::Error(MSG(getErrorPrefix() << "Array size mismatch: expected 0x" << std::hex << size << ", found 0x" << (_dataOffset - startOffs)));
+                throw amqpAnalyze::AmqpDecodeError(*this, MSG("FrameBuffer::getArray(): Array size mismatch: expected 0x" << std::hex << size << ", found 0x" << (_dataOffset - startOffs)));
             }
            return value;
         }
@@ -264,7 +266,7 @@ namespace amqpAnalyze
         // protected
         void FrameBuffer::checkSize(std::size_t size, const char* opName) {
             if (_dataLength - _dataOffset < size)
-                throw amqpAnalyze::Error(MSG(getErrorPrefix()<< "FrameBuffer." << opName << "(): Insufficient buffer data to extract 0x" << std::hex << size << " bytes: data_size=0x" << _dataLength << "; curr_offs=" << _dataOffset));
+                throw amqpAnalyze::AmqpDecodeError(*this, MSG("FrameBuffer." << opName << "(): Insufficient buffer data to extract 0x" << std::hex << size << " bytes: data_size=0x" << _dataLength << "; curr_offs=" << _dataOffset));
         }
 
     } /* namespace amqp10 */

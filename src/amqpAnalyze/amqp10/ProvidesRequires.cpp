@@ -14,7 +14,7 @@ namespace amqpAnalyze
     namespace amqp10
     {
 
-        std::map<amqpRequiresProvides_t, const char*> ProvidesRequiresNames = {
+        std::map<amqpRequiresProvides_t, const char*> providesRequiresNames = {
             {amqpRequiresProvides_t::ADDRESS, "address"},
             {amqpRequiresProvides_t::DELIVERY_STATE, "delivery-state"},
             {amqpRequiresProvides_t::DISTRIBUTION_MODE, "distribution-mode"},

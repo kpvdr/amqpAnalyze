@@ -63,13 +63,17 @@ AmqpDissector::AmqpDissector(const WireDissector* parent,
         amqp10::FrameBuffer frameBuffer(packetNum, packetPtr + packetOffs, amqpDataSize);
         while (!frameBuffer.empty()) {
             if (std::string((const char*)frameBuffer.getDataPtr(), 4).compare("AMQP") == 0) {
-                _amqpBlockList.push_back(new amqp10::ProtocolHeader(frameBuffer));
+                amqp10::ProtocolHeader* php(new amqp10::ProtocolHeader(frameBuffer));
+                php->validate(); // TODO - control validation with a command-line switch
+                _amqpBlockList.push_back(php);
             } else {
-                _amqpBlockList.push_back(new amqp10::Frame(frameBuffer));
+                amqp10::Frame* fp(new amqp10::Frame(frameBuffer));
+                fp->validate(); // TODO - control validation with a command-line switch
+                _amqpBlockList.push_back(fp);
             }
         }
     } catch (const Error& e) {
-        std::cout << std::b_red << "Error: " << e.what() << std::res << std::endl;
+        std::cout << std::fgnd_b_red << "Error: " << e.what() << std::res << std::endl;
     }
 }
 
@@ -82,7 +86,7 @@ AmqpDissector::~AmqpDissector() {
 
 void AmqpDissector::appendString(std::ostringstream& oss, size_t margin) const {
     oss << "\n" << _debugHexFrameData; // TODO: use frameBuffer for this
-    oss << "\n" << std::string(margin, ' ') << std::b_green << "AMQP" << std::res << ": ";
+    oss << "\n" << std::string(margin, ' ') << std::fgnd_green << "AMQP" << std::res << ": ";
     for (amqp10::amqp_block_list_citr_t i=_amqpBlockList.begin(); i!=_amqpBlockList.end(); ++i) {
         (*i)->appendString(oss, margin + 6, i == _amqpBlockList.begin());
     }

@@ -15,9 +15,6 @@
 #include <amqpAnalyze/Error.hpp>
 #include <memory>
 
-// debug
-#include <iostream>
-
 namespace amqpAnalyze
 {
     namespace amqp10
@@ -202,7 +199,8 @@ namespace amqpAnalyze
             }
 
             default:
-                throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Invalid AMQP primitive type code 0x" << std::hex << (int)code));
+                throw amqpAnalyze::AmqpDecodeError(frameBuffer, MSG("Decoder::decode(): Invalid AMQP primitive type code 0x"
+                                                                    << std::hex << (int)code));
             }
         }
 
@@ -258,21 +256,26 @@ namespace amqpAnalyze
                 case amqpCompositeType_t::SASL_OUTCOME:
                     return new AmqpSaslOutcome(Decoder::decodeFieldList(frameBuffer, AmqpSaslOutcome::s_fieldTypeList), fieldName);
                 default:
-                    throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Invalid AMQP composite type code " << longDescriptorPtr->valueStr()));
-                }}
+                    throw amqpAnalyze::AmqpDecodeError(frameBuffer, MSG("Decoder::decodeComposite(): Invalid AMQP composite type code "
+                                                                        << longDescriptorPtr->valueStr()));
+                }
+            }
             case amqpPrimitiveType_t::SYMBOL_TYPE:
-                throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "AMQP symbol descriptors not handled (" << descriptorPtr->typeStr() << ")"));
+                throw amqpAnalyze::AmqpDecodeError(frameBuffer, MSG("Decoder::decodeComposite(): AMQP symbol descriptors not handled ("
+                                                                    << descriptorPtr->typeStr() << ")"));
             default:
-                throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Invalid AMQP composite type descriptor " << descriptorPtr->typeStr()));
+                throw amqpAnalyze::AmqpDecodeError(frameBuffer, MSG("Decoder::decodeComposite(): Invalid AMQP composite type descriptor "
+                                                                    << descriptorPtr->typeStr()));
             }
         }
 
         // static
         Performative* Decoder::decodePerformative(FrameBuffer& frameBuffer) {
-            frameBuffer.setFrameOffsetSnapshot();
+            std::size_t dataOffset = frameBuffer.pushFrameOffsetSnapshot();
             const uint8_t lfb = frameBuffer.getUint8();
             if (lfb != 0) {
-                throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Unexpected leading frame byte: expected 0x0, found 0x" << (int)lfb));
+                throw amqpAnalyze::AmqpDecodeError(frameBuffer, MSG("Decoder::decodePerformative(): Unexpected leading frame byte: expected 0x0, found 0x"
+                                                                    << (int)lfb));
             }
             Performative* performativePtr = nullptr;
             std::unique_ptr<PrimitiveType> descriptorPtr((PrimitiveType*)Decoder::decode(frameBuffer));
@@ -281,100 +284,112 @@ namespace amqpAnalyze
                     AmqpUlong* longDescriptorPtr = (AmqpUlong*)descriptorPtr.get();
                     switch((performativeType_t)longDescriptorPtr->value()) {
                         case performativeType_t::OPEN:
-                            performativePtr = new AmqpOpen(frameBuffer.getFrameOffsetSnapshot(),
-                                                           decodeFieldList(frameBuffer, AmqpOpen::s_fieldTypeList));
+                            performativePtr = new AmqpOpen(frameBuffer.getPacketNum(), dataOffset, decodeFieldList(frameBuffer, AmqpOpen::s_fieldTypeList));
                             break;
                         case performativeType_t::BEGIN:
-                            performativePtr = new AmqpBegin(frameBuffer.getFrameOffsetSnapshot(),
-                                                            decodeFieldList(frameBuffer, AmqpBegin::s_fieldTypeList));
+                            performativePtr = new AmqpBegin(frameBuffer.getPacketNum(), dataOffset, decodeFieldList(frameBuffer, AmqpBegin::s_fieldTypeList));
                             break;
                         case performativeType_t::ATTACH:
-                            performativePtr = new AmqpAttach(frameBuffer.getFrameOffsetSnapshot(),
-                                                             decodeFieldList(frameBuffer, AmqpAttach::s_fieldTypeList));
+                            performativePtr = new AmqpAttach(frameBuffer.getPacketNum(), dataOffset, decodeFieldList(frameBuffer, AmqpAttach::s_fieldTypeList));
                             break;
                         case performativeType_t::FLOW:
-                            performativePtr = new AmqpFlow(frameBuffer.getFrameOffsetSnapshot(),
-                                                           decodeFieldList(frameBuffer, AmqpFlow::s_fieldTypeList));
+                            performativePtr = new AmqpFlow(frameBuffer.getPacketNum(), dataOffset, decodeFieldList(frameBuffer, AmqpFlow::s_fieldTypeList));
                             break;
                         case performativeType_t::TRANSFER:
-                            performativePtr = new AmqpTransfer(frameBuffer.getFrameOffsetSnapshot(),
-                                                               decodeFieldList(frameBuffer, AmqpTransfer::s_fieldTypeList));
+                            performativePtr = new AmqpTransfer(frameBuffer.getPacketNum(), dataOffset, decodeFieldList(frameBuffer, AmqpTransfer::s_fieldTypeList));
                             break;
                         case performativeType_t::DISPOSITION:
-                            performativePtr = new AmqpDisposition(frameBuffer.getFrameOffsetSnapshot(),
-                                                                  decodeFieldList(frameBuffer, AmqpDisposition::s_fieldTypeList));
+                            performativePtr = new AmqpDisposition(frameBuffer.getPacketNum(), dataOffset, decodeFieldList(frameBuffer, AmqpDisposition::s_fieldTypeList));
                             break;
                         case performativeType_t::DETACH:
-                            performativePtr = new AmqpDetach(frameBuffer.getFrameOffsetSnapshot(),
-                                                             decodeFieldList(frameBuffer, AmqpDetach::s_fieldTypeList));
+                            performativePtr = new AmqpDetach(frameBuffer.getPacketNum(), dataOffset, decodeFieldList(frameBuffer, AmqpDetach::s_fieldTypeList));
                             break;
                         case performativeType_t::END:
-                            performativePtr = new AmqpEnd(frameBuffer.getFrameOffsetSnapshot(),
-                                                          decodeFieldList(frameBuffer, AmqpEnd::s_fieldTypeList));
+                            performativePtr = new AmqpEnd(frameBuffer.getPacketNum(), dataOffset, decodeFieldList(frameBuffer, AmqpEnd::s_fieldTypeList));
                             break;
                         case performativeType_t::CLOSE:
-                            performativePtr = new AmqpClose(frameBuffer.getFrameOffsetSnapshot(),
-                                                            decodeFieldList(frameBuffer, AmqpClose::s_fieldTypeList));
+                            performativePtr = new AmqpClose(frameBuffer.getPacketNum(), dataOffset, decodeFieldList(frameBuffer, AmqpClose::s_fieldTypeList));
                             break;
                         default:
-                            throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Invalid AMQP performative descriptor: " << longDescriptorPtr->valueStr()));
+                            throw amqpAnalyze::AmqpDecodeError(frameBuffer, MSG("Decoder::decodePerformative(): Invalid AMQP performative descriptor: "
+                                                                                 << longDescriptorPtr->valueStr()));
                     }
                     break;
                 }
                 case amqpPrimitiveType_t::SYMBOL_TYPE:
-                    throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "AMQP symbol descriptors not handled (" << descriptorPtr->typeStr() << ")"));
+                    throw amqpAnalyze::AmqpDecodeError(frameBuffer, MSG("Decoder::decodePerformative(): AMQP symbol descriptors not handled ("
+                                                                        << descriptorPtr->typeStr() << ")"));
                 default:
-                    throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Invalid AMQP descriptor type:" << descriptorPtr->typeStr()));
+                    throw amqpAnalyze::AmqpDecodeError(frameBuffer, MSG("Decoder::decodePerformative(): Invalid AMQP descriptor type:"
+                                                                         << descriptorPtr->typeStr()));
             }
+            frameBuffer.popFrameOffsetSnapshot();
             return performativePtr;
         }
 
 
         // static
         Section* Decoder::decodeSection(FrameBuffer& frameBuffer) {
-            size_t frameOffset = frameBuffer.getOffset();
+            std::size_t dataOffset = frameBuffer.pushFrameOffsetSnapshot();
             const uint8_t lfb = frameBuffer.getUint8();
             if (lfb != 0) {
-                throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Unexpected leading frame byte: expected 0x0, found 0x" << (int)lfb));
+                throw amqpAnalyze::AmqpDecodeError(frameBuffer, MSG("Decoder::decodeSection(): Unexpected leading frame byte: expected 0x0, found 0x"
+                                                                    << (int)lfb));
             }
+            Section* sectionPtr = nullptr;
             std::unique_ptr<PrimitiveType> descriptorPtr((PrimitiveType*)Decoder::decode(frameBuffer));
             switch (descriptorPtr->type()) {
                 case amqpPrimitiveType_t::ULONG_TYPE: {
                     AmqpUlong* longDescriptorPtr = (AmqpUlong*)descriptorPtr.get(); // TODO: This feels ugly, need more elegant solution here
                     switch((sectionType_t)longDescriptorPtr->value()) {
                         case sectionType_t::HEADER:
-                            return new AmqpHeader(frameOffset, Decoder::decodeFieldList(frameBuffer, AmqpHeader::s_fieldTypeList));
+                            sectionPtr = new AmqpHeader(frameBuffer.getPacketNum(), dataOffset, Decoder::decodeFieldList(frameBuffer, AmqpHeader::s_fieldTypeList));
+                            break;
                         case sectionType_t::DELIVERY_ANNOTATIONS:
-                            return new AmqpDeliveryAnnotations(frameOffset, (AmqpAnnotations*)Decoder::decode(frameBuffer));
+                            sectionPtr = new AmqpDeliveryAnnotations(frameBuffer.getPacketNum(), dataOffset, (AmqpAnnotations*)Decoder::decode(frameBuffer));
+                            break;
                         case sectionType_t::MESSAGE_ANNOTATIONS:
-                            return new AmqpMessageAnnotations(frameOffset, (AmqpAnnotations*)Decoder::decode(frameBuffer));
+                            sectionPtr = new AmqpMessageAnnotations(frameBuffer.getPacketNum(), dataOffset, (AmqpAnnotations*)Decoder::decode(frameBuffer));
+                            break;
                         case sectionType_t::PROPERTIES:
-                            return new AmqpProperties(frameOffset, Decoder::decodeFieldList(frameBuffer, AmqpProperties::s_fieldTypeList));
+                            sectionPtr = new AmqpProperties(frameBuffer.getPacketNum(), dataOffset, Decoder::decodeFieldList(frameBuffer, AmqpProperties::s_fieldTypeList));
+                            break;
                         case sectionType_t::APPLICATION_PROPERTIES:
-                            return new AmqpApplicationProperties(frameOffset, (AmqpMap*)Decoder::decode(frameBuffer));
+                            sectionPtr = new AmqpApplicationProperties(frameBuffer.getPacketNum(), dataOffset, (AmqpMap*)Decoder::decode(frameBuffer));
+                            break;
                         case sectionType_t::RAW_DATA:
-                            return new AmqpData(frameOffset, (AmqpBinary*)Decoder::decode(frameBuffer));
+                            sectionPtr = new AmqpData(frameBuffer.getPacketNum(), dataOffset, (AmqpBinary*)Decoder::decode(frameBuffer));
+                            break;
                         case sectionType_t::AMQP_SEQUENCE:
-                            return new AmqpSequence(frameOffset, (AmqpList*)Decoder::decode(frameBuffer));
+                            sectionPtr = new AmqpSequence(frameBuffer.getPacketNum(), dataOffset, (AmqpList*)Decoder::decode(frameBuffer));
+                            break;
                         case sectionType_t::AMQP_VALUE:
-                            return new AmqpValue(frameOffset, (PrimitiveType*)Decoder::decode(frameBuffer));
+                            sectionPtr = new AmqpValue(frameBuffer.getPacketNum(), dataOffset, (PrimitiveType*)Decoder::decode(frameBuffer));
+                            break;
                         case sectionType_t::FOOTER:
-                            return new AmqpFooter(frameOffset, (AmqpAnnotations*)Decoder::decode(frameBuffer));
+                            sectionPtr = new AmqpFooter(frameBuffer.getPacketNum(), dataOffset, (AmqpAnnotations*)Decoder::decode(frameBuffer));
+                            break;
                         default:;
-                            throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Invalid AMQP section descriptor: " << longDescriptorPtr->valueStr()));
+                            throw amqpAnalyze::AmqpDecodeError(frameBuffer, MSG("Decoder::decodeSection(): Invalid AMQP section descriptor: "
+                                                                                << longDescriptorPtr->valueStr()));
                     }
+                    break;
                 }
                 case  amqpPrimitiveType_t::SYMBOL_TYPE: {
-                    throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "AMQP symbol descriptors not handled (" << descriptorPtr->typeStr() << ")"));
+                    throw amqpAnalyze::AmqpDecodeError(frameBuffer, MSG("Decoder::decodeSection(): AMQP symbol descriptors not handled (found type "
+                                                                        << descriptorPtr->typeStr() << ")"));
                 }
                 default:
-                    throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Invalid AMQP descriptor type: " << descriptorPtr->typeStr()));
+                    throw amqpAnalyze::AmqpDecodeError(frameBuffer, MSG("Decoder::decodeSection(): Invalid AMQP descriptor type: 0x" << std::hex
+                                                                        << (int)descriptorPtr->type() << "(" << descriptorPtr->typeStr() << ")"));
             }
+            frameBuffer.popFrameOffsetSnapshot();
+            return sectionPtr;
         }
 
 
         // static
-        AmqpList* Decoder::decodeFieldList(FrameBuffer& frameBuffer, fieldTypeList_t& fieldTypeList) {
+        AmqpList* Decoder::decodeFieldList(FrameBuffer& frameBuffer, const fieldTypeList_t& fieldTypeList) {
             uint8_t code = frameBuffer.getUint8();
             switch (code) {
                 case 0x45:
@@ -390,16 +405,17 @@ namespace amqpAnalyze
                     return decodeFieldList(size - sizeof(uint32_t), count, frameBuffer, fieldTypeList);
                 }
                 default:
-                    throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Invalid AMQP type code for list: 0x" << std::hex << (int)code));
+                    throw amqpAnalyze::AmqpDecodeError(frameBuffer, MSG("Decoder::decodeFieldList(): Invalid AMQP type code for list: 0x"
+                                                                        << std::hex << (int)code));
             }
         }
 
 
         // static
-        AmqpList* Decoder::decodeFieldList(std::size_t size, std::size_t count, FrameBuffer& frameBuffer, fieldTypeList_t& fieldTypeList) {
+        AmqpList* Decoder::decodeFieldList(std::size_t size, std::size_t count, FrameBuffer& frameBuffer, const fieldTypeList_t& fieldTypeList) {
             if (count > fieldTypeList.size()) {
-                throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "FieldList too large for fieldTypeList: FieldList size="
-                                         << count << "; fieldTypeList size=" << fieldTypeList.size()));
+                throw amqpAnalyze::AmqpDecodeError(frameBuffer, MSG("Decoder::decodeFieldList(): FieldList too large for fieldTypeList: FieldList size="
+                                                                    << count << "; fieldTypeList size=" << fieldTypeList.size()));
             }
             const size_t startOffs = frameBuffer.getOffset();
             AmqpList* parameterListPtr = new AmqpList();
@@ -407,8 +423,8 @@ namespace amqpAnalyze
                 parameterListPtr->value().push_back(decodeField(frameBuffer, fieldTypeList[i]));
             }
             if (frameBuffer.getOffset() - startOffs != size) {
-                throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "List size mismatch: expected 0x" << std::hex
-                                         << size << ", found 0x" << (frameBuffer.getOffset() - startOffs)));
+                throw amqpAnalyze::AmqpDecodeError(frameBuffer, MSG("Decoder::decodeFieldList(): List size mismatch: expected 0x" << std::hex
+                                                                    << size << ", found 0x" << (frameBuffer.getOffset() - startOffs)));
             }
             return parameterListPtr;
         }
@@ -418,7 +434,6 @@ namespace amqpAnalyze
         Type* Decoder::decodeField(FrameBuffer& frameBuffer, const FieldType& fieldType) {
             uint8_t code = frameBuffer.getUint8();
             if (code == 0x40) {
-                if (fieldType._mandatoryFlag) throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Null found in mandatory field"));
                 return new AmqpNull(fieldType._fieldName);
             }
             switch (fieldType._unionType) {
@@ -429,8 +444,8 @@ namespace amqpAnalyze
                                 case 0x43: return new AmqpMilliseconds(0, fieldType._fieldName);
                                 case 0x52: return new AmqpMilliseconds(frameBuffer.getUint8(), fieldType._fieldName);
                                 case 0x70: return new AmqpMilliseconds(frameBuffer.getUint32(), fieldType._fieldName);
-                                default: throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Invalid type code for \"milliseconds\" field: 0x"
-                                                                  << std::hex << (int)code));
+                                default: throw amqpAnalyze::AmqpDecodeError(frameBuffer, MSG("Decoder::decodeField(): \"" << fieldType._fieldName << "\": Invalid type code: 0x"
+                                                                                             << std::hex << (int)code));
                             }
                         case amqpPrimitiveType_t::LANGUAGE_TAG_TYPE:
                             switch (code) {
@@ -444,8 +459,8 @@ namespace amqpAnalyze
                                     frameBuffer.getSymbol(lt->value(), frameBuffer.getUint32());
                                     return lt;
                                 }
-                                default: throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Invalid type code for \"ietf-language-tag\" field: 0x"
-                                                                  << std::hex << (int)code));
+                                default: throw amqpAnalyze::AmqpDecodeError(frameBuffer, MSG("Decoder::decodeField(): \"" << fieldType._fieldName << "\": Invalid type code: 0x"
+                                                                                             << std::hex << (int)code));
                             }
                         case amqpPrimitiveType_t::FIELDS_TYPE:
                                 switch (code) {
@@ -463,52 +478,60 @@ namespace amqpAnalyze
                                     frameBuffer.getMap(f->value(), size - sizeof(count), count);
                                     return f;
                                 }
-                                default: throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Invalid type code for \"fields\" field: 0x" << std::hex << (int)code));
+                                default: throw amqpAnalyze::AmqpDecodeError(frameBuffer, MSG("Decoder::decodeField(): \"" << fieldType._fieldName << "\": Invalid type code: 0x"
+                                                                                             << std::hex << (int)code));
                             }
                         case amqpPrimitiveType_t::TRANSFER_NUMBER_TYPE:
                             switch (code) {
                                 case 0x70: return new AmqpTransferNum(frameBuffer.getUint32(), fieldType._fieldName);
                                 case 0x52: return new AmqpTransferNum(frameBuffer.getUint8(), fieldType._fieldName);
                                 case 0x43: return new AmqpTransferNum(0, fieldType._fieldName);
-                                default: throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Invalid type code for \"transfer-number\" field: 0x" << std::hex << (int)code));
+                                default: throw amqpAnalyze::AmqpDecodeError(frameBuffer, MSG("Decoder::decodeField(): \"" << fieldType._fieldName << "\": Invalid type code: 0x"
+                                                                                             << std::hex << (int)code));
                             }
                         case amqpPrimitiveType_t::HANDLE_TYPE:
                             switch (code) {
                                 case 0x70: return new AmqpHandle(frameBuffer.getUint32(), fieldType._fieldName);
                                 case 0x52: return new AmqpHandle(frameBuffer.getUint8(), fieldType._fieldName);
                                 case 0x43: return new AmqpHandle(0, fieldType._fieldName);
-                                default: throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Invalid type code for \"handle\" field: 0x" << std::hex << (int)code));
+                                default: throw amqpAnalyze::AmqpDecodeError(frameBuffer, MSG("Decoder::decodeField(): \"" << fieldType._fieldName << "\": Invalid type code: 0x"
+                                                                                             << std::hex << (int)code));
                             }
                         case amqpPrimitiveType_t::ROLE_TYPE:
                             switch (code) {
                                 case 0x41: return new AmqpRole((amqp_role_t)true, fieldType._fieldName);
                                 case 0x42: return new AmqpRole((amqp_role_t)false, fieldType._fieldName);
                                 case 0x56: return new AmqpRole((amqp_role_t)frameBuffer.getBool(), fieldType._fieldName);
-                                default: throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Invalid type code for \"role\" field: 0x" << std::hex << (int)code));
+                                default: throw amqpAnalyze::AmqpDecodeError(frameBuffer, MSG("Decoder::decodeField(): \"" << fieldType._fieldName << "\": Invalid type code: 0x"
+                                                                                             << std::hex << (int)code));
                             }
                         case amqpPrimitiveType_t::SENDER_SETTLE_MODE_TYPE:
                             switch (code) {
                                 case 0x50: return new AmqpSenderSettleMode((amqp_sender_settle_mode_t)frameBuffer.getUint8(), fieldType._fieldName);
-                                default: throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Invalid type code for \"sender-settle-mode\" field: 0x" << std::hex << (int)code));
+                                default: throw amqpAnalyze::AmqpDecodeError(frameBuffer, MSG("Decoder::decodeField(): \"" << fieldType._fieldName << "\": Invalid type code: 0x"
+                                                                                             << std::hex << (int)code));
                             }
                         case amqpPrimitiveType_t::RECEIVER_SETTLE_MODE_TYPE:
                             switch (code) {
                                 case 0x50: return new AmqpReceiverSettleMode((amqp_receiver_settle_mode_t)frameBuffer.getUint8(), fieldType._fieldName);
-                                default: throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Invalid type code for \"receiver-settle-mode\" field: 0x" << std::hex << (int)code));
+                                default: throw amqpAnalyze::AmqpDecodeError(frameBuffer, MSG("Decoder::decodeField(): \"" << fieldType._fieldName << "\": Invalid type code: 0x"
+                                                                                             << std::hex << (int)code));
                             }
                         case amqpPrimitiveType_t::SEQUENCE_NUMBER_TYPE:
                             switch (code) {
                                 case 0x70: return new AmqpSequenceNum(frameBuffer.getUint32(), fieldType._fieldName);
                                 case 0x52: return new AmqpSequenceNum(frameBuffer.getUint8(), fieldType._fieldName);
                                 case 0x43: return new AmqpSequenceNum(0, fieldType._fieldName);
-                                default: throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Invalid type code for \"sequence-no\" field: 0x" << std::hex << (int)code));
+                                default: throw amqpAnalyze::AmqpDecodeError(frameBuffer, MSG("Decoder::decodeField(): \"" << fieldType._fieldName << "\": Invalid type code: 0x"
+                                                                                             << std::hex << (int)code));
                             }
                         case amqpPrimitiveType_t::DELIVERY_NUMBER_TYPE:
                             switch (code) {
                                 case 0x70: return new AmqpDeliveryNum(frameBuffer.getUint32(), fieldType._fieldName);
                                 case 0x52: return new AmqpDeliveryNum(frameBuffer.getUint8(), fieldType._fieldName);
                                 case 0x43: return new AmqpDeliveryNum(0, fieldType._fieldName);
-                                default: throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Invalid type code for \"delivery-number\" field: 0x" << std::hex << (int)code));
+                                default: throw amqpAnalyze::AmqpDecodeError(frameBuffer, MSG("Decoder::decodeField(): \"" << fieldType._fieldName << "\": Invalid type code: 0x"
+                                                                                             << std::hex << (int)code));
                             }
                         case amqpPrimitiveType_t::DELIVERY_TAG_TYPE:
                             switch (code) {
@@ -522,14 +545,16 @@ namespace amqpAnalyze
                                     frameBuffer.getBinary(d->value(), frameBuffer.getUint32());
                                     return d;
                                 }
-                                default: throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Invalid type code for \"delivery-tag\" field: 0x" << std::hex << (int)code));
+                                default: throw amqpAnalyze::AmqpDecodeError(frameBuffer, MSG("Decoder::decodeField(): \"" << fieldType._fieldName << "\": Invalid type code: 0x"
+                                                                                             << std::hex << (int)code));
                             }
                         case amqpPrimitiveType_t::MESSAGE_FORMAT_TYPE:
                             switch (code) {
                                 case 0x70: return new AmqpUint(frameBuffer.getUint32(), fieldType._fieldName);
                                 case 0x52: return new AmqpUint(frameBuffer.getUint8(), fieldType._fieldName);
                                 case 0x43: return new AmqpUint(0, fieldType._fieldName);
-                                default: throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Invalid type code for \"message-format\" field: 0x" << std::hex << (int)code));
+                                default: throw amqpAnalyze::AmqpDecodeError(frameBuffer, MSG("Decoder::decodeField(): \"" << fieldType._fieldName << "\": Invalid type code: 0x"
+                                                                                             << std::hex << (int)code));
                             }
                         default:
                             return Decoder::decodePrimitive(code, frameBuffer, fieldType._fieldName);
@@ -541,21 +566,11 @@ namespace amqpAnalyze
                     } else {
                         typePtr = Decoder::decodeComposite(frameBuffer, fieldType._fieldName);
                     }
-
-                    // Check that field requires (if present) matches provides in decoded type
-                    if (fieldType._requiresList.size() == 1) {
-                        amqpRequiresProvides_t requires = fieldType._requiresList.front();
-                        if (!typePtr->provides(requires, typePtr->providesList())) {
-                            // throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Provides - requires mismatch: requires=\"" << ProvidesRequiresNames[requires] << "\""));
-                            std::cout << frameBuffer.getErrorPrefix() << "Provides - requires mismatch: requires=\"" << ProvidesRequiresNames[requires] << "\"" << std::endl;
-                        }
-                    } else {
-                        throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "fieldType._requiresList.size()!=1: " << fieldType._requiresList.size()));
-                    }
                     return typePtr;
                 }
                 default:
-                    throw amqpAnalyze::Error(MSG(frameBuffer.getErrorPrefix() << "Unknown field type: 0x" << std::hex << (int)fieldType._unionType));
+                    throw amqpAnalyze::AmqpDecodeError(frameBuffer, MSG("Decoder::decodeField(): \"" << fieldType._fieldName << "\": Unknown field type: 0x" << std::hex
+                                                                        << (int)fieldType._unionType));
             }
         }
 

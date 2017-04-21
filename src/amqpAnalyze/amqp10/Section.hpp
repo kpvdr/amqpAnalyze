@@ -42,10 +42,11 @@ namespace amqpAnalyze
         class Section: public AmqpBlock
         {
         public:
-            Section(std::size_t dataOffset);
+            Section(uint64_t packetNum, std::size_t dataOffset);
             virtual ~Section();
             virtual std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;
             virtual sectionType_t type() const = 0;
+            void validate() override;
         protected:
             static std::map<sectionType_t, const char*> s_sectionTypeName;
         };
@@ -57,11 +58,12 @@ namespace amqpAnalyze
 
         class AmqpHeader: public Section {
         public:
-            AmqpHeader(std::size_t frameOffset, AmqpList* listPtr);
+            AmqpHeader(uint64_t packetNum, std::size_t dataOffset, AmqpList* listPtr);
             virtual ~AmqpHeader();
             std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;
-            inline sectionType_t type() const { return sectionType_t::HEADER; };
-            static fieldTypeList_t s_fieldTypeList;
+            inline sectionType_t type() const override { return sectionType_t::HEADER; };
+            void validate() override;
+            static const fieldTypeList_t s_fieldTypeList;
         protected:
             AmqpList* _listPtr;
         };
@@ -70,10 +72,11 @@ namespace amqpAnalyze
 
         class AmqpDeliveryAnnotations: public Section {
         public:
-            AmqpDeliveryAnnotations(std::size_t frameOffset, AmqpAnnotations* annotationsPtr);
+            AmqpDeliveryAnnotations(uint64_t packetNum, std::size_t dataOffset, AmqpAnnotations* annotationsPtr);
             virtual ~AmqpDeliveryAnnotations();
             std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;
-            inline sectionType_t type() const { return sectionType_t::DELIVERY_ANNOTATIONS; };
+            inline sectionType_t type() const override { return sectionType_t::DELIVERY_ANNOTATIONS; };
+            void validate() override;
         protected:
             AmqpAnnotations* _annotationsPtr;
         };
@@ -83,10 +86,11 @@ namespace amqpAnalyze
 
         class AmqpMessageAnnotations: public Section {
         public:
-            AmqpMessageAnnotations(std::size_t frameOffset, AmqpAnnotations* annotationsPtr);
+            AmqpMessageAnnotations(uint64_t packetNum, std::size_t dataOffset, AmqpAnnotations* annotationsPtr);
             virtual ~AmqpMessageAnnotations();
             std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;
-            inline sectionType_t type() const { return sectionType_t::MESSAGE_ANNOTATIONS; };
+            inline sectionType_t type() const override { return sectionType_t::MESSAGE_ANNOTATIONS; };
+            void validate() override;
         protected:
             AmqpAnnotations* _annotationsPtr;
         };
@@ -96,11 +100,12 @@ namespace amqpAnalyze
 
         class AmqpProperties: public Section {
         public:
-            AmqpProperties(std::size_t frameOffset, AmqpList* listPtr);
+            AmqpProperties(uint64_t packetNum, std::size_t dataOffset, AmqpList* listPtr);
             virtual ~AmqpProperties();
             std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;
-            inline sectionType_t type() const { return sectionType_t::PROPERTIES; };
-            static fieldTypeList_t s_fieldTypeList;
+            inline sectionType_t type() const override { return sectionType_t::PROPERTIES; };
+            void validate() override;
+            static const fieldTypeList_t s_fieldTypeList;
         protected:
             AmqpList* _listPtr;
         };
@@ -110,10 +115,11 @@ namespace amqpAnalyze
 
         class AmqpApplicationProperties: public Section {
         public:
-            AmqpApplicationProperties(std::size_t frameOffset, AmqpMap* mapPtr);
+            AmqpApplicationProperties(uint64_t packetNum, std::size_t dataOffset, AmqpMap* mapPtr);
             virtual ~AmqpApplicationProperties();
             std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;
-            inline sectionType_t type() const { return sectionType_t::APPLICATION_PROPERTIES; };
+            inline sectionType_t type() const override { return sectionType_t::APPLICATION_PROPERTIES; };
+            void validate() override;
         protected:
             AmqpMap* _mapPtr;
         };
@@ -123,10 +129,11 @@ namespace amqpAnalyze
 
         class AmqpData: public Section {
         public:
-            AmqpData(std::size_t frameOffset, AmqpBinary* binaryPtr);
+            AmqpData(uint64_t packetNum, std::size_t dataOffset, AmqpBinary* binaryPtr);
             virtual ~AmqpData();
             std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;
-            inline sectionType_t type() const { return sectionType_t::RAW_DATA; };
+            inline sectionType_t type() const override { return sectionType_t::RAW_DATA; };
+            void validate() override;
         protected:
             AmqpBinary* _binaryPtr;
        };
@@ -136,10 +143,11 @@ namespace amqpAnalyze
 
         class AmqpSequence: public Section {
         public:
-            AmqpSequence(std::size_t frameOffset, AmqpList* listPtr);
+            AmqpSequence(uint64_t packetNum, std::size_t dataOffset, AmqpList* listPtr);
             virtual ~AmqpSequence();
             std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;
-            inline sectionType_t type() const { return sectionType_t::AMQP_SEQUENCE; };
+            inline sectionType_t type() const override { return sectionType_t::AMQP_SEQUENCE; };
+            void validate() override;
         protected:
             AmqpList* _listPtr;
        };
@@ -149,10 +157,11 @@ namespace amqpAnalyze
 
         class AmqpValue: public Section {
         public:
-            AmqpValue(std::size_t frameOffset, PrimitiveType* valuePtr);
+            AmqpValue(uint64_t packetNum, std::size_t dataOffset, PrimitiveType* valuePtr);
             virtual ~AmqpValue();
             std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;
-            inline sectionType_t type() const { return sectionType_t::AMQP_VALUE; };
+            inline sectionType_t type() const override { return sectionType_t::AMQP_VALUE; };
+            void validate() override;
         protected:
             PrimitiveType* _valuePtr;
         };
@@ -162,10 +171,11 @@ namespace amqpAnalyze
 
         class AmqpFooter: public Section {
         public:
-            AmqpFooter(std::size_t frameOffset, AmqpAnnotations* annotationsPtr);
+            AmqpFooter(uint64_t packetNum, std::size_t dataOffset, AmqpAnnotations* annotationsPtr);
             virtual ~AmqpFooter();
             std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;
-            inline sectionType_t type() const { return sectionType_t::FOOTER; };
+            inline sectionType_t type() const override { return sectionType_t::FOOTER; };
+            void validate() override;
         protected:
             AmqpAnnotations* _annotationsPtr;
         };

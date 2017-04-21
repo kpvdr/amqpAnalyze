@@ -31,10 +31,10 @@ namespace amqpAnalyze
             std::size_t getOffset() const;
             std::size_t getRemaining() const;
             const uint8_t* getDataPtr() const;
-            std::string getErrorPrefix() const;
             std::size_t getFrameOffsetSnapshot() const;
             uint64_t getPacketNum() const;
-            std::size_t setFrameOffsetSnapshot();
+            std::size_t popFrameOffsetSnapshot();
+            std::size_t pushFrameOffsetSnapshot();
 
             void ignore(std::size_t size);
             uint8_t* getStructPtr(std::size_t size);
@@ -60,12 +60,13 @@ namespace amqpAnalyze
             amqp_list_t& getList(amqp_list_t& value, std::size_t size, std::size_t count);
             amqp_map_t& getMap(amqp_map_t& value, std::size_t size, std::size_t count);
             amqp_array_t& getArray(amqp_array_t& value, std::size_t size, std::size_t count);
+
         protected:
             const uint64_t _packetNum;
-            std::size_t _frameOffsetSnapshot;
             const uint8_t* _dataPtr;
             std::size_t _dataLength;
             std::size_t _dataOffset;
+            std::vector<std::size_t> _offsetSnapshotStack;
             void checkSize(std::size_t size, const char* opName);
         };
 
