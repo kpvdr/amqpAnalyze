@@ -23,11 +23,11 @@ namespace amqpAnalyze
 
         FrameError::~FrameError() {}
 
-        std::ostringstream& FrameError::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
+        std::ostringstream& FrameError::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const {
             if (!ignoreFirstMargin) oss << "\n" << std::string(margin, ' ');
             oss << "[" << std::setw(4) << std::setfill('0') << std::hex << _dataOffset  << "] e ";
-            oss << std::fgnd_b_red << _errMsg << std::res;
-            return appendStringEpilog(oss, margin);
+            oss << COLOR(FGND_BRED, _errMsg, colorFlag);
+            return appendStringEpilog(oss, margin, colorFlag);
         }
 
         void FrameError::validate() {}

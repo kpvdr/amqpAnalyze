@@ -33,25 +33,24 @@ namespace amqpAnalyze
         _errorSeverity(errorSeverity)
     {}
     Error::~Error() {}
-    std::string Error::formattedMessage() const {
+    std::string Error::formattedMessage(bool colorFlag) const {
         std::ostringstream oss;
-        formattedSeverity(oss);
+        formattedSeverity(oss, colorFlag);
         oss << typeStr() << what();
         return oss.str();
     }
-    std::ostringstream& Error::formattedSeverity(std::ostringstream& oss) const {
+    std::ostringstream& Error::formattedSeverity(std::ostringstream& oss, bool colorFlag) const {
         switch (_errorSeverity) {
         case error_severity_t::ERROR:
-            oss << std::fgnd_b_red;
+            oss << COLOR(FGND_BRED, s_errorSeverityNames[_errorSeverity], colorFlag);
             break;
         case error_severity_t::WARNING:
-            oss << std::fgnd_b_red;
+            oss << COLOR(FGND_BRED, s_errorSeverityNames[_errorSeverity], colorFlag);
             break;
         case error_severity_t::INFO:
-            oss << std::fgnd_b_green;
+            oss << COLOR(FGND_BGRN, s_errorSeverityNames[_errorSeverity], colorFlag);
             break;
         }
-        oss << s_errorSeverityNames[_errorSeverity] << std::res << ": ";
         return oss;
     }
     const char* Error::typeStr() const {

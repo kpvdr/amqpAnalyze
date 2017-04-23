@@ -35,13 +35,13 @@ namespace amqpAnalyze
             delete _fieldListPtr;
         }
 
-        std::ostringstream& Performative::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
+        std::ostringstream& Performative::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const {
             if (!ignoreFirstMargin) oss << "\n" << std::string(margin, ' ') << "[" << std::hex << std::setfill('0') << std::setw(4) << _dataOffset << "] ";
-            oss  << "p " << std::fgnd_b_yellow << typeStr() << std::res;
+            oss  << "p " << COLOR(FGND_BYLW, typeStr(), colorFlag);
             if (_fieldListPtr != nullptr) {
-                _fieldListPtr->appendString(oss, margin + 9 + ::strlen(typeStr()), true);
+                _fieldListPtr->appendString(oss, margin + 9 + ::strlen(typeStr()), true, colorFlag);
             }
-            return appendStringEpilog(oss, margin + 9);
+            return appendStringEpilog(oss, margin + 9, colorFlag);
         }
 
         void Performative::validate() {

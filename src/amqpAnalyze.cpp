@@ -10,6 +10,7 @@
 #include <amqpAnalyze_config.hpp>
 #include <amqpAnalyze/Error.hpp>
 #include <amqpAnalyze/FileParser.hpp>
+#include <amqpAnalyze/Options.hpp>
 
 #include <cstdlib>
 #include <iostream>
@@ -26,10 +27,10 @@ void packetHandler(u_char *userData, const struct ::pcap_pkthdr* pkthdr, const u
 int main(int argc, char** argv) {
     std::cout << basename(argv[0]) << " v" << amqpAnalyze_VERSION_MAJOR << "." << amqpAnalyze_VERSION_MINOR << "\n";
     try {
-        if (argc != 2) throw amqpAnalyze::Error(MSG("Incorrect number of arguments. Usage: amapAnalyze <pcapng_file>"));
+        amqpAnalyze::Options o(argc, argv);
         // Create global file parser
-        g_fileParserPtr = new amqpAnalyze::FileParser;
-        g_fileParserPtr->parse(argv[1]);
+        g_fileParserPtr = new amqpAnalyze::FileParser(&o);
+        g_fileParserPtr->parse();
         delete g_fileParserPtr;
     } catch (const std::runtime_error& e) {
         std::cerr << e.what() << std::endl;

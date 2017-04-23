@@ -32,9 +32,9 @@ namespace amqpAnalyze
             _errorPtrList.push_back(errorPtr);
         }
 
-        std::ostringstream& AmqpBlock::appendStringEpilog(std::ostringstream& oss, std::size_t margin) const {
+        std::ostringstream& AmqpBlock::appendStringEpilog(std::ostringstream& oss, std::size_t margin, bool colorFlag) const {
             for (error_ptr_list_citr_t i=_errorPtrList.cbegin(); i!=_errorPtrList.cend(); ++i) {
-                oss << "\n" << std::string(margin, ' ') << (*i)->formattedMessage();
+                oss << "\n" << std::string(margin, ' ') << (*i)->formattedMessage(colorFlag);
             }
             return oss;
         }

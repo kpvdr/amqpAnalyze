@@ -39,7 +39,7 @@ namespace amqpAnalyze
             Performative(uint64_t packetNum, std::size_t dataOffset, AmqpList* fieldListPtr);
             virtual ~Performative();
 
-            std::ostringstream& appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;
+            std::ostringstream& appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const override;
             inline const AmqpList* fieldList() const { return _fieldListPtr; }
             virtual const fieldTypeList_t& fieldTypeList() const = 0;
             virtual performativeType_t type() const = 0;

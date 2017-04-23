@@ -29,19 +29,19 @@ namespace amqpAnalyze
         const char* Type::name() const {
             return _name;
         }
-        std::string Type::nameValueStr(const char* valueDelim) const {
+        std::string Type::nameValueStr(bool colorFlag, const char* valueDelim) const {
             std::ostringstream oss;
-            oss << (_name == nullptr ? "<no-name>" : _name) << valueDelim[0] << std::fgnd_b_white << valueStr() << std::res << valueDelim[1];
+            oss << (_name == nullptr ? "<no-name>" : _name) << valueDelim[0] << valueStr(colorFlag) << valueDelim[1];
             return oss.str();
         }
-        std::string Type::nameTypeValueStr(const char* valueDelim) const {
+        std::string Type::nameTypeValueStr(bool colorFlag, const char* valueDelim) const {
             std::ostringstream oss;
-            oss << (_name == nullptr ? "<no-name>" : _name) << ":" << typeStr() << valueDelim[0] << std::fgnd_b_white << valueStr() << std::res << valueDelim[1];
+            oss << (_name == nullptr ? "<no-name>" : _name) << ":" << typeStr() << valueDelim[0] << valueStr(colorFlag) << valueDelim[1];
             return oss.str();
         }
-        std::string Type::typeValueStr(const char* valueDelim) const {
+        std::string Type::typeValueStr(bool colorFlag, const char* valueDelim) const {
             std::ostringstream oss;
-            oss << typeStr() << valueDelim[0] << std::fgnd_b_white << valueStr() << std::res << valueDelim[1];
+            oss << typeStr() << valueDelim[0] << valueStr(colorFlag) << valueDelim[1];
             return oss.str();
         }
         // static
@@ -139,185 +139,185 @@ namespace amqpAnalyze
         AmqpNull::AmqpNull(): PrimitiveType() {}
         AmqpNull::AmqpNull(const char* name): PrimitiveType(name) {}
         AmqpNull::~AmqpNull() {}
-        std::string AmqpNull::nameValueStr(const char* valueDelim) const {
+        std::string AmqpNull::nameValueStr(bool colorFlag, const char* valueDelim) const {
             std::ostringstream oss;
-            oss << (_name == nullptr ? "<no-name>" : _name) << valueDelim[0] << valueStr() << valueDelim[1];
+            oss << (_name == nullptr ? "<no-name>" : _name) << valueDelim[0] << valueStr(colorFlag) << valueDelim[1];
             return oss.str();
         }
-        std::string AmqpNull::nameTypeValueStr(const char* valueDelim) const {
+        std::string AmqpNull::nameTypeValueStr(bool colorFlag, const char* valueDelim) const {
             std::ostringstream oss;
             oss << (_name == nullptr ? "<no-name>" : _name) << ":" << typeStr();
             return oss.str();
         }
-        std::string AmqpNull::typeValueStr(const char* valueDelim) const {
-            return "null";
+        std::string AmqpNull::typeValueStr(bool colorFlag, const char* valueDelim) const {
+            return valueStr(colorFlag);
         }
-        std::string AmqpNull::valueStr() const {
-            return "null";
+        std::string AmqpNull::valueStr(bool colorFlag) const {
+            return COLOR(FGND_BWHT, "null", colorFlag);
         }
 
 
         AmqpBoolean::AmqpBoolean(bool v): PrimitiveType(), _value(v) {}
         AmqpBoolean::AmqpBoolean(bool v, const char* name): PrimitiveType(name), _value(v) {}
         AmqpBoolean::~AmqpBoolean() {}
-        std::string AmqpBoolean::valueStr() const {
-            return _value ? "true" : "false";
+        std::string AmqpBoolean::valueStr(bool colorFlag) const {
+            return COLOR(FGND_BWHT, (_value ? "true" : "false"), colorFlag);
         }
 
 
         AmqpUbyte::AmqpUbyte(uint8_t v): PrimitiveType(), _value(v) {}
         AmqpUbyte::AmqpUbyte(uint8_t v, const char* name): PrimitiveType(name), _value(v) {}
         AmqpUbyte::~AmqpUbyte() {}
-        std::string AmqpUbyte::valueStr() const {
+        std::string AmqpUbyte::valueStr(bool colorFlag) const {
             std::stringstream oss;
             oss << "0x" << std::hex << (int)_value;
-            return oss.str();
+            return COLOR(FGND_BWHT, oss.str(), colorFlag);
         }
 
 
         AmqpUshort::AmqpUshort(uint16_t v): PrimitiveType(), _value(v) {}
         AmqpUshort::AmqpUshort(uint16_t v, const char* name): PrimitiveType(name), _value(v) {}
         AmqpUshort::~AmqpUshort() {}
-        std::string AmqpUshort::valueStr() const {
+        std::string AmqpUshort::valueStr(bool colorFlag) const {
             std::stringstream oss;
             oss << "0x" << std::hex << _value;
-            return oss.str();
+            return COLOR(FGND_BWHT, oss.str(), colorFlag);
         }
 
 
         AmqpUint::AmqpUint(uint32_t v): PrimitiveType(), _value(v) {}
         AmqpUint::AmqpUint(uint32_t v, const char* name): PrimitiveType(name), _value(v) {}
         AmqpUint::~AmqpUint() {}
-        std::string AmqpUint::valueStr() const {
+        std::string AmqpUint::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss<< "0x" << std::hex << _value;
-            return oss.str();
+            return COLOR(FGND_BWHT, oss.str(), colorFlag);
         }
 
 
         AmqpUlong::AmqpUlong(uint64_t v): PrimitiveType(), _value(v) {}
         AmqpUlong::AmqpUlong(uint64_t v, const char* name): PrimitiveType(name), _value(v) {}
         AmqpUlong::~AmqpUlong() {}
-        std::string AmqpUlong::valueStr() const {
+        std::string AmqpUlong::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss << "0x" << std::hex << _value;
-            return oss.str();
+            return COLOR(FGND_BWHT, oss.str(), colorFlag);
         }
 
 
         AmqpByte::AmqpByte(int8_t v): PrimitiveType(), _value(v) {}
         AmqpByte::AmqpByte(int8_t v, const char* name): PrimitiveType(name), _value(v) {}
         AmqpByte::~AmqpByte() {}
-        std::string AmqpByte::valueStr() const {
+        std::string AmqpByte::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss <<  "0x" << std::hex << (int)(uint8_t)_value;
-            return oss.str();
+            return COLOR(FGND_BWHT, oss.str(), colorFlag);
         }
 
 
         AmqpShort::AmqpShort(int16_t v): PrimitiveType(), _value(v) {}
         AmqpShort::AmqpShort(int16_t v, const char* name): PrimitiveType(name), _value(v) {}
         AmqpShort::~AmqpShort() {}
-        std::string AmqpShort::valueStr() const {
+        std::string AmqpShort::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss << "0x" << std::hex << _value;
-            return oss.str();
+            return COLOR(FGND_BWHT, oss.str(), colorFlag);
         }
 
 
         AmqpInt::AmqpInt(int32_t v): PrimitiveType(), _value(v) {}
         AmqpInt::AmqpInt(int32_t v, const char* name): PrimitiveType(name), _value(v) {}
         AmqpInt::~AmqpInt() {}
-        std::string AmqpInt::valueStr() const {
+        std::string AmqpInt::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss << "0x" << std::hex << _value;
-            return oss.str();
+            return COLOR(FGND_BWHT, oss.str(), colorFlag);
         }
 
 
         AmqpLong::AmqpLong(int64_t v): PrimitiveType(), _value(v) {}
         AmqpLong::AmqpLong(int64_t v, const char* name): PrimitiveType(name), _value(v) {}
         AmqpLong::~AmqpLong() {}
-        std::string AmqpLong::valueStr() const {
+        std::string AmqpLong::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss << "0x" << std::hex << _value;
-            return oss.str();
+            return COLOR(FGND_BWHT, oss.str(), colorFlag);
         }
 
 
         AmqpFloat::AmqpFloat(float v): PrimitiveType(), _value(v) {}
         AmqpFloat::AmqpFloat(float v, const char* name): PrimitiveType(name), _value(v) {}
         AmqpFloat::~AmqpFloat() {}
-        std::string AmqpFloat::valueStr() const {
+        std::string AmqpFloat::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss << _value;
-            return oss.str();
+            return COLOR(FGND_BWHT, oss.str(), colorFlag);
         }
 
 
         AmqpDouble::AmqpDouble(double v): PrimitiveType(), _value(v) {}
         AmqpDouble::AmqpDouble(double v, const char* name): PrimitiveType(name), _value(v) {}
         AmqpDouble::~AmqpDouble() {}
-        std::string AmqpDouble::valueStr() const {
+        std::string AmqpDouble::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss << _value;
-            return oss.str();
+            return COLOR(FGND_BWHT, oss.str(), colorFlag);
         }
 
 
         AmqpDecimal32::AmqpDecimal32(): PrimitiveType(), _value({0, 0, 0, 0}) {}
         AmqpDecimal32::AmqpDecimal32(const char* name): PrimitiveType(name), _value({0, 0, 0, 0}) {}
         AmqpDecimal32::~AmqpDecimal32() {}
-        std::string AmqpDecimal32::valueStr() const {
+        std::string AmqpDecimal32::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss << std::hex << std::setfill('0');
             for (int i=0; i<4; ++i) {
                 oss << (i>0 ? ", 0x" : "0x") << std::setw(2) << (int)_value[i];
             }
-            return oss.str();
+            return COLOR(FGND_BWHT, oss.str(), colorFlag);
         }
 
 
         AmqpDecimal64::AmqpDecimal64(): PrimitiveType(), _value({0, 0, 0, 0, 0, 0, 0, 0}) {}
         AmqpDecimal64::AmqpDecimal64(const char* name): PrimitiveType(name), _value({0, 0, 0, 0, 0, 0, 0, 0}) {}
         AmqpDecimal64::~AmqpDecimal64() {}
-        std::string AmqpDecimal64::valueStr() const {
+        std::string AmqpDecimal64::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss << std::hex << std::setfill('0');
             for (int i=0; i<8; ++i) {
                 oss << (i>0 ? ", 0x" : "0x") << std::setw(2) << (int)_value[i];
             }
-            return oss.str();
+            return COLOR(FGND_BWHT, oss.str(), colorFlag);
         }
 
 
         AmqpDecimal128::AmqpDecimal128(): PrimitiveType(), _value({0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}) {}
         AmqpDecimal128::AmqpDecimal128(const char* name): PrimitiveType(name), _value({0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}) {}
         AmqpDecimal128::~AmqpDecimal128() {}
-        std::string AmqpDecimal128::valueStr() const {
+        std::string AmqpDecimal128::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss << std::hex << std::setfill('0');
             for (int i=0; i<16; ++i) {
                 oss << (i>0 ? ", 0x" : "0x") << std::setw(2) << (int)_value[i];
             }
-            return oss.str();
+            return COLOR(FGND_BWHT, oss.str(), colorFlag);
         }
 
 
         AmqpChar::AmqpChar(char32_t v): PrimitiveType(), _value(v) {}
         AmqpChar::AmqpChar(char32_t v, const char* name): PrimitiveType(name), _value(v) {}
         AmqpChar::~AmqpChar() {}
-        std::string AmqpChar::valueStr() const {
+        std::string AmqpChar::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss << "0x" << std::hex << (int)_value << "='" << _value << "'";
-            return oss.str();
+            return COLOR(FGND_BWHT, oss.str(), colorFlag);
         }
 
 
         AmqpTimestamp::AmqpTimestamp(uint64_t v): PrimitiveType(), _value(v) {}
         AmqpTimestamp::AmqpTimestamp(uint64_t v, const char* name): PrimitiveType(name), _value(v) {}
         AmqpTimestamp::~AmqpTimestamp() {}
-        std::string AmqpTimestamp::valueStr() const {
+        std::string AmqpTimestamp::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             std::time_t t = (std::time_t)(_value/1000);
             char buf[20];
@@ -326,55 +326,55 @@ namespace amqpAnalyze
             std::strftime(tzbuf, sizeof(tzbuf), "%z", std::localtime(&t));
             oss << "0x" << std::hex << _value;
             if (_value > 0) oss << "=" << buf << "." << std::setfill('0') << std::setw(3) << (_value%1000) << " " << tzbuf;
-            return oss.str();
+            return COLOR(FGND_BWHT, oss.str(), colorFlag);
         }
 
 
         AmqpUuid::AmqpUuid(): PrimitiveType(), _value({0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}) {}
         AmqpUuid::AmqpUuid(const char* name): PrimitiveType(name), _value({0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}) {}
         AmqpUuid::~AmqpUuid() {}
-        std::string AmqpUuid::valueStr() const {
+        std::string AmqpUuid::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss << std::hex << std::setfill('0');
             for (int i=0; i<16; ++i) {
                 if (i==4 || i==6 || i==8 || i==10) oss << '-';
                 oss << std::setw(2) << (int)_value[i];
             }
-            return oss.str();
+            return COLOR(FGND_BWHT, oss.str(), colorFlag);
         }
 
 
         AmqpBinary::AmqpBinary(): PrimitiveType(), _value() {}
         AmqpBinary::AmqpBinary(const char* name): PrimitiveType(name), _value() {}
         AmqpBinary::~AmqpBinary() {}
-        std::string AmqpBinary::valueStr() const {
+        std::string AmqpBinary::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss << std::hex << std::setfill('0');
             for (int i=0; i<_value.size(); ++i) {
                 if (i>0) oss << ' ';
                 oss << std::setw(2) << (int)_value.at(i);
             }
-            return oss.str();
+            return COLOR(FGND_BWHT, oss.str(), colorFlag);
         }
 
 
         AmqpString::AmqpString(): PrimitiveType(), _value() {}
         AmqpString::AmqpString(const char* name): PrimitiveType(name), _value() {}
         AmqpString::~AmqpString() {}
-        std::string AmqpString::valueStr() const {
+        std::string AmqpString::valueStr(bool colorFlag) const {
             std::stringstream oss;
             oss << "\"" << _value << "\"";
-            return oss.str();
+            return COLOR(FGND_BWHT, oss.str(), colorFlag);
         }
 
 
         AmqpSymbol::AmqpSymbol(): PrimitiveType(), _value() {}
         AmqpSymbol::AmqpSymbol(const char* name): PrimitiveType(name), _value() {}
         AmqpSymbol::~AmqpSymbol() {}
-        std::string AmqpSymbol::valueStr() const {
+        std::string AmqpSymbol::valueStr(bool colorFlag) const {
             std::stringstream oss;
             oss << "\"" << _value << "\"";
-            return oss.str();
+            return COLOR(FGND_BWHT, oss.str(), colorFlag);
         }
 
 
@@ -382,16 +382,16 @@ namespace amqpAnalyze
         CompoundType::CompoundType(const char* name): PrimitiveType(name) {}
         CompoundType::~CompoundType() {}
         // static
-        void CompoundType::stringAppendHandler(std::ostringstream& oss, Type* ptr, std::size_t margin, bool nameFlag) {
+        void CompoundType::stringAppendHandler(std::ostringstream& oss, Type* ptr, std::size_t margin, bool nameFlag, bool colorFlag) {
             CompositeType* compositePtr(dynamic_cast<CompositeType*>(ptr));
             if (compositePtr) {
-                compositePtr->appendString(oss, margin, true);
+                compositePtr->appendString(oss, margin, true, colorFlag);
             } else {
                 CompoundType* compoundPtr(dynamic_cast<CompoundType*>(ptr));
                 if (compoundPtr) {
-                    compoundPtr->appendString(oss, margin, true);
+                    compoundPtr->appendString(oss, margin, true, colorFlag);
                 } else {
-                    oss<< (nameFlag ? ptr->nameTypeValueStr() : ptr->typeValueStr());
+                    oss << (nameFlag ? ptr->nameTypeValueStr(colorFlag) : ptr->typeValueStr(colorFlag));
                 }
             }
         }
@@ -405,21 +405,21 @@ namespace amqpAnalyze
             }
             _value.clear();
         }
-        std::string AmqpList::valueStr() const {
+        std::string AmqpList::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             for (amqp_list_citr_t i=_value.cbegin(); i!=_value.cend(); ++i) {
                 if (i!=_value.cbegin()) oss << ", ";
-                oss << (*i)->typeValueStr();
+                oss << (*i)->typeValueStr(colorFlag);
             }
             return oss.str();
         }
-        void AmqpList::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
+        void AmqpList::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const {
             std::string m(margin + 3, ' ');
             if (!ignoreFirstMargin) oss << "\n" << m;
             oss << ": [";
             for (amqp_list_citr_t i=_value.cbegin(); i<_value.cend(); ++i) {
                 if (i!=_value.cbegin()) oss << "\n" << m;
-                stringAppendHandler(oss, *i, margin + 3, true);
+                stringAppendHandler(oss, *i, margin + 3, true, colorFlag);
             }
             oss << "]";
         }
@@ -484,15 +484,15 @@ namespace amqpAnalyze
                 delete v;
             }
         }
-        std::string AmqpMap::valueStr() const {
+        std::string AmqpMap::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             for (amqp_map_citr_t i=_value.cbegin(); i!=_value.cend(); ++i) {
                 if (i!=_value.cbegin()) oss << ", ";
-                oss << "{" << i->first->typeValueStr() << ": " << i->second->typeValueStr() << "}";
+                oss << "{" << i->first->typeValueStr(colorFlag) << ": " << i->second->typeValueStr(colorFlag) << "}";
             }
             return oss.str();
         }
-        void AmqpMap::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
+        void AmqpMap::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const {
             std::string n(name());
             std::string t(typeStr());
             std::size_t l(margin + n.size() + t.size() + 4);
@@ -505,14 +505,14 @@ namespace amqpAnalyze
                 CompoundType* kPtr(dynamic_cast<CompoundType*>(i->first));
                 if (kPtr != nullptr) {
                     // key is a compound type
-                    kPtr->appendString(oss, l, ignoreFirstMargin);
+                    kPtr->appendString(oss, l, ignoreFirstMargin, colorFlag);
                     oss << "\n" << m << ":";
                 } else {
-                    std::string kStr(i->first->typeValueStr());
+                    std::string kStr(i->first->typeValueStr(colorFlag));
                     oss << kStr << ": ";
                     l += kStr.length() + 2;
                 }
-                stringAppendHandler(oss, i->second, l, false); // print value
+                stringAppendHandler(oss, i->second, l, false, colorFlag); // print value
                 oss << "}";
             }
             oss << "}";
@@ -527,15 +527,15 @@ namespace amqpAnalyze
             }
             _value.clear();
         }
-        std::string AmqpArray::valueStr() const {
+        std::string AmqpArray::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             for (amqp_array_citr_t i=_value.cbegin(); i!=_value.cend(); ++i) {
                 if (i != _value.cbegin()) oss << ", ";
-                oss << (*i)->typeValueStr();
+                oss << (*i)->typeValueStr(colorFlag);
             }
             return oss.str();
         }
-        void AmqpArray::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
+        void AmqpArray::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const {
             std::string n(name());
             std::string t(typeStr());
             std::size_t l(margin + n.length() + t.length() + 4);
@@ -543,7 +543,7 @@ namespace amqpAnalyze
             oss << n << ":" << t << ": [";
             for (amqp_array_citr_t i=_value.cbegin(); i!=_value.cend(); ++i) {
                 if (i!=_value.cbegin()) oss << "\n" << m;
-                stringAppendHandler(oss, *i, l, false);
+                stringAppendHandler(oss, *i, l, false, colorFlag);
             }
             oss << "]";
         }
@@ -552,8 +552,8 @@ namespace amqpAnalyze
         AmqpRole::AmqpRole(amqp_role_t v): AmqpBoolean((amqp_boolean_t)v) {}
         AmqpRole::AmqpRole(amqp_role_t v, const char* name): AmqpBoolean((amqp_boolean_t)v, name) {}
         AmqpRole:: ~AmqpRole() {}
-        std::string AmqpRole::valueStr() const {
-            return s_choiceNames.at((amqp_role_t)_value);
+        std::string AmqpRole::valueStr(bool colorFlag) const {
+            return COLOR(FGND_BWHT, s_choiceNames.at((amqp_role_t)_value), colorFlag);
         }
         // static
         std::map<amqp_role_t, const char*> AmqpRole::s_choiceNames = {
@@ -565,8 +565,8 @@ namespace amqpAnalyze
         AmqpSenderSettleMode::AmqpSenderSettleMode(amqp_sender_settle_mode_t v): AmqpUbyte((amqp_ubyte_t)v) {}
         AmqpSenderSettleMode::AmqpSenderSettleMode(amqp_sender_settle_mode_t v, const char* name): AmqpUbyte((amqp_ubyte_t)v, name) {}
         AmqpSenderSettleMode::~AmqpSenderSettleMode() {}
-        std::string AmqpSenderSettleMode::valueStr() const {
-            return s_choiceNames.at((amqp_sender_settle_mode_t)_value);
+        std::string AmqpSenderSettleMode::valueStr(bool colorFlag) const {
+            return COLOR(FGND_BWHT, s_choiceNames.at((amqp_sender_settle_mode_t)_value), colorFlag);
         }
         // static
         std::map<amqp_sender_settle_mode_t, const char*> AmqpSenderSettleMode::s_choiceNames = {
@@ -579,8 +579,8 @@ namespace amqpAnalyze
         AmqpReceiverSettleMode::AmqpReceiverSettleMode(amqp_receiver_settle_mode_t v): AmqpUbyte((amqp_ubyte_t)v) {}
         AmqpReceiverSettleMode::AmqpReceiverSettleMode(amqp_receiver_settle_mode_t v, const char* name): AmqpUbyte((amqp_ubyte_t)v, name) {}
         AmqpReceiverSettleMode::~AmqpReceiverSettleMode() {}
-        std::string AmqpReceiverSettleMode::valueStr() const {
-            return s_choiceNames.at((amqp_receiver_settle_mode_t)_value);
+        std::string AmqpReceiverSettleMode::valueStr(bool colorFlag) const {
+            return COLOR(FGND_BWHT, s_choiceNames.at((amqp_receiver_settle_mode_t)_value), colorFlag);
         }
         // static
         std::map<amqp_receiver_settle_mode_t, const char*> AmqpReceiverSettleMode::s_choiceNames = {
@@ -627,11 +627,11 @@ namespace amqpAnalyze
         AmqpMessageFormat::AmqpMessageFormat(amqp_message_format_t v): AmqpUint(v) {}
         AmqpMessageFormat::AmqpMessageFormat(amqp_message_format_t v, const char* name): AmqpUint(v, name) {}
         AmqpMessageFormat::~AmqpMessageFormat() {}
-        std::string AmqpMessageFormat::valueStr() const {
+        std::string AmqpMessageFormat::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss << typeStr() << "fmt=0x" << std::hex << std::setfill('0') << std::setw(6) << getFormat()
                 << " ver=0x" << std::setw(2) << (int)getVersion() << ")";
-            return oss.str();
+            return COLOR(FGND_BWHT, oss.str(), colorFlag);
         }
 
 
@@ -830,8 +830,8 @@ namespace amqpAnalyze
         AmqpTerminusDurability::AmqpTerminusDurability(amqp_terminus_durability_t v): AmqpUint((amqp_uint_t)v) {}
         AmqpTerminusDurability::AmqpTerminusDurability(amqp_terminus_durability_t v, const char* name): AmqpUint((amqp_uint_t)v, name) {}
         AmqpTerminusDurability::~AmqpTerminusDurability() {}
-        std::string AmqpTerminusDurability::valueStr() const {
-            return s_choiceNames.at((amqp_terminus_durability_t)_value);
+        std::string AmqpTerminusDurability::valueStr(bool colorFlag) const {
+            return COLOR(FGND_BWHT, s_choiceNames.at((amqp_terminus_durability_t)_value), colorFlag);
         }
         // static
         std::map<amqp_terminus_durability_t, const char*> AmqpTerminusDurability::s_choiceNames = {
@@ -985,8 +985,8 @@ namespace amqpAnalyze
         AmqpSaslCode::AmqpSaslCode(amqp_sasl_code_t v): AmqpUbyte((amqp_ubyte_t)v) {}
         AmqpSaslCode::AmqpSaslCode(amqp_sasl_code_t v, const char* name): AmqpUbyte((amqp_ubyte_t)v, name) {}
         AmqpSaslCode::~AmqpSaslCode() {}
-        std::string AmqpSaslCode::valueStr() const {
-            return s_choiceNames.at((amqp_sasl_code_t)_value);
+        std::string AmqpSaslCode::valueStr(bool colorFlag) const {
+            return COLOR(FGND_BWHT, s_choiceNames.at((amqp_sasl_code_t)_value), colorFlag);
         }
         // static
         std::map<amqp_sasl_code_t, const char*> AmqpSaslCode::s_choiceNames = {
@@ -1007,14 +1007,14 @@ namespace amqpAnalyze
                 _fieldListPtr = nullptr;
             }
         }
-        std::ostringstream& CompositeType::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
+        std::ostringstream& CompositeType::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const {
             std::string n(name());
             std::string t(typeStr());
             std::size_t l(margin + n.length() + t.length() + 1);
             if (!ignoreFirstMargin) oss << "\n" << std::string(l, ' ');
             oss << n << ":" << t;
             if (_fieldListPtr != nullptr) {
-                _fieldListPtr->appendString(oss, l, true);
+                _fieldListPtr->appendString(oss, l, true, colorFlag);
             }
             return oss;
         }
@@ -1023,8 +1023,8 @@ namespace amqpAnalyze
                 _fieldListPtr->validate(fieldTypeList(), errorHandler, errorHandlerInstance);
             }
         }
-        std::string CompositeType::valueStr() const {
-            return _fieldListPtr->valueStr();
+        std::string CompositeType::valueStr(bool colorFlag) const {
+            return _fieldListPtr->valueStr(colorFlag);
         }
         // static
         std::map<amqpCompositeType_t, const char*> CompositeType::s_amqpCompositeTypeNames = {

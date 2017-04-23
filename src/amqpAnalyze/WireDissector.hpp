@@ -11,31 +11,38 @@
 #include <sstream>
 #include <deque>
 
-struct pcap_pkthdr;
+namespace amqpAnalyze
+{
+    class Options;
+    class WireDissector;
+    typedef std::deque<WireDissector*> protocol_list_t;
 
-namespace amqpAnalyze {
+    enum class dissector_t:uint8_t {
+        DISSECTOR_NONE = 0,
+        DISSECTOR_IP4,
+        DISSECTOR_IP6,
+        DISSECTOR_TCP,
+        DISSECTOR_AMQP
+    };
 
-enum dissector_t:uint8_t { DISSECTOR_NONE = 0, DISSECTOR_IP4, DISSECTOR_IP6, DISSECTOR_TCP, DISSECTOR_AMQP };
+    class WireDissector {
+    public:
+        WireDissector(const Options* optionsPtr,
+                      const WireDissector* parent,
+                      uint64_t packetNum,
+                      uint32_t packetOffs,
+                      protocol_list_t& protocolList);
+        virtual ~WireDissector();
+        virtual void appendString(std::ostringstream& oss, size_t margin) const = 0;
+        virtual dissector_t dissectorType() const = 0;
 
-class WireDissector {
-protected:
-    const WireDissector* _parent;
-    const uint64_t _packetNum;
-    const uint32_t _packetOffs;
-    const dissector_t _dissectorType;
-	std::deque<WireDissector*>& _protocolList;
-public:
-	WireDissector(const WireDissector* parent,
-	              uint64_t packetNum,
-	              const struct pcap_pkthdr* pcapPacketHeaderPtr,
-	              const uint8_t* packetPtr,
-	              uint32_t packetOffs,
-                  dissector_t dissectorType,
-	              std::deque<WireDissector*>& protocolList);
-	virtual ~WireDissector();
-	virtual void appendString(std::ostringstream& oss, size_t margin) const = 0;
-	dissector_t dissectorType() const;
-};
+    protected:
+        const Options* _optionsPtr;
+        const WireDissector* _parent;
+        const uint64_t _packetNum;
+        const uint32_t _packetOffs;
+        protocol_list_t& _protocolList;
+    };
 
 } /* namespace amqp_analyze */
 

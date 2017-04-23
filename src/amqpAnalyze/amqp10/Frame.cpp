@@ -69,11 +69,11 @@ namespace amqpAnalyze
             _sectionPtrList.clear();
         }
 
-        std::ostringstream& Frame::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
+        std::ostringstream& Frame::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const {
             std::string m(margin, ' ');
             if (margin > 0 && !ignoreFirstMargin) oss << "\n" << m;
             oss << "[" << std::setw(4) << std::setfill('0') << std::hex << _dataOffset  << "] f ";
-            oss << std::fgnd_b_cyan << "AMQP frame" << std::res << ": size=0x" << _hdr._frameSize << " doff=0x" << (int)_hdr._doff;
+            oss << COLOR(FGND_BCYN, "AMQP frame", colorFlag) << ": size=0x" << _hdr._frameSize << " doff=0x" << (int)_hdr._doff;
             oss << " type=0x" << (int)_hdr._type << " (" << s_frameTypeName[_hdr._type] << ")";
             oss << (_hdr._type == 0 ? " chnl=0x" : " typeSpecific=0x") << _hdr._typeSpecific;
             if (_extendedHeaderSize > 0) {
@@ -82,15 +82,15 @@ namespace amqpAnalyze
             oss << ":";
             if (_performative == nullptr) oss << " heartbeat";
             for (error_ptr_list_citr_t i=_errorPtrList.cbegin(); i!=_errorPtrList.cend(); ++i) {
-                oss << "\n" << m << (*i)->formattedMessage();
+                oss << "\n" << m << (*i)->formattedMessage(colorFlag);
             }
             if (_performative != nullptr) {
-                _performative->appendString(oss, margin, false);
+                _performative->appendString(oss, margin, false, colorFlag);
                 for (amqp_block_list_citr_t i=_sectionPtrList.cbegin(); i!=_sectionPtrList.cend(); ++i) {
-                    (*i)->appendString(oss, margin, false);
+                    (*i)->appendString(oss, margin, false, colorFlag);
                 }
             }
-            return appendStringEpilog(oss, margin + 9);
+            return appendStringEpilog(oss, margin + 9, colorFlag);
         }
 
         uint8_t Frame::doff() const {

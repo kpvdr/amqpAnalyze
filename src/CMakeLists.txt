@@ -28,6 +28,7 @@ set(amqpAnalyze_HEADERS
     amqpAnalyze/IpDissector.hpp
     amqpAnalyze/Ip4Dissector.hpp
     amqpAnalyze/Ip6Dissector.hpp
+    amqpAnalyze/Options.hpp
     amqpAnalyze/Packet.hpp
     amqpAnalyze/TcpDissector.hpp
     amqpAnalyze/WireDissector.hpp
@@ -55,6 +56,7 @@ set(amqpAnalyze_SOURCES
     amqpAnalyze/IpDissector.cpp
     amqpAnalyze/Ip4Dissector.cpp
     amqpAnalyze/Ip6Dissector.cpp
+    amqpAnalyze/Options.cpp
     amqpAnalyze/Packet.cpp
     amqpAnalyze/TcpDissector.cpp
     amqpAnalyze/WireDissector.cpp

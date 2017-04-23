@@ -41,7 +41,7 @@ namespace amqpAnalyze
             Frame(FrameBuffer& frameBuffer);
             virtual ~Frame();
 
-            std::ostringstream& appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;
+            std::ostringstream& appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const override;
             uint8_t doff() const;
             uint32_t doffBytes() const;
             const std::string& extendedHeader() const;

@@ -13,26 +13,33 @@
 #include <netinet/ip.h>
 #include <vector>
 
-namespace amqpAnalyze {
+struct pcap_pkthdr;
 
-class Ip4Dissector: public IpDissector {
-protected:
-	struct ip _ip4Header;
-public:
-	Ip4Dissector(uint64_t packetNum,
-	             const struct pcap_pkthdr* pcapPacketHeaderPtr,
-	             const uint8_t* packetPtr,
-                 const uint32_t packetOffs,
-	             std::deque<WireDissector*>& protocolList);
-	virtual ~Ip4Dissector();
-	void appendString(std::ostringstream& oss, size_t margin) const;
+namespace amqpAnalyze
+{
 
-	uint32_t getSourceAddr() const;
-	uint32_t getDestinationAddr() const;
-	std::string getSourceAddrStr() const;
-    std::string getDestinationAddrStr() const;
-    bool isIp6() const;
-};
+    class Ip4Dissector: public IpDissector
+    {
+    public:
+        Ip4Dissector(const Options* optionsPtr,
+                     uint64_t packetNum,
+                     const struct pcap_pkthdr* pcapPacketHeaderPtr,
+                     const uint8_t* packetPtr,
+                     const uint32_t packetOffs,
+                     protocol_list_t& protocolList);
+        virtual ~Ip4Dissector();
+
+        void appendString(std::ostringstream& oss, size_t margin) const override;
+        inline dissector_t dissectorType() const override { return dissector_t::DISSECTOR_IP4; }
+        uint32_t getSourceAddr() const;
+        uint32_t getDestinationAddr() const;
+        std::string getSourceAddrStr() const override;
+        std::string getDestinationAddrStr() const override;
+        inline bool isIp6() const override { return false; }
+
+    protected:
+        struct ip _ip4Header;
+    };
 
 } /* namespace amqpAnalyze */
 

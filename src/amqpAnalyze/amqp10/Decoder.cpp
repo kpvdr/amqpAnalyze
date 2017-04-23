@@ -257,7 +257,7 @@ namespace amqpAnalyze
                     return new AmqpSaslOutcome(Decoder::decodeFieldList(frameBuffer, AmqpSaslOutcome::s_fieldTypeList), fieldName);
                 default:
                     throw amqpAnalyze::AmqpDecodeError(frameBuffer, MSG("Decoder::decodeComposite(): Invalid AMQP composite type code "
-                                                                        << longDescriptorPtr->valueStr()));
+                                                                        << longDescriptorPtr->valueStr(false)));
                 }
             }
             case amqpPrimitiveType_t::SYMBOL_TYPE:
@@ -312,7 +312,7 @@ namespace amqpAnalyze
                             break;
                         default:
                             throw amqpAnalyze::AmqpDecodeError(frameBuffer, MSG("Decoder::decodePerformative(): Invalid AMQP performative descriptor: "
-                                                                                 << longDescriptorPtr->valueStr()));
+                                                                                 << longDescriptorPtr->valueStr(false)));
                     }
                     break;
                 }
@@ -371,7 +371,7 @@ namespace amqpAnalyze
                             break;
                         default:;
                             throw amqpAnalyze::AmqpDecodeError(frameBuffer, MSG("Decoder::decodeSection(): Invalid AMQP section descriptor: "
-                                                                                << longDescriptorPtr->valueStr()));
+                                                                                << longDescriptorPtr->valueStr(false)));
                     }
                     break;
                 }

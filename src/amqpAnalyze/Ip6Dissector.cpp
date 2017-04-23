@@ -15,17 +15,19 @@
 
 namespace amqpAnalyze {
 
-Ip6Dissector::Ip6Dissector(uint64_t packetNum,
+Ip6Dissector::Ip6Dissector(const Options* optionsPtr,
+                           uint64_t packetNum,
                            const struct pcap_pkthdr* pcapPacketHeaderPtr,
                            const uint8_t* packetPtr,
                            const uint32_t packetOffs,
-                           std::deque<WireDissector*>& protocolList):
-				IpDissector(packetNum, pcapPacketHeaderPtr, packetPtr, packetOffs, DISSECTOR_IP6, protocolList)
+                           protocol_list_t& protocolList):
+				IpDissector(optionsPtr, packetNum, packetOffs, protocolList)
 {
     std::memcpy((char*)&_ip6Header, (const char*)(packetPtr+packetOffs), sizeof(struct ip6_hdr));
     switch (_ip6Header.ip6_nxt) {
     case IPPROTO_TCP:
-        _protocolList.push_front(new TcpDissector(this,
+        _protocolList.push_front(new TcpDissector(optionsPtr,
+                                                  this,
                                                   _packetNum,
                                                   pcapPacketHeaderPtr,
                                                   packetPtr,
@@ -66,7 +68,5 @@ std::string Ip6Dissector::getDestinationAddrStr() const {
     ::inet_ntop(AF_INET6, &(_ip6Header.ip6_dst), buf, INET6_ADDRSTRLEN);
     return buf;
 }
-
-bool Ip6Dissector::isIp6() const { return true; }
 
 } /* namespace amqpAnalyze */

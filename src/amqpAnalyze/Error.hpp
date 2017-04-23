@@ -44,11 +44,11 @@ namespace amqpAnalyze
         explicit Error(const std::string& err_msg = std::string());
         explicit Error(error_severity_t errorSeverity, const std::string& err_msg = std::string());
         virtual ~Error();
-        virtual std::string formattedMessage() const;
+        virtual std::string formattedMessage(bool colorFlag) const;
         virtual const char* typeStr() const;
         static std::map<error_severity_t, const char*> s_errorSeverityNames;
     protected:
-        std::ostringstream& formattedSeverity(std::ostringstream& oss) const;
+        std::ostringstream& formattedSeverity(std::ostringstream& oss, bool colorFlag) const;
         error_severity_t _errorSeverity;
     };
 

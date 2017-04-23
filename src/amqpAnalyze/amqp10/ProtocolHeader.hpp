@@ -41,7 +41,7 @@ namespace amqpAnalyze
             ProtocolHeader(FrameBuffer& frameBuffer);
             ~ProtocolHeader();
 
-            std::ostringstream& appendString(std::ostringstream& oss, std::size_t margin, bool ignoreMargin) const override;
+            std::ostringstream& appendString(std::ostringstream& oss, std::size_t margin, bool ignoreMargin, bool colorFlag) const override;
             protocolId_t protocolId() const;
             void validate();
         protected:

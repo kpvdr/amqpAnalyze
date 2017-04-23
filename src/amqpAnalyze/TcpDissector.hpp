@@ -11,37 +11,42 @@
 #include <amqpAnalyze/WireDissector.hpp>
 
 #include <netinet/tcp.h>
-#include <vector>
 
-namespace amqpAnalyze {
+struct pcap_pkthdr;
 
-class IpDissector;
+namespace amqpAnalyze
+{
 
-class TcpDissector: public WireDissector {
-protected:
-    struct tcphdr _tcpHeader;
-    uint32_t _hdrSizeBytes;
-    uint32_t _remainingDataLength;
-public:
-	TcpDissector(const WireDissector* parent,
-	             uint64_t packetNum,
-	             const struct pcap_pkthdr* pcapPacketHeaderPtr,
-	             const uint8_t* packetPtr,
-                 const uint32_t packetOffs,
-	             std::deque<WireDissector*>& protocolList);
-	virtual ~TcpDissector();
-	void appendString(std::ostringstream& oss, size_t margin) const;
+    class IpDissector;
 
-	std::string getSourceTcpAddrStr() const;
-    std::string getDestinationAddrStr() const;
-    std::string getConnectionIndex() const;
-	u_int16_t getSourcePort() const;
-    u_int16_t getDestinationPort() const;
-    std::string getFlagsAsString() const;
-    uint32_t getSequence() const;
-    uint32_t getAckSequence() const;
-    std::size_t getConnectionHash() const;
-};
+    class TcpDissector: public WireDissector {
+    public:
+        TcpDissector(const Options* optionsPtr,
+                     const WireDissector* parent,
+                     uint64_t packetNum,
+                     const struct pcap_pkthdr* pcapPacketHeaderPtr,
+                     const uint8_t* packetPtr,
+                     const uint32_t packetOffs,
+                     protocol_list_t& protocolList);
+        virtual ~TcpDissector();
+
+        void appendString(std::ostringstream& oss, size_t margin) const override;
+        inline dissector_t dissectorType() const override { return dissector_t::DISSECTOR_TCP; }
+        std::string getSourceTcpAddrStr() const;
+        std::string getDestinationAddrStr() const;
+        std::string getConnectionIndex() const;
+        uint16_t getSourcePort() const;
+        uint16_t getDestinationPort() const;
+        std::string getFlagsAsString() const;
+        uint32_t getSequence() const;
+        uint32_t getAckSequence() const;
+        std::size_t getConnectionHash() const;
+
+    protected:
+        struct tcphdr _tcpHeader;
+        uint32_t _hdrSizeBytes;
+        uint32_t _remainingDataLength;
+    };
 
 } /* namespace amqpAnalyze */
 

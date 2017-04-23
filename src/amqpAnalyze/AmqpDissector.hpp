@@ -11,21 +11,27 @@
 #include <amqpAnalyze/amqp10/AmqpBlock.hpp>
 #include <amqpAnalyze/WireDissector.hpp>
 
-namespace amqpAnalyze {
+struct pcap_pkthdr;
+
+namespace amqpAnalyze
+{
 
 
     class AmqpDissector: public WireDissector {
     public:
-        AmqpDissector(const WireDissector* parent,
+        AmqpDissector(const Options* optionsPtr,
+                      const WireDissector* parent,
                       uint64_t packetNum,
                       const struct pcap_pkthdr* pcapPacketHeaderPtr,
                       const uint8_t* packetPtr,
                       uint32_t packetOffs,
-                      std::deque<WireDissector*>& protocolList,
+                      protocol_list_t& protocolList,
                       std::size_t amqpDataSize);
         virtual ~AmqpDissector();
 
-        void appendString(std::ostringstream& oss, size_t margin) const;
+        void appendString(std::ostringstream& oss, size_t margin) const override;
+        inline dissector_t dissectorType() const override { return dissector_t::DISSECTOR_AMQP; }
+
     protected:
         std::string _debugHexFrameData;
         amqp10::amqp_block_list_t _amqpBlockList;

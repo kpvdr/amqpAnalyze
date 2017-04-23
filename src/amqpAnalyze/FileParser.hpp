@@ -9,28 +9,26 @@
 #define SRC_AMQPANALYZE_FILEPARSER_HPP_
 
 #include <amqpAnalyze/IpConnectionMap.hpp>
-#include <string>
+#include <pcap.h>
 #include <vector>
-
-struct ether_header;
-struct pcap_pkthdr;
 
 namespace amqpAnalyze
 {
+    class Options;
     class Packet;
 
     class FileParser {
+    public:
+        FileParser(const Options* optionsPtr);
+        virtual ~FileParser();
+        void parse();
+        void packetHandler(u_char *userData, const struct ::pcap_pkthdr* pkthdr, const u_char* packet);
     protected:
-        std::string _fileName;
+        const Options* _optionsPtr;
         struct timeval _firstPakcetTimestamp;
         uint64_t _packetNumber;
         std::vector<Packet*> _packetList;
         IpConnectionMap _ipConnectionMap;
-    public:
-        FileParser();
-        virtual ~FileParser();
-        void parse(const char* fileName);
-        void packetHandler(u_char *userData, const struct ::pcap_pkthdr* pkthdr, const u_char* packet);
     };
 
 } /* namespace amqpAnalyze */

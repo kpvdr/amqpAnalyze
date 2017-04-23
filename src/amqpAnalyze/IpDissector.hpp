@@ -16,12 +16,10 @@ namespace amqpAnalyze
     class IpDissector: public WireDissector
     {
     public:
-        IpDissector(uint64_t packetNum,
-                    const struct pcap_pkthdr* pcapPacketHeaderPtr,
-                    const uint8_t* packetPtr,
+        IpDissector(const Options* optionsPtr,
+                    uint64_t packetNum,
                     const uint32_t packetOffs,
-                    dissector_t dissectorType,
-                    std::deque<WireDissector*>& protocolList);
+                    protocol_list_t& protocolList);
         virtual ~IpDissector();
 
         virtual std::string getSourceAddrStr() const = 0;

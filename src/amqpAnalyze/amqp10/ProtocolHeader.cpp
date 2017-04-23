@@ -36,12 +36,12 @@ namespace amqpAnalyze
 
         ProtocolHeader::~ProtocolHeader() {}
 
-        std::ostringstream& ProtocolHeader::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreMargin) const {
+        std::ostringstream& ProtocolHeader::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreMargin, bool colorFlag) const {
             if (margin > 0 && !ignoreMargin) oss << "\n" << std::string(margin, ' ');
             oss << "[" << std::hex << std::setfill('0') << std::setw(4) << _dataOffset << "] h " << std::dec;
-            oss << std::fgnd_b_cyan << "AMQP header v" << (int)_hdr._major << "." << (int)_hdr._minor << "." << (int)_hdr._revision;
-            oss << std::res << " pid=0x" << std::hex << (int)_hdr._protocolId << " (" << s_protocolIdName[_hdr._protocolId] << ")";
-            return appendStringEpilog(oss, margin);
+            oss << AC(colorFlag, FGND_BCYN) << "AMQP header v" << (int)_hdr._major << "." << (int)_hdr._minor << "." << (int)_hdr._revision;
+            oss << AC(colorFlag, RST) << " pid=0x" << std::hex << (int)_hdr._protocolId << " (" << s_protocolIdName[_hdr._protocolId] << ")";
+            return appendStringEpilog(oss, margin, colorFlag);
         }
 
         protocolId_t ProtocolHeader::protocolId() const {

@@ -38,13 +38,13 @@ namespace amqpAnalyze
             bool hasName() const;
             virtual inline bool isNull() const { return false; }
             const char* name() const;
-            virtual std::string nameValueStr(const char* valueDelim = "()") const; // formatted string name(value) without margins
-            virtual std::string nameTypeValueStr(const char* valueDelim = "()") const; // formatted string name:type(value) without margins
+            virtual std::string nameValueStr(bool colorFlag, const char* valueDelim = "()") const; // formatted string name(value) without margins
+            virtual std::string nameTypeValueStr(bool colorFlag, const char* valueDelim = "()") const; // formatted string name:type(value) without margins
             virtual const amqp_provides_requires_list_t& providesList() const = 0;
             virtual const char* typeStr() const = 0; // type as string
-            virtual std::string typeValueStr(const char* valueDelim = "()") const; // formatted string type(value) without margins
+            virtual std::string typeValueStr(bool colorFlag, const char* valueDelim = "()") const; // formatted string type(value) without margins
             virtual inline void validate(addErrorFp errorHandler, AmqpBlock* errorHandlerInstance) {}
-            virtual std::string valueStr() const = 0; // value only as string
+            virtual std::string valueStr(bool colorFlag) const = 0; // value only as string
 
             static bool provides(amqpRequiresProvides_t requires, const amqp_provides_requires_list_t& prList);
             static std::string providesListAsString(const amqp_provides_requires_list_t& prList);
@@ -142,11 +142,11 @@ namespace amqpAnalyze
             virtual ~AmqpNull();
 
             inline bool isNull() const { return true; }
-            std::string nameValueStr(const char* valueDelim = "()") const override;
-            std::string nameTypeValueStr(const char* valueDelim = "()") const override;
+            std::string nameValueStr(bool colorFlag, const char* valueDelim = "()") const override;
+            std::string nameTypeValueStr(bool colorFlag, const char* valueDelim = "()") const override;
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::NULL_TYPE; }
-            std::string typeValueStr(const char* valueDelim) const override;
-            std::string valueStr() const override;
+            std::string typeValueStr(bool colorFlag, const char* valueDelim = "()") const override;
+            std::string valueStr(bool colorFlag) const override;
         };
 
 
@@ -159,7 +159,7 @@ namespace amqpAnalyze
 
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::BOOLEAN_TYPE; }
             inline amqp_boolean_t value() const { return _value; }
-            std::string valueStr() const override;
+            std::string valueStr(bool colorFlag) const override;
 
         protected:
             amqp_boolean_t _value;
@@ -175,7 +175,7 @@ namespace amqpAnalyze
 
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::UBYTE_TYPE; }
             inline amqp_ubyte_t value() const { return _value; }
-            std::string valueStr() const override;
+            std::string valueStr(bool colorFlag) const override;
 
         protected:
             amqp_ubyte_t _value;
@@ -191,7 +191,7 @@ namespace amqpAnalyze
 
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::USHORT_TYPE; }
             inline amqp_ushort_t value() const { return _value; }
-            std::string valueStr() const override;
+            std::string valueStr(bool colorFlag) const override;
 
         protected:
             amqp_ushort_t _value;
@@ -207,7 +207,7 @@ namespace amqpAnalyze
 
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::UINT_TYPE; }
             inline amqp_uint_t value() const { return _value; }
-            std::string valueStr() const override;
+            std::string valueStr(bool colorFlag) const override;
 
         protected:
             amqp_uint_t _value;
@@ -223,7 +223,7 @@ namespace amqpAnalyze
 
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::ULONG_TYPE; }
             inline amqp_ulong_t value() const { return _value; }
-            std::string valueStr() const override;
+            std::string valueStr(bool colorFlag) const override;
 
         protected:
             amqp_ulong_t _value;
@@ -239,7 +239,7 @@ namespace amqpAnalyze
 
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::BYTE_TYPE; }
             inline amqp_byte_t value() const { return _value; }
-            std::string valueStr() const override;
+            std::string valueStr(bool colorFlag) const override;
 
         protected:
             amqp_byte_t _value;
@@ -255,7 +255,7 @@ namespace amqpAnalyze
 
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::SHORT_TYPE; }
             inline amqp_short_t value() const { return _value; }
-            std::string valueStr() const override;
+            std::string valueStr(bool colorFlag) const override;
 
         protected:
             amqp_short_t _value;
@@ -271,7 +271,7 @@ namespace amqpAnalyze
 
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::INT_TYPE; }
             inline amqp_int_t value() const { return _value; }
-            std::string valueStr() const override;
+            std::string valueStr(bool colorFlag) const override;
 
         protected:
             amqp_int_t _value;
@@ -287,7 +287,7 @@ namespace amqpAnalyze
 
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::LONG_TYPE; }
             inline amqp_long_t value() const { return _value; }
-            std::string valueStr() const override;
+            std::string valueStr(bool colorFlag) const override;
 
         protected:
             amqp_long_t _value;
@@ -303,7 +303,7 @@ namespace amqpAnalyze
 
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::FLOAT_TYPE; }
             inline amqp_float_t value() const { return _value; }
-            std::string valueStr() const override;
+            std::string valueStr(bool colorFlag) const override;
 
         protected:
             amqp_float_t _value;
@@ -319,7 +319,7 @@ namespace amqpAnalyze
 
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::DOUBLE_TYPE; }
             inline amqp_double_t value() const { return _value; }
-            std::string valueStr() const override;
+            std::string valueStr(bool colorFlag) const override;
 
         protected:
             amqp_double_t _value;
@@ -334,10 +334,10 @@ namespace amqpAnalyze
             virtual ~AmqpDecimal32();
 
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::DECIMAL32_TYPE; }
-            inline std::string typeValueStr(const char* valueDelim = "()") const { return Type::typeValueStr("[]"); }
+            inline std::string typeValueStr(bool colorFlag, const char* valueDelim = "()") const { return Type::typeValueStr("[]"); }
             inline amqp_decimal32_t& value() { return _value; }
             inline const amqp_decimal32_t& value() const { return _value; }
-            std::string valueStr() const override;
+            std::string valueStr(bool colorFlag) const override;
 
         protected:
             amqp_decimal32_t _value;
@@ -352,10 +352,10 @@ namespace amqpAnalyze
             virtual ~AmqpDecimal64();
 
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::DECIMAL64_TYPE; }
-            inline std::string typeValueStr(const char* valueDelim = "()") const { return Type::typeValueStr("[]"); }
+            inline std::string typeValueStr(bool colorFlag, const char* valueDelim = "()") const { return Type::typeValueStr("[]"); }
             inline amqp_decimal64_t& value() { return _value; }
             inline const amqp_decimal64_t& value() const { return _value; }
-            std::string valueStr() const override;
+            std::string valueStr(bool colorFlag) const override;
 
         protected:
             amqp_decimal64_t _value;
@@ -370,10 +370,10 @@ namespace amqpAnalyze
             virtual ~AmqpDecimal128();
 
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::DECIMAL128_TYPE; }
-            inline std::string typeValueStr(const char* valueDelim = "()") const { return Type::typeValueStr("[]"); }
+            inline std::string typeValueStr(bool colorFlag, const char* valueDelim = "()") const { return Type::typeValueStr("[]"); }
             inline amqp_decimal128_t& value() { return _value; }
             inline const amqp_decimal128_t& value() const { return _value; }
-            std::string valueStr() const override;
+            std::string valueStr(bool colorFlag) const override;
 
         protected:
             amqp_decimal128_t _value;
@@ -389,7 +389,7 @@ namespace amqpAnalyze
 
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::CHAR_TYPE; }
             inline amqp_char_t value() const { return _value; }
-            std::string valueStr() const override;
+            std::string valueStr(bool colorFlag) const override;
 
         protected:
             amqp_char_t _value;
@@ -405,7 +405,7 @@ namespace amqpAnalyze
 
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::TIMESTAMP_TYPE; }
             inline amqp_timestamp_t value() const { return _value; }
-            std::string valueStr() const override;
+            std::string valueStr(bool colorFlag) const override;
 
         protected:
             amqp_timestamp_t _value;
@@ -422,7 +422,7 @@ namespace amqpAnalyze
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::UUID_TYPE; }
             inline amqp_uuid_t& value() { return _value; }
             inline const amqp_uuid_t& value() const { return _value; }
-            std::string valueStr() const override;
+            std::string valueStr(bool colorFlag) const override;
 
         protected:
             amqp_uuid_t _value;
@@ -441,7 +441,7 @@ namespace amqpAnalyze
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::BINARY_TYPE; }
             inline amqp_binary_t& value() { return _value; }
             inline const amqp_binary_t& value() const { return _value; }
-            std::string valueStr() const override;
+            std::string valueStr(bool colorFlag) const override;
 
         protected:
             amqp_binary_t _value;
@@ -458,7 +458,7 @@ namespace amqpAnalyze
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::STRING_TYPE; }
             inline amqp_string_t& value() { return _value; }
             inline const amqp_string_t& value() const { return _value; }
-            std::string valueStr() const override;
+            std::string valueStr(bool colorFlag) const override;
 
         protected:
             amqp_string_t _value;
@@ -475,7 +475,7 @@ namespace amqpAnalyze
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::SYMBOL_TYPE; }
             inline amqp_symbol_t& value() { return _value; }
             inline const amqp_symbol_t& value() const { return _value; }
-            std::string valueStr() const override;
+            std::string valueStr(bool colorFlag) const override;
 
         protected:
             amqp_symbol_t _value;
@@ -492,10 +492,10 @@ namespace amqpAnalyze
             CompoundType(const char* name);
             virtual ~CompoundType();
 
-            virtual void appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const = 0;
+            virtual void appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const = 0;
 
         protected:
-            static void stringAppendHandler(std::ostringstream& oss, Type* ptr, std::size_t margin, bool nameFlag);
+            static void stringAppendHandler(std::ostringstream& oss, Type* ptr, std::size_t margin, bool nameFlag, bool colorFlag);
         };
 
 
@@ -508,13 +508,13 @@ namespace amqpAnalyze
             AmqpList(const char* name);
             virtual ~AmqpList();
 
-            void appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;
+            void appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const override;
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::LIST_TYPE; }
-            inline std::string typeValueStr() const { return Type::typeValueStr("[]"); }
+            inline std::string typeValueStr(bool colorFlag) const { return Type::typeValueStr(colorFlag, "[]"); }
             void validate(const fieldTypeList_t& fieldList, addErrorFp errorHandler, AmqpBlock* errorHandlerInstance);
             inline amqp_list_t& value() { return _value; }
             inline const amqp_list_t& value() const { return _value; }
-            std::string valueStr() const override;
+            std::string valueStr(bool colorFlag) const override;
 
         protected:
             amqp_list_t _value;
@@ -530,12 +530,12 @@ namespace amqpAnalyze
             AmqpMap(const char* name);
             virtual ~AmqpMap();
 
-            void appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;
+            void appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const override;
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::MAP_TYPE; }
-            inline std::string typeValueStr() const { return Type::typeValueStr("{}"); }
+            inline std::string typeValueStr(bool colorFlag) const { return Type::typeValueStr(colorFlag, "{}"); }
             inline amqp_map_t& value() { return _value; }
             inline const amqp_map_t& value() const { return _value; }
-            std::string valueStr() const override;
+            std::string valueStr(bool colorFlag) const override;
 
         protected:
             amqp_map_t _value;
@@ -551,12 +551,12 @@ namespace amqpAnalyze
             AmqpArray(const char* name);
             virtual ~AmqpArray();
 
-            void appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;
+            void appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const override;
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::ARRAY_TYPE; }
-            inline std::string typeValueStr() const { return Type::typeValueStr("[]"); }
+            inline std::string typeValueStr(bool colorFlag) const { return Type::typeValueStr(colorFlag, "[]"); }
             inline amqp_array_t& value() { return _value; }
             inline const amqp_array_t& value() const { return _value; }
-            std::string valueStr() const override;
+            std::string valueStr(bool colorFlag) const override;
 
         protected:
             amqp_array_t _value;
@@ -580,7 +580,7 @@ namespace amqpAnalyze
 
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::ROLE_TYPE; }
             inline amqp_role_t value() const { return (amqp_role_t)_value; }
-            std::string valueStr() const override;
+            std::string valueStr(bool colorFlag) const override;
 
         protected:
             static std::map<amqp_role_t, const char*> s_choiceNames;
@@ -600,7 +600,7 @@ namespace amqpAnalyze
 
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::SENDER_SETTLE_MODE_TYPE; }
             inline amqp_sender_settle_mode_t value() const { return (amqp_sender_settle_mode_t)_value; }
-            std::string valueStr() const override;
+            std::string valueStr(bool colorFlag) const override;
 
         protected:
             static std::map<amqp_sender_settle_mode_t, const char*> s_choiceNames;
@@ -619,7 +619,7 @@ namespace amqpAnalyze
 
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::RECEIVER_SETTLE_MODE_TYPE; }
             inline amqp_receiver_settle_mode_t value() const { return (amqp_receiver_settle_mode_t)_value; }
-            std::string valueStr() const override;
+            std::string valueStr(bool colorFlag) const override;
 
         protected:
             static std::map<amqp_receiver_settle_mode_t, const char*> s_choiceNames;
@@ -724,7 +724,7 @@ namespace amqpAnalyze
             inline uint8_t getVersion() const { return (uint8_t)(_value & uint32_t(0xff)); }
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::MESSAGE_FORMAT_TYPE; }
             inline amqp_message_format_t value() const { return _value; }
-            std::string valueStr() const override;
+            std::string valueStr(bool colorFlag) const override;
         };
 
 
@@ -953,7 +953,7 @@ namespace amqpAnalyze
 
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::TERMINUS_DURABILITY_TYPE; }
             inline amqp_terminus_durability_t value() const { return (amqp_terminus_durability_t)_value; }
-            std::string valueStr() const override;
+            std::string valueStr(bool colorFlag) const override;
 
         protected:
             static std::map<amqp_terminus_durability_t, const char*> s_choiceNames;
@@ -1105,7 +1105,7 @@ namespace amqpAnalyze
 
             inline amqpPrimitiveType_t type() const override { return amqpPrimitiveType_t::SASL_CODE_TYPE; }
             inline amqp_sasl_code_t value() const { return (amqp_sasl_code_t)_value; }
-            std::string valueStr() const override;
+            std::string valueStr(bool colorFlag) const override;
 
         protected:
             static std::map<amqp_sasl_code_t, const char*> s_choiceNames;
@@ -1151,14 +1151,14 @@ namespace amqpAnalyze
             CompositeType(AmqpList* fieldListPtr, const char* name);
             virtual ~CompositeType();
 
-            std::ostringstream& appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const;
+            std::ostringstream& appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const;
             inline const AmqpList* fieldList() const { return _fieldListPtr; }
             virtual const fieldTypeList_t& fieldTypeList() const = 0;
             inline const amqp_provides_requires_list_t& providesList() const { return s_providesList; }
             virtual amqpCompositeType_t type() const = 0;
             inline const char* typeStr() const override { return s_amqpCompositeTypeNames.at(type()); }
             virtual void validate(addErrorFp errorHandler, AmqpBlock* errorHandlerInstance) override;
-            std::string valueStr() const override;
+            std::string valueStr(bool colorFlag) const override;
             static std::map<amqpCompositeType_t, const char*> s_amqpCompositeTypeNames;
 
         protected:

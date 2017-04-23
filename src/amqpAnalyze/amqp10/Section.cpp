@@ -21,7 +21,7 @@ namespace amqpAnalyze
 
         Section::Section(uint64_t packetNum, std::size_t dataOffset): AmqpBlock(packetNum, dataOffset) {}
         Section::~Section() {}
-        std::ostringstream& Section::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
+        std::ostringstream& Section::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const {
             std::string m(margin, ' ');
             if (!ignoreFirstMargin) oss << "\n" << m;
             oss << "[" << std::setw(4) << std::setfill('0') << std::hex << _dataOffset << "] s ";
@@ -52,12 +52,12 @@ namespace amqpAnalyze
                 _listPtr = nullptr;
             }
         }
-        std::ostringstream& AmqpHeader::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
-            Section::appendString(oss, margin, ignoreFirstMargin);
+        std::ostringstream& AmqpHeader::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const {
+            Section::appendString(oss, margin, ignoreFirstMargin, colorFlag);
             std::string t(s_sectionTypeName[type()]);
-            oss << std::fgnd_b_yellow << t << std::res;
-            _listPtr->appendString(oss, margin + t.length() + 9, true);
-            return appendStringEpilog(oss, margin + 9);
+            oss << COLOR(FGND_BYLW, t, colorFlag);
+            _listPtr->appendString(oss, margin + t.length() + 9, true, colorFlag);
+            return appendStringEpilog(oss, margin + 9, colorFlag);
         }
         void AmqpHeader::validate() {
             Section::validate();
@@ -86,11 +86,11 @@ namespace amqpAnalyze
                 _annotationsPtr = nullptr;
             }
         }
-        std::ostringstream& AmqpDeliveryAnnotations::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
-            Section::appendString(oss, margin, ignoreFirstMargin);
-            oss << std::fgnd_b_yellow << s_sectionTypeName[type()] << std::res << ": ";
-            _annotationsPtr->appendString(oss, margin, true);
-            return appendStringEpilog(oss, margin + 9);
+        std::ostringstream& AmqpDeliveryAnnotations::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const {
+            Section::appendString(oss, margin, ignoreFirstMargin, colorFlag);
+            oss << COLOR(FGND_BYLW, s_sectionTypeName[type()], colorFlag);
+            _annotationsPtr->appendString(oss, margin, true, colorFlag);
+            return appendStringEpilog(oss, margin + 9, colorFlag);
         }
         void AmqpDeliveryAnnotations::validate() {
             Section::validate();
@@ -109,11 +109,11 @@ namespace amqpAnalyze
                 _annotationsPtr = nullptr;
             }
         }
-        std::ostringstream& AmqpMessageAnnotations::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
-            Section::appendString(oss, margin, ignoreFirstMargin);
-            oss << std::fgnd_b_yellow << s_sectionTypeName[type()] << std::res << ": ";
-            _annotationsPtr->appendString(oss, margin, true);
-            return appendStringEpilog(oss, margin + 9);
+        std::ostringstream& AmqpMessageAnnotations::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const {
+            Section::appendString(oss, margin, ignoreFirstMargin, colorFlag);
+            oss << COLOR(FGND_BYLW, s_sectionTypeName[type()], colorFlag);
+            _annotationsPtr->appendString(oss, margin, true, colorFlag);
+            return appendStringEpilog(oss, margin + 9, colorFlag);
         }
         void AmqpMessageAnnotations::validate() {
             Section::validate();
@@ -132,12 +132,12 @@ namespace amqpAnalyze
                 _listPtr = nullptr;
             }
         }
-        std::ostringstream& AmqpProperties::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
-            Section::appendString(oss, margin, ignoreFirstMargin);
+        std::ostringstream& AmqpProperties::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const {
+            Section::appendString(oss, margin, ignoreFirstMargin, colorFlag);
             std::string t(s_sectionTypeName[type()]);
-            oss << std::fgnd_b_yellow << t << std::res;
-            _listPtr->appendString(oss, margin + t.length() + 9, true);
-            return appendStringEpilog(oss, margin + 9);
+            oss << COLOR(FGND_BYLW, s_sectionTypeName[type()], colorFlag);
+            _listPtr->appendString(oss, margin + t.length() + 9, true, colorFlag);
+            return appendStringEpilog(oss, margin + 9, colorFlag);
         }
         void AmqpProperties::validate() {
             Section::validate();
@@ -175,11 +175,11 @@ namespace amqpAnalyze
                 _mapPtr = nullptr;
             }
         }
-        std::ostringstream& AmqpApplicationProperties::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
-            Section::appendString(oss, margin, ignoreFirstMargin);
-            oss << std::fgnd_b_yellow << s_sectionTypeName[type()] << std::res << ": ";
-            _mapPtr->appendString(oss, margin, true);
-            return appendStringEpilog(oss, margin + 9);
+        std::ostringstream& AmqpApplicationProperties::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const {
+            Section::appendString(oss, margin, ignoreFirstMargin, colorFlag);
+            oss << COLOR(FGND_BYLW, s_sectionTypeName[type()], colorFlag);
+            _mapPtr->appendString(oss, margin, true, colorFlag);
+            return appendStringEpilog(oss, margin + 9, colorFlag);
         }
         void AmqpApplicationProperties::validate() {
             Section::validate();
@@ -198,10 +198,10 @@ namespace amqpAnalyze
                 _binaryPtr = nullptr;
             }
         }
-        std::ostringstream& AmqpData::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
-            Section::appendString(oss, margin, ignoreFirstMargin);
-            oss << std::fgnd_b_yellow << s_sectionTypeName[type()] << std::res << ": " << _binaryPtr->typeValueStr();
-            return appendStringEpilog(oss, margin + 9);
+        std::ostringstream& AmqpData::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const {
+            Section::appendString(oss, margin, ignoreFirstMargin, colorFlag);
+            oss << COLOR(FGND_BYLW, s_sectionTypeName[type()], colorFlag) << ": " << _binaryPtr->typeValueStr(colorFlag);
+            return appendStringEpilog(oss, margin + 9, colorFlag);
         }
         void AmqpData::validate() {
             Section::validate();
@@ -220,12 +220,12 @@ namespace amqpAnalyze
                 _listPtr = nullptr;
             }
         }
-        std::ostringstream& AmqpSequence::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
-            Section::appendString(oss, margin, ignoreFirstMargin);
+        std::ostringstream& AmqpSequence::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const {
+            Section::appendString(oss, margin, ignoreFirstMargin, colorFlag);
             std::string t(s_sectionTypeName[type()]);
-            oss << std::fgnd_b_yellow << t << std::res;
-            _listPtr->appendString(oss, margin + t.length() + 9, true);
-            return appendStringEpilog(oss, margin + 9);
+            oss << COLOR(FGND_BYLW, t, colorFlag);
+            _listPtr->appendString(oss, margin + t.length() + 9, true, colorFlag);
+            return appendStringEpilog(oss, margin + 9, colorFlag);
         }
         void AmqpSequence::validate() {
             Section::validate();
@@ -244,10 +244,10 @@ namespace amqpAnalyze
                 _valuePtr = nullptr;
             }
         }
-        std::ostringstream& AmqpValue::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
-            Section::appendString(oss, margin, ignoreFirstMargin);
-            oss << std::fgnd_b_yellow << s_sectionTypeName[type()] << std::res << ": " << _valuePtr->typeValueStr();
-            return appendStringEpilog(oss, margin + 9);
+        std::ostringstream& AmqpValue::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const {
+            Section::appendString(oss, margin, ignoreFirstMargin, colorFlag);
+            oss << COLOR(FGND_BYLW, s_sectionTypeName[type()], colorFlag) << ": " << _valuePtr->typeValueStr(colorFlag);
+            return appendStringEpilog(oss, margin + 9, colorFlag);
         }
         void AmqpValue::validate() {
             Section::validate();
@@ -266,11 +266,11 @@ namespace amqpAnalyze
                 _annotationsPtr = nullptr;
             }
         }
-        std::ostringstream& AmqpFooter::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
-            Section::appendString(oss, margin, ignoreFirstMargin);
-            oss << std::fgnd_b_yellow << s_sectionTypeName[type()] << std::res << ": ";
-            _annotationsPtr->appendString(oss, margin, ignoreFirstMargin);
-            return appendStringEpilog(oss, margin + 9);
+        std::ostringstream& AmqpFooter::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const {
+            Section::appendString(oss, margin, ignoreFirstMargin, colorFlag);
+            oss << COLOR(FGND_BYLW, s_sectionTypeName[type()], colorFlag) << ": ";
+            _annotationsPtr->appendString(oss, margin, ignoreFirstMargin, colorFlag);
+            return appendStringEpilog(oss, margin + 9, colorFlag);
         }
         void AmqpFooter::validate() {
             Section::validate();
