@@ -10,10 +10,7 @@
 #include <amqpAnalyze/Error.hpp>
 #include <amqpAnalyze/Ip4Dissector.hpp>
 #include <amqpAnalyze/Ip6Dissector.hpp>
-#include <amqpAnalyze/Options.hpp>
 #include <amqpAnalyze/TcpDissector.hpp>
-#include <amqpAnalyze/WireDissector.hpp>
-
 #include <iomanip>
 #include <net/ethernet.h>
 #include <netinet/in.h>
@@ -62,7 +59,7 @@ namespace amqpAnalyze
     }
 
     Packet::~Packet() {
-    	for (std::deque<WireDissector*>::iterator i=_protocolList.begin(); i!=_protocolList.end(); ++i) {
+    	for (std::deque<Dissector*>::iterator i=_protocolList.begin(); i!=_protocolList.end(); ++i) {
     		delete (*i);
     	}
     	_protocolList.clear();
@@ -75,7 +72,7 @@ namespace amqpAnalyze
     	    << _relativeTimestamp.tv_usec << "s  " << _captureLength;
     	if (_captureLength != _packetLength) oss << "/" << _packetLength;
     	oss << " bytes";
-    	for (std::deque<WireDissector*>::const_iterator i=_protocolList.cbegin(); i!=_protocolList.cend(); ++i) {
+    	for (std::deque<Dissector*>::const_iterator i=_protocolList.cbegin(); i!=_protocolList.cend(); ++i) {
     		(*i)->appendString(oss, margin + 2);
     	}
     	return oss.str();

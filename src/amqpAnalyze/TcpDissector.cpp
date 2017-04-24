@@ -2,19 +2,16 @@
  * TcpDissector.cpp
  *
  *  Created on: Apr 2, 2017
- *      Author: kvdr
+ *      Author: kpvdr
  */
 
 #include <amqpAnalyze/TcpDissector.hpp>
 
 #include <amqpAnalyze/AmqpDissector.hpp>
-#include <amqpAnalyze/Error.hpp>
 #include <amqpAnalyze/IpDissector.hpp>
 #include <amqpAnalyze/Ip4Dissector.hpp>
 #include <amqpAnalyze/Ip6Dissector.hpp>
 #include <amqpAnalyze/Options.hpp>
-#include <arpa/inet.h>
-#include <array>
 #include <cstring>
 #include <pcap.h>
 #include <std/AnsiTermColors.hpp>
@@ -23,13 +20,13 @@ namespace amqpAnalyze
 {
 
     TcpDissector::TcpDissector(const Options* optionsPtr,
-                               const WireDissector* parent,
+                               const Dissector* parent,
                                uint64_t packetNum,
                                const struct pcap_pkthdr* pcapPacketHeaderPtr,
                                const uint8_t* packetPtr,
                                const uint32_t packetOffs,
-                               protocol_list_t& protocolList):
-            WireDissector(optionsPtr, parent, packetNum, packetOffs, protocolList)
+                               DissectorList_t& protocolList):
+            Dissector(optionsPtr, parent, packetNum, packetOffs, protocolList)
     {
         std::memcpy((char*)&_tcpHeader, (const char*)(packetPtr+packetOffs), sizeof(struct tcphdr));
         _hdrSizeBytes = _tcpHeader.doff * sizeof(uint32_t);  // doff is tcp header size in 32-bit words

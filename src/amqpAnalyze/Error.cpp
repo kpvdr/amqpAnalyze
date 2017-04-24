@@ -8,7 +8,6 @@
 #include <amqpAnalyze/Error.hpp>
 
 #include <amqpAnalyze/amqp10/FrameBuffer.hpp>
-#include <iomanip>
 #include <std/AnsiTermColors.hpp>
 
 namespace amqpAnalyze
@@ -26,9 +25,9 @@ namespace amqpAnalyze
 
     Error::Error(const std::string& err_msg):
         std::runtime_error(err_msg),
-        _errorSeverity(error_severity_t::ERROR)
+        _errorSeverity(ErrorSeverity_t::ERROR)
     {}
-    Error::Error(error_severity_t errorSeverity, const std::string& err_msg):
+    Error::Error(ErrorSeverity_t errorSeverity, const std::string& err_msg):
         std::runtime_error(err_msg),
         _errorSeverity(errorSeverity)
     {}
@@ -36,18 +35,18 @@ namespace amqpAnalyze
     std::string Error::formattedMessage(bool colorFlag) const {
         std::ostringstream oss;
         formattedSeverity(oss, colorFlag);
-        oss << typeStr() << what();
+        oss << ": " << typeStr() << what();
         return oss.str();
     }
     std::ostringstream& Error::formattedSeverity(std::ostringstream& oss, bool colorFlag) const {
         switch (_errorSeverity) {
-        case error_severity_t::ERROR:
+        case ErrorSeverity_t::ERROR:
             oss << COLOR(FGND_BRED, s_errorSeverityNames[_errorSeverity], colorFlag);
             break;
-        case error_severity_t::WARNING:
+        case ErrorSeverity_t::WARNING:
             oss << COLOR(FGND_BRED, s_errorSeverityNames[_errorSeverity], colorFlag);
             break;
-        case error_severity_t::INFO:
+        case ErrorSeverity_t::INFO:
             oss << COLOR(FGND_BGRN, s_errorSeverityNames[_errorSeverity], colorFlag);
             break;
         }
@@ -57,10 +56,10 @@ namespace amqpAnalyze
         return "";
     }
     // static
-    std::map<error_severity_t, const char*> Error::s_errorSeverityNames = {
-        {error_severity_t::ERROR, "ERROR"},
-        {error_severity_t::WARNING, "WARNING"},
-        {error_severity_t::INFO, "INFO"}
+    std::map<ErrorSeverity_t, const char*> Error::s_errorSeverityNames = {
+        {ErrorSeverity_t::ERROR, "ERROR"},
+        {ErrorSeverity_t::WARNING, "WARNING"},
+        {ErrorSeverity_t::INFO, "INFO"}
     };
 
 
@@ -77,12 +76,12 @@ namespace amqpAnalyze
         _packetNum(packetNum),
         _amqpDataOffset(amqpDataOffset)
     {}
-    AmqpDecodeError::AmqpDecodeError(error_severity_t errorSeverity, const amqp10::FrameBuffer& frameBuffer, const std::string& errorMessage):
+    AmqpDecodeError::AmqpDecodeError(ErrorSeverity_t errorSeverity, const amqp10::FrameBuffer& frameBuffer, const std::string& errorMessage):
         Error(errorSeverity, errorMessage),
         _packetNum(frameBuffer.getPacketNum()),
         _amqpDataOffset(frameBuffer.getFrameOffsetSnapshot())
     {}
-    AmqpDecodeError::AmqpDecodeError(error_severity_t errorSeverity, uint64_t packetNum, std::size_t amqpDataOffset, const std::string& errorMessage):
+    AmqpDecodeError::AmqpDecodeError(ErrorSeverity_t errorSeverity, uint64_t packetNum, std::size_t amqpDataOffset, const std::string& errorMessage):
         Error(errorSeverity, errorMessage),
         _packetNum(packetNum),
         _amqpDataOffset(amqpDataOffset)
@@ -99,15 +98,15 @@ namespace amqpAnalyze
     //--- class AmqpValidationError ---
 
     AmqpValidationError::AmqpValidationError(const amqp10::FrameBuffer& frameBuffer, const std::string& errorMessage):
-        AmqpDecodeError(error_severity_t::WARNING, frameBuffer, errorMessage)
+        AmqpDecodeError(ErrorSeverity_t::WARNING, frameBuffer, errorMessage)
     {}
     AmqpValidationError::AmqpValidationError(uint64_t packetNum, std::size_t amqpDataOffset, const std::string& errorMessage):
-        AmqpDecodeError(error_severity_t::WARNING, packetNum, amqpDataOffset, errorMessage)
+        AmqpDecodeError(ErrorSeverity_t::WARNING, packetNum, amqpDataOffset, errorMessage)
     {}
-    AmqpValidationError::AmqpValidationError(error_severity_t errorSeverity, const amqp10::FrameBuffer& frameBuffer, const std::string& errorMessage):
+    AmqpValidationError::AmqpValidationError(ErrorSeverity_t errorSeverity, const amqp10::FrameBuffer& frameBuffer, const std::string& errorMessage):
         AmqpDecodeError(errorSeverity, frameBuffer, errorMessage)
     {}
-    AmqpValidationError::AmqpValidationError(error_severity_t errorSeverity, uint64_t packetNum, std::size_t amqpDataOffset, const std::string& errorMessage):
+    AmqpValidationError::AmqpValidationError(ErrorSeverity_t errorSeverity, uint64_t packetNum, std::size_t amqpDataOffset, const std::string& errorMessage):
         AmqpDecodeError(errorSeverity, packetNum, amqpDataOffset, errorMessage)
     {}
     AmqpValidationError::~AmqpValidationError() {}

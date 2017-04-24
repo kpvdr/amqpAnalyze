@@ -7,10 +7,9 @@
 
 #include <amqpAnalyze/amqp10/Section.hpp>
 
-#include <amqpAnalyze/amqp10/Decoder.hpp>
 #include <amqpAnalyze/amqp10/FieldType.hpp>
-#include <amqpAnalyze/amqp10/FrameBuffer.hpp>
-#include <amqpAnalyze/Error.hpp>
+#include <amqpAnalyze/amqp10/ProvidesRequires.hpp>
+#include <amqpAnalyze/amqp10/Type.hpp>
 #include <iomanip>
 #include <std/AnsiTermColors.hpp>
 
@@ -29,16 +28,16 @@ namespace amqpAnalyze
         }
         void Section::validate() {}
         // static
-        std::map<sectionType_t, const char*> Section::s_sectionTypeName = {
-            {sectionType_t::HEADER, "header"},
-            {sectionType_t::DELIVERY_ANNOTATIONS, "delivery-annotations"},
-            {sectionType_t::MESSAGE_ANNOTATIONS, "message-annotations"},
-            {sectionType_t::PROPERTIES, "properties"},
-            {sectionType_t::APPLICATION_PROPERTIES, "application-properties"},
-            {sectionType_t::RAW_DATA, "data"},
-            {sectionType_t::AMQP_SEQUENCE, "amqp-sequence"},
-            {sectionType_t::AMQP_VALUE, "amqp-value"},
-            {sectionType_t::FOOTER, "footer"}
+        std::map<SectionType_t, const char*> Section::s_sectionTypeName = {
+            {SectionType_t::HEADER, "header"},
+            {SectionType_t::DELIVERY_ANNOTATIONS, "delivery-annotations"},
+            {SectionType_t::MESSAGE_ANNOTATIONS, "message-annotations"},
+            {SectionType_t::PROPERTIES, "properties"},
+            {SectionType_t::APPLICATION_PROPERTIES, "application-properties"},
+            {SectionType_t::RAW_DATA, "data"},
+            {SectionType_t::AMQP_SEQUENCE, "amqp-sequence"},
+            {SectionType_t::AMQP_VALUE, "amqp-value"},
+            {SectionType_t::FOOTER, "footer"}
         };
 
 
@@ -66,12 +65,12 @@ namespace amqpAnalyze
             }
         }
         // static
-        const fieldTypeList_t AmqpHeader::s_fieldTypeList = {
-            FieldType("durable", amqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
-            FieldType("priority", amqpPrimitiveType_t::UBYTE_TYPE, false, false),
-            FieldType("ttl", amqpPrimitiveType_t::MILLISECONDS_TYPE, false, false),
-            FieldType("first-acquirer", amqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
-            FieldType("delivery-count", amqpPrimitiveType_t::UINT_TYPE, false, false)
+        const FieldTypeList_t AmqpHeader::s_fieldTypeList = {
+            FieldType("durable", AmqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
+            FieldType("priority", AmqpPrimitiveType_t::UBYTE_TYPE, false, false),
+            FieldType("ttl", AmqpPrimitiveType_t::MILLISECONDS_TYPE, false, false),
+            FieldType("first-acquirer", AmqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
+            FieldType("delivery-count", AmqpPrimitiveType_t::UINT_TYPE, false, false)
         };
 
 
@@ -146,20 +145,20 @@ namespace amqpAnalyze
             }
         }
         // static
-        const fieldTypeList_t AmqpProperties::s_fieldTypeList = {
-            FieldType("message-id", "*", false, false, {amqpRequiresProvides_t::MESSAGE_ID}),
-            FieldType("user-id", amqpPrimitiveType_t::BINARY_TYPE, false, false),
-            FieldType("to", "*", false, false, {amqpRequiresProvides_t::ADDRESS}),
-            FieldType("subject", amqpPrimitiveType_t::STRING_TYPE, false, false),
-            FieldType("reply-to", "*", false, false, {amqpRequiresProvides_t::ADDRESS}),
-            FieldType("correlation-id", "*", false, false, {amqpRequiresProvides_t::MESSAGE_ID}),
-            FieldType("content-type", amqpPrimitiveType_t::SYMBOL_TYPE, false, false),
-            FieldType("content-encoding", amqpPrimitiveType_t::SYMBOL_TYPE, false, false),
-            FieldType("absolute-expiry-time", amqpPrimitiveType_t::TIMESTAMP_TYPE, false, false),
-            FieldType("creation-time", amqpPrimitiveType_t::TIMESTAMP_TYPE, false, false),
-            FieldType("group-id", amqpPrimitiveType_t::STRING_TYPE, false, false),
-            FieldType("group-sequence", amqpPrimitiveType_t::SEQUENCE_NUMBER_TYPE, false, false),
-            FieldType("reply-to-group-id", amqpPrimitiveType_t::STRING_TYPE, false, false)
+        const FieldTypeList_t AmqpProperties::s_fieldTypeList = {
+            FieldType("message-id", "*", false, false, {AmqpRequiresProvides_t::MESSAGE_ID}),
+            FieldType("user-id", AmqpPrimitiveType_t::BINARY_TYPE, false, false),
+            FieldType("to", "*", false, false, {AmqpRequiresProvides_t::ADDRESS}),
+            FieldType("subject", AmqpPrimitiveType_t::STRING_TYPE, false, false),
+            FieldType("reply-to", "*", false, false, {AmqpRequiresProvides_t::ADDRESS}),
+            FieldType("correlation-id", "*", false, false, {AmqpRequiresProvides_t::MESSAGE_ID}),
+            FieldType("content-type", AmqpPrimitiveType_t::SYMBOL_TYPE, false, false),
+            FieldType("content-encoding", AmqpPrimitiveType_t::SYMBOL_TYPE, false, false),
+            FieldType("absolute-expiry-time", AmqpPrimitiveType_t::TIMESTAMP_TYPE, false, false),
+            FieldType("creation-time", AmqpPrimitiveType_t::TIMESTAMP_TYPE, false, false),
+            FieldType("group-id", AmqpPrimitiveType_t::STRING_TYPE, false, false),
+            FieldType("group-sequence", AmqpPrimitiveType_t::SEQUENCE_NUMBER_TYPE, false, false),
+            FieldType("reply-to-group-id", AmqpPrimitiveType_t::STRING_TYPE, false, false)
         };
 
 

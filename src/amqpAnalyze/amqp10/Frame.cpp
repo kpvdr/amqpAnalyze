@@ -12,9 +12,9 @@
 #include <amqpAnalyze/amqp10/FrameError.hpp>
 #include <amqpAnalyze/amqp10/Performative.hpp>
 #include <amqpAnalyze/amqp10/Section.hpp>
-#include <amqpAnalyze/Error.hpp>
 #include <iomanip>
 #include <netinet/in.h>
+#include <std/AnsiTermColors.hpp>
 
 namespace amqpAnalyze
 {
@@ -63,7 +63,7 @@ namespace amqpAnalyze
                 delete _performative;
                 _performative = nullptr;
             }
-            for (amqp_block_list_citr_t i=_sectionPtrList.begin(); i!=_sectionPtrList.end(); ++i) {
+            for (AmqpBlockListCitr_t i=_sectionPtrList.begin(); i!=_sectionPtrList.end(); ++i) {
                 delete *i;
             }
             _sectionPtrList.clear();
@@ -81,12 +81,12 @@ namespace amqpAnalyze
             }
             oss << ":";
             if (_performative == nullptr) oss << " heartbeat";
-            for (error_ptr_list_citr_t i=_errorPtrList.cbegin(); i!=_errorPtrList.cend(); ++i) {
+            for (ErrorPtrListCitr_t i=_errorPtrList.cbegin(); i!=_errorPtrList.cend(); ++i) {
                 oss << "\n" << m << (*i)->formattedMessage(colorFlag);
             }
             if (_performative != nullptr) {
                 _performative->appendString(oss, margin, false, colorFlag);
-                for (amqp_block_list_citr_t i=_sectionPtrList.cbegin(); i!=_sectionPtrList.cend(); ++i) {
+                for (AmqpBlockListCitr_t i=_sectionPtrList.cbegin(); i!=_sectionPtrList.cend(); ++i) {
                     (*i)->appendString(oss, margin, false, colorFlag);
                 }
             }
@@ -113,11 +113,11 @@ namespace amqpAnalyze
             return _hdr._frameSize;
         }
 
-        frameType_t Frame::frameType() const {
+        FrameType_t Frame::frameType() const {
             return _hdr._type;
         }
 
-        const amqp_block_list_t& Frame::sectionPtrList() const {
+        const AmqpBlockList_t& Frame::sectionPtrList() const {
             return _sectionPtrList;
         }
 
@@ -133,13 +133,13 @@ namespace amqpAnalyze
             if (_performative != nullptr) {
                 _performative->validate();
             }
-            for (amqp_block_list_itr_t i=_sectionPtrList.begin(); i!=_sectionPtrList.end(); ++i) {
+            for (AmqpBlockListItr_t i=_sectionPtrList.begin(); i!=_sectionPtrList.end(); ++i) {
                 (*i)->validate();
             }
         }
 
         // static
-        std::map<frameType_t, const char*> Frame::s_frameTypeName = {
+        std::map<FrameType_t, const char*> Frame::s_frameTypeName = {
             {AMQP_FRAME, "AMQP"},
             {SASL_FRAME, "SASL"}
         };

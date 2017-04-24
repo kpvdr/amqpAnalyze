@@ -8,17 +8,14 @@
 #ifndef SRC_AMQPANALYZE_AMQP10_AMQPBLOCK_HPP_
 #define SRC_AMQPANALYZE_AMQP10_AMQPBLOCK_HPP_
 
+#include <amqpAnalyze/amqp10/FwdDecls.hpp>
+#include <amqpAnalyze/Error.hpp>
 #include <sstream>
-#include <vector>
 
 namespace amqpAnalyze
 {
-    class Error;
-    typedef std::vector<const Error*> error_ptr_list_t;
-
     namespace amqp10
     {
-        class FrameBuffer;
 
         class AmqpBlock
         {
@@ -30,7 +27,7 @@ namespace amqpAnalyze
             virtual std::ostringstream& appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const = 0;
             virtual std::ostringstream& appendStringEpilog(std::ostringstream& oss, std::size_t margin, bool colorFlag) const;
             std::size_t dataOffset() const;
-            const error_ptr_list_t errorPtrList() const;
+            const ErrorPtrList_t errorPtrList() const;
             bool hasErrors() const;
             uint64_t packetNum() const;
             virtual void validate() = 0;
@@ -38,15 +35,11 @@ namespace amqpAnalyze
         protected:
             const uint64_t _packetNum;
             const std::size_t _dataOffset;
-            error_ptr_list_t _errorPtrList;
+            ErrorPtrList_t _errorPtrList;
         };
 
         // Function pointer to error handler AmqpBlock::addError
         typedef void (AmqpBlock::*addErrorFp)(const amqpAnalyze::Error*);
-
-        typedef std::vector<AmqpBlock*> amqp_block_list_t;
-        typedef amqp_block_list_t::iterator amqp_block_list_itr_t;
-        typedef amqp_block_list_t::const_iterator amqp_block_list_citr_t;
 
     } /* namespace amqp10 */
 } /* namespace amqpAnalyze */

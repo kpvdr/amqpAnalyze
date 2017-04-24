@@ -7,12 +7,10 @@
 
 #include <amqpAnalyze/amqp10/Type.hpp>
 
+#include <amqpAnalyze/amqp10/AmqpBlock.hpp>
 #include <amqpAnalyze/amqp10/FieldType.hpp>
-#include <amqpAnalyze/amqp10/FrameBuffer.hpp>
 #include <amqpAnalyze/amqp10/ProvidesRequires.hpp>
-#include <amqpAnalyze/Error.hpp>
 #include <cstring>
-#include <ctime>
 #include <iomanip>
 #include <std/AnsiTermColors.hpp>
 
@@ -45,9 +43,9 @@ namespace amqpAnalyze
             return oss.str();
         }
         // static
-        bool Type::provides(amqpRequiresProvides_t requires, const amqp_provides_requires_list_t& prList) {
+        bool Type::provides(AmqpRequiresProvides_t requires, const AmqpProvidesRequiresList_t& prList) {
             bool found = false;
-            for (amqp_provides_requires_list_citr_t i = prList.cbegin(); i!=prList.cend(); ++i) {
+            for (AmqpProvidesRequiresListCitr_t i = prList.cbegin(); i!=prList.cend(); ++i) {
                 if (*i == requires) {
                     found = true;
                     break;
@@ -56,10 +54,10 @@ namespace amqpAnalyze
             return found;
         }
        // static
-        std::string Type::providesListAsString(const amqp_provides_requires_list_t& prList) {
+        std::string Type::providesListAsString(const AmqpProvidesRequiresList_t& prList) {
             std::ostringstream oss;
             oss << "[";
-            for (amqp_provides_requires_list_citr_t i=prList.cbegin(); i!=prList.cend(); ++i) {
+            for (AmqpProvidesRequiresListCitr_t i=prList.cbegin(); i!=prList.cend(); ++i) {
                 if (i != prList.cbegin()) oss << ", ";
                 oss << providesRequiresNames[*i];
             }
@@ -72,67 +70,67 @@ namespace amqpAnalyze
         PrimitiveType::PrimitiveType(const char* name): Type(name) {}
         PrimitiveType::~PrimitiveType() {}
         // static
-        amqp_provides_requires_list_t PrimitiveType::s_providesList = {};
+        AmqpProvidesRequiresList_t PrimitiveType::s_providesList = {};
         // static
-        std::map<amqpPrimitiveType_t, const char*> PrimitiveType::s_amqpSimpleTypeNames = {
+        std::map<AmqpPrimitiveType_t, const char*> PrimitiveType::s_amqpSimpleTypeNames = {
             // Primitive types
-            {amqpPrimitiveType_t::NULL_TYPE, "null"},
-            {amqpPrimitiveType_t::BOOLEAN_TYPE, "boolean"},
-            {amqpPrimitiveType_t::UBYTE_TYPE, "ubyte"},
-            {amqpPrimitiveType_t::USHORT_TYPE, "ushort"},
-            {amqpPrimitiveType_t::UINT_TYPE, "uint"},
-            {amqpPrimitiveType_t::ULONG_TYPE, "ulong"},
-            {amqpPrimitiveType_t::BYTE_TYPE, "byte"},
-            {amqpPrimitiveType_t::SHORT_TYPE, "short"},
-            {amqpPrimitiveType_t::INT_TYPE, "int"},
-            {amqpPrimitiveType_t::LONG_TYPE, "long"},
-            {amqpPrimitiveType_t::FLOAT_TYPE, "float"},
-            {amqpPrimitiveType_t::DOUBLE_TYPE, "double"},
-            {amqpPrimitiveType_t::DECIMAL32_TYPE, "decimal32"},
-            {amqpPrimitiveType_t::DECIMAL64_TYPE, "decimal64"},
-            {amqpPrimitiveType_t::DECIMAL128_TYPE, "decimal128"},
-            {amqpPrimitiveType_t::CHAR_TYPE, "char"},
-            {amqpPrimitiveType_t::TIMESTAMP_TYPE, "timestamp"},
-            {amqpPrimitiveType_t::UUID_TYPE, "uuid"},
-            {amqpPrimitiveType_t::BINARY_TYPE, "binary"},
-            {amqpPrimitiveType_t::STRING_TYPE, "string"},
-            {amqpPrimitiveType_t::SYMBOL_TYPE, "symbol"},
-            {amqpPrimitiveType_t::LIST_TYPE, "list"},
-            {amqpPrimitiveType_t::MAP_TYPE, "map"},
-            {amqpPrimitiveType_t::ARRAY_TYPE, "array"},
+            {AmqpPrimitiveType_t::NULL_TYPE, "null"},
+            {AmqpPrimitiveType_t::BOOLEAN_TYPE, "boolean"},
+            {AmqpPrimitiveType_t::UBYTE_TYPE, "ubyte"},
+            {AmqpPrimitiveType_t::USHORT_TYPE, "ushort"},
+            {AmqpPrimitiveType_t::UINT_TYPE, "uint"},
+            {AmqpPrimitiveType_t::ULONG_TYPE, "ulong"},
+            {AmqpPrimitiveType_t::BYTE_TYPE, "byte"},
+            {AmqpPrimitiveType_t::SHORT_TYPE, "short"},
+            {AmqpPrimitiveType_t::INT_TYPE, "int"},
+            {AmqpPrimitiveType_t::LONG_TYPE, "long"},
+            {AmqpPrimitiveType_t::FLOAT_TYPE, "float"},
+            {AmqpPrimitiveType_t::DOUBLE_TYPE, "double"},
+            {AmqpPrimitiveType_t::DECIMAL32_TYPE, "decimal32"},
+            {AmqpPrimitiveType_t::DECIMAL64_TYPE, "decimal64"},
+            {AmqpPrimitiveType_t::DECIMAL128_TYPE, "decimal128"},
+            {AmqpPrimitiveType_t::CHAR_TYPE, "char"},
+            {AmqpPrimitiveType_t::TIMESTAMP_TYPE, "timestamp"},
+            {AmqpPrimitiveType_t::UUID_TYPE, "uuid"},
+            {AmqpPrimitiveType_t::BINARY_TYPE, "binary"},
+            {AmqpPrimitiveType_t::STRING_TYPE, "string"},
+            {AmqpPrimitiveType_t::SYMBOL_TYPE, "symbol"},
+            {AmqpPrimitiveType_t::LIST_TYPE, "list"},
+            {AmqpPrimitiveType_t::MAP_TYPE, "map"},
+            {AmqpPrimitiveType_t::ARRAY_TYPE, "array"},
             // Restricted types
-            {amqpPrimitiveType_t::ROLE_TYPE, "role"},
-            {amqpPrimitiveType_t::SENDER_SETTLE_MODE_TYPE, "sender-settle-mode"},
-            {amqpPrimitiveType_t::RECEIVER_SETTLE_MODE_TYPE, "receiver-settle-mode"},
-            {amqpPrimitiveType_t::HANDLE_TYPE, "handle"},
-            {amqpPrimitiveType_t::SECONDS_TYPE, "seconds"},
-            {amqpPrimitiveType_t::MILLISECONDS_TYPE, "milliseconds"},
-            {amqpPrimitiveType_t::DELIVERY_TAG_TYPE, "delivery-tag"},
-            {amqpPrimitiveType_t::DELIVERY_NUMBER_TYPE, "delivery-number"},
-            {amqpPrimitiveType_t::TRANSFER_NUMBER_TYPE, "transfer-number"},
-            {amqpPrimitiveType_t::SEQUENCE_NUMBER_TYPE, "sequence-number"},
-            {amqpPrimitiveType_t::MESSAGE_FORMAT_TYPE, "message-format"},
-            {amqpPrimitiveType_t::LANGUAGE_TAG_TYPE, "language-tag"},
-            {amqpPrimitiveType_t::FIELDS_TYPE, "fields"},
-            {amqpPrimitiveType_t::AMQP_ERROR_TYPE, "amqp-error"},
-            {amqpPrimitiveType_t::CONNECTION_ERROR_TYPE, "connection-error"},
-            {amqpPrimitiveType_t::SESSION_ERROR_TYPE, "session-error"},
-            {amqpPrimitiveType_t::LINK_ERROR_TYPE, "link-error"},
-            {amqpPrimitiveType_t::ANNOTATIONS_TYPE, "annotations"},
-            {amqpPrimitiveType_t::MESSAGE_ID_ULONG_TYPE, "message-id-ulong"},
-            {amqpPrimitiveType_t::MESSAGE_ID_UUID_TYPE, "message-id-uuid"},
-            {amqpPrimitiveType_t::MESSAGE_ID_BINARY_TYPE, "message-id-binary"},
-            {amqpPrimitiveType_t::MESSAGE_ID_STRING_TYPE, "message-id-string"},
-            {amqpPrimitiveType_t::ADDRESS_TYPE, "address-string"},
-            {amqpPrimitiveType_t::TERMINUS_DURABILITY_TYPE, "terminus-durability"},
-            {amqpPrimitiveType_t::TERMINUS_EXPIRY_POLICY_TYPE, "terminus-expiry-policy"},
-            {amqpPrimitiveType_t::STD_DIST_MODE_TYPE, "std-dist-mode"},
-            {amqpPrimitiveType_t::FILTER_SET_TYPE, "filter-set"},
-            {amqpPrimitiveType_t::NODE_PROPERTIES_TYPE, "node-properties"},
-            {amqpPrimitiveType_t::TRANSACTION_ID_TYPE, "transaction-id"},
-            {amqpPrimitiveType_t::TRANSACTION_CAPABILITY_TYPE, "txn-capability"},
-            {amqpPrimitiveType_t::TRANSACTION_ERROR_TYPE, "transaction-error"},
-            {amqpPrimitiveType_t::SASL_CODE_TYPE, "sasl-code"}
+            {AmqpPrimitiveType_t::ROLE_TYPE, "role"},
+            {AmqpPrimitiveType_t::SENDER_SETTLE_MODE_TYPE, "sender-settle-mode"},
+            {AmqpPrimitiveType_t::RECEIVER_SETTLE_MODE_TYPE, "receiver-settle-mode"},
+            {AmqpPrimitiveType_t::HANDLE_TYPE, "handle"},
+            {AmqpPrimitiveType_t::SECONDS_TYPE, "seconds"},
+            {AmqpPrimitiveType_t::MILLISECONDS_TYPE, "milliseconds"},
+            {AmqpPrimitiveType_t::DELIVERY_TAG_TYPE, "delivery-tag"},
+            {AmqpPrimitiveType_t::DELIVERY_NUMBER_TYPE, "delivery-number"},
+            {AmqpPrimitiveType_t::TRANSFER_NUMBER_TYPE, "transfer-number"},
+            {AmqpPrimitiveType_t::SEQUENCE_NUMBER_TYPE, "sequence-number"},
+            {AmqpPrimitiveType_t::MESSAGE_FORMAT_TYPE, "message-format"},
+            {AmqpPrimitiveType_t::LANGUAGE_TAG_TYPE, "language-tag"},
+            {AmqpPrimitiveType_t::FIELDS_TYPE, "fields"},
+            {AmqpPrimitiveType_t::AMQP_ERROR_TYPE, "amqp-error"},
+            {AmqpPrimitiveType_t::CONNECTION_ERROR_TYPE, "connection-error"},
+            {AmqpPrimitiveType_t::SESSION_ERROR_TYPE, "session-error"},
+            {AmqpPrimitiveType_t::LINK_ERROR_TYPE, "link-error"},
+            {AmqpPrimitiveType_t::ANNOTATIONS_TYPE, "annotations"},
+            {AmqpPrimitiveType_t::MESSAGE_ID_ULONG_TYPE, "message-id-ulong"},
+            {AmqpPrimitiveType_t::MESSAGE_ID_UUID_TYPE, "message-id-uuid"},
+            {AmqpPrimitiveType_t::MESSAGE_ID_BINARY_TYPE, "message-id-binary"},
+            {AmqpPrimitiveType_t::MESSAGE_ID_STRING_TYPE, "message-id-string"},
+            {AmqpPrimitiveType_t::ADDRESS_TYPE, "address-string"},
+            {AmqpPrimitiveType_t::TERMINUS_DURABILITY_TYPE, "terminus-durability"},
+            {AmqpPrimitiveType_t::TERMINUS_EXPIRY_POLICY_TYPE, "terminus-expiry-policy"},
+            {AmqpPrimitiveType_t::STD_DIST_MODE_TYPE, "std-dist-mode"},
+            {AmqpPrimitiveType_t::FILTER_SET_TYPE, "filter-set"},
+            {AmqpPrimitiveType_t::NODE_PROPERTIES_TYPE, "node-properties"},
+            {AmqpPrimitiveType_t::TRANSACTION_ID_TYPE, "transaction-id"},
+            {AmqpPrimitiveType_t::TRANSACTION_CAPABILITY_TYPE, "txn-capability"},
+            {AmqpPrimitiveType_t::TRANSACTION_ERROR_TYPE, "transaction-error"},
+            {AmqpPrimitiveType_t::SASL_CODE_TYPE, "sasl-code"}
         };
 
 
@@ -161,7 +159,7 @@ namespace amqpAnalyze
         AmqpBoolean::AmqpBoolean(bool v, const char* name): PrimitiveType(name), _value(v) {}
         AmqpBoolean::~AmqpBoolean() {}
         std::string AmqpBoolean::valueStr(bool colorFlag) const {
-            return COLOR(FGND_BWHT, (_value ? "true" : "false"), colorFlag);
+            return COLOR(FGND_BMGT, (_value ? "true" : "false"), colorFlag);
         }
 
 
@@ -171,7 +169,7 @@ namespace amqpAnalyze
         std::string AmqpUbyte::valueStr(bool colorFlag) const {
             std::stringstream oss;
             oss << "0x" << std::hex << (int)_value;
-            return COLOR(FGND_BWHT, oss.str(), colorFlag);
+            return COLOR(FGND_RED, oss.str(), colorFlag);
         }
 
 
@@ -181,7 +179,7 @@ namespace amqpAnalyze
         std::string AmqpUshort::valueStr(bool colorFlag) const {
             std::stringstream oss;
             oss << "0x" << std::hex << _value;
-            return COLOR(FGND_BWHT, oss.str(), colorFlag);
+            return COLOR(FGND_RED, oss.str(), colorFlag);
         }
 
 
@@ -191,7 +189,7 @@ namespace amqpAnalyze
         std::string AmqpUint::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss<< "0x" << std::hex << _value;
-            return COLOR(FGND_BWHT, oss.str(), colorFlag);
+            return COLOR(FGND_RED, oss.str(), colorFlag);
         }
 
 
@@ -201,7 +199,7 @@ namespace amqpAnalyze
         std::string AmqpUlong::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss << "0x" << std::hex << _value;
-            return COLOR(FGND_BWHT, oss.str(), colorFlag);
+            return COLOR(FGND_RED, oss.str(), colorFlag);
         }
 
 
@@ -211,7 +209,7 @@ namespace amqpAnalyze
         std::string AmqpByte::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss <<  "0x" << std::hex << (int)(uint8_t)_value;
-            return COLOR(FGND_BWHT, oss.str(), colorFlag);
+            return COLOR(FGND_RED, oss.str(), colorFlag);
         }
 
 
@@ -221,7 +219,7 @@ namespace amqpAnalyze
         std::string AmqpShort::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss << "0x" << std::hex << _value;
-            return COLOR(FGND_BWHT, oss.str(), colorFlag);
+            return COLOR(FGND_RED, oss.str(), colorFlag);
         }
 
 
@@ -231,7 +229,7 @@ namespace amqpAnalyze
         std::string AmqpInt::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss << "0x" << std::hex << _value;
-            return COLOR(FGND_BWHT, oss.str(), colorFlag);
+            return COLOR(FGND_RED, oss.str(), colorFlag);
         }
 
 
@@ -241,7 +239,7 @@ namespace amqpAnalyze
         std::string AmqpLong::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss << "0x" << std::hex << _value;
-            return COLOR(FGND_BWHT, oss.str(), colorFlag);
+            return COLOR(FGND_RED, oss.str(), colorFlag);
         }
 
 
@@ -251,7 +249,7 @@ namespace amqpAnalyze
         std::string AmqpFloat::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss << _value;
-            return COLOR(FGND_BWHT, oss.str(), colorFlag);
+            return COLOR(FGND_RED, oss.str(), colorFlag);
         }
 
 
@@ -261,7 +259,7 @@ namespace amqpAnalyze
         std::string AmqpDouble::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss << _value;
-            return COLOR(FGND_BWHT, oss.str(), colorFlag);
+            return COLOR(FGND_RED, oss.str(), colorFlag);
         }
 
 
@@ -274,7 +272,7 @@ namespace amqpAnalyze
             for (int i=0; i<4; ++i) {
                 oss << (i>0 ? ", 0x" : "0x") << std::setw(2) << (int)_value[i];
             }
-            return COLOR(FGND_BWHT, oss.str(), colorFlag);
+            return COLOR(FGND_BMGT, oss.str(), colorFlag);
         }
 
 
@@ -287,7 +285,7 @@ namespace amqpAnalyze
             for (int i=0; i<8; ++i) {
                 oss << (i>0 ? ", 0x" : "0x") << std::setw(2) << (int)_value[i];
             }
-            return COLOR(FGND_BWHT, oss.str(), colorFlag);
+            return COLOR(FGND_BMGT, oss.str(), colorFlag);
         }
 
 
@@ -300,7 +298,7 @@ namespace amqpAnalyze
             for (int i=0; i<16; ++i) {
                 oss << (i>0 ? ", 0x" : "0x") << std::setw(2) << (int)_value[i];
             }
-            return COLOR(FGND_BWHT, oss.str(), colorFlag);
+            return COLOR(FGND_BMGT, oss.str(), colorFlag);
         }
 
 
@@ -310,7 +308,7 @@ namespace amqpAnalyze
         std::string AmqpChar::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss << "0x" << std::hex << (int)_value << "='" << _value << "'";
-            return COLOR(FGND_BWHT, oss.str(), colorFlag);
+            return COLOR(FGND_BBLU, oss.str(), colorFlag);
         }
 
 
@@ -326,7 +324,7 @@ namespace amqpAnalyze
             std::strftime(tzbuf, sizeof(tzbuf), "%z", std::localtime(&t));
             oss << "0x" << std::hex << _value;
             if (_value > 0) oss << "=" << buf << "." << std::setfill('0') << std::setw(3) << (_value%1000) << " " << tzbuf;
-            return COLOR(FGND_BWHT, oss.str(), colorFlag);
+            return COLOR(FGND_BMGT, oss.str(), colorFlag);
         }
 
 
@@ -340,7 +338,7 @@ namespace amqpAnalyze
                 if (i==4 || i==6 || i==8 || i==10) oss << '-';
                 oss << std::setw(2) << (int)_value[i];
             }
-            return COLOR(FGND_BWHT, oss.str(), colorFlag);
+            return COLOR(FGND_BMGT, oss.str(), colorFlag);
         }
 
 
@@ -364,7 +362,7 @@ namespace amqpAnalyze
         std::string AmqpString::valueStr(bool colorFlag) const {
             std::stringstream oss;
             oss << "\"" << _value << "\"";
-            return COLOR(FGND_BWHT, oss.str(), colorFlag);
+            return COLOR(FGND_BBLU, oss.str(), colorFlag);
         }
 
 
@@ -374,7 +372,7 @@ namespace amqpAnalyze
         std::string AmqpSymbol::valueStr(bool colorFlag) const {
             std::stringstream oss;
             oss << "\"" << _value << "\"";
-            return COLOR(FGND_BWHT, oss.str(), colorFlag);
+            return COLOR(FGND_BBLU, oss.str(), colorFlag);
         }
 
 
@@ -400,14 +398,14 @@ namespace amqpAnalyze
         AmqpList::AmqpList(): CompoundType(), _value() {}
         AmqpList::AmqpList(const char* name): CompoundType(name), _value() {}
         AmqpList::~AmqpList() {
-            for (amqp_list_itr_t i=_value.begin(); i!=_value.end(); ++i) {
+            for (AmqpListItr_t i=_value.begin(); i!=_value.end(); ++i) {
                 delete *i;
             }
             _value.clear();
         }
         std::string AmqpList::valueStr(bool colorFlag) const {
             std::ostringstream oss;
-            for (amqp_list_citr_t i=_value.cbegin(); i!=_value.cend(); ++i) {
+            for (AmqpListCitr_t i=_value.cbegin(); i!=_value.cend(); ++i) {
                 if (i!=_value.cbegin()) oss << ", ";
                 oss << (*i)->typeValueStr(colorFlag);
             }
@@ -417,16 +415,16 @@ namespace amqpAnalyze
             std::string m(margin + 3, ' ');
             if (!ignoreFirstMargin) oss << "\n" << m;
             oss << ": [";
-            for (amqp_list_citr_t i=_value.cbegin(); i<_value.cend(); ++i) {
+            for (AmqpListCitr_t i=_value.cbegin(); i<_value.cend(); ++i) {
                 if (i!=_value.cbegin()) oss << "\n" << m;
                 stringAppendHandler(oss, *i, margin + 3, true, colorFlag);
             }
             oss << "]";
         }
-        void AmqpList::validate(const fieldTypeList_t& fieldTypeList, addErrorFp errorHandler, AmqpBlock* errorHandlerInstance) {
+        void AmqpList::validate(const FieldTypeList_t& fieldTypeList, addErrorFp errorHandler, AmqpBlock* errorHandlerInstance) {
             // 1. Check field list not larger than fieldTypeList
             if (_value.size() > fieldTypeList.size()) {
-                (errorHandlerInstance->*errorHandler)(new AmqpValidationError(error_severity_t::ERROR,
+                (errorHandlerInstance->*errorHandler)(new AmqpValidationError(ErrorSeverity_t::ERROR,
                                 errorHandlerInstance->packetNum(),
                                 errorHandlerInstance->dataOffset(),
                                 MSG("FieldTypeList size mismatch: FieldTypeList size=" << fieldTypeList.size() << ", fieldList size=" << _value.size())));
@@ -434,7 +432,7 @@ namespace amqpAnalyze
 
             // 2. Iterate through fields
             int index = 0;
-            for (amqp_list_citr_t i=_value.cbegin(); i!=_value.cend(); ++i) {
+            for (AmqpListCitr_t i=_value.cbegin(); i!=_value.cend(); ++i) {
                 const FieldType& fieldType = fieldTypeList[index++];
 
                 // 3. Check that null not present for required field
@@ -446,7 +444,7 @@ namespace amqpAnalyze
 
                 // 4. Check that fieldTypeList requires is met in value (if not null)
                 if (!(*i)->isNull()) {
-                    for (amqp_provides_requires_list_citr_t j=fieldType._requiresList.cbegin(); j!=fieldType._requiresList.cend(); ++j) {
+                    for (AmqpProvidesRequiresListCitr_t j=fieldType._requiresList.cbegin(); j!=fieldType._requiresList.cend(); ++j) {
                         if (!(*i)->provides(*j, (*i)->providesList())) {
                             (errorHandlerInstance->*errorHandler)(new AmqpValidationError(errorHandlerInstance->packetNum(),
                                             errorHandlerInstance->dataOffset(),
@@ -476,7 +474,7 @@ namespace amqpAnalyze
         AmqpMap::AmqpMap(const char* name): CompoundType(name), _value() {}
         AmqpMap::~AmqpMap() {
             while (!_value.empty()) {
-                amqp_map_itr_t i = _value.begin();
+                AmqpMapItr_t i = _value.begin();
                 Type* k = i->first;
                 Type* v = i->second;
                 _value.erase(i);
@@ -486,7 +484,7 @@ namespace amqpAnalyze
         }
         std::string AmqpMap::valueStr(bool colorFlag) const {
             std::ostringstream oss;
-            for (amqp_map_citr_t i=_value.cbegin(); i!=_value.cend(); ++i) {
+            for (AmqpMapCitr_t i=_value.cbegin(); i!=_value.cend(); ++i) {
                 if (i!=_value.cbegin()) oss << ", ";
                 oss << "{" << i->first->typeValueStr(colorFlag) << ": " << i->second->typeValueStr(colorFlag) << "}";
             }
@@ -499,7 +497,7 @@ namespace amqpAnalyze
             std::string m(l, ' ');
             if (!ignoreFirstMargin) oss << "\n" << m;
             oss << n << ":" << t << ": {";
-            for (amqp_map_citr_t i=_value.cbegin(); i!=_value.cend(); ++i) {
+            for (AmqpMapCitr_t i=_value.cbegin(); i!=_value.cend(); ++i) {
                 if (i!=_value.cbegin()) oss << "\n" << m;
                 oss << "{";
                 CompoundType* kPtr(dynamic_cast<CompoundType*>(i->first));
@@ -522,14 +520,14 @@ namespace amqpAnalyze
         AmqpArray::AmqpArray(): CompoundType(), _value() {}
         AmqpArray::AmqpArray(const char* name): CompoundType(name), _value() {}
         AmqpArray::~AmqpArray() {
-            for (amqp_array_itr_t i=_value.begin(); i!=_value.end(); ++i) {
+            for (AmqpArrayItr_t i=_value.begin(); i!=_value.end(); ++i) {
                 delete *i;
             }
             _value.clear();
         }
         std::string AmqpArray::valueStr(bool colorFlag) const {
             std::ostringstream oss;
-            for (amqp_array_citr_t i=_value.cbegin(); i!=_value.cend(); ++i) {
+            for (AmqpArrayCitr_t i=_value.cbegin(); i!=_value.cend(); ++i) {
                 if (i != _value.cbegin()) oss << ", ";
                 oss << (*i)->typeValueStr(colorFlag);
             }
@@ -541,7 +539,7 @@ namespace amqpAnalyze
             std::size_t l(margin + n.length() + t.length() + 4);
             std::string m(l, ' ');
             oss << n << ":" << t << ": [";
-            for (amqp_array_citr_t i=_value.cbegin(); i!=_value.cend(); ++i) {
+            for (AmqpArrayCitr_t i=_value.cbegin(); i!=_value.cend(); ++i) {
                 if (i!=_value.cbegin()) oss << "\n" << m;
                 stringAppendHandler(oss, *i, l, false, colorFlag);
             }
@@ -549,58 +547,58 @@ namespace amqpAnalyze
         }
 
 
-        AmqpRole::AmqpRole(amqp_role_t v): AmqpBoolean((amqp_boolean_t)v) {}
-        AmqpRole::AmqpRole(amqp_role_t v, const char* name): AmqpBoolean((amqp_boolean_t)v, name) {}
+        AmqpRole::AmqpRole(AmqpRole_t v): AmqpBoolean((bool)v) {}
+        AmqpRole::AmqpRole(AmqpRole_t v, const char* name): AmqpBoolean((bool)v, name) {}
         AmqpRole:: ~AmqpRole() {}
         std::string AmqpRole::valueStr(bool colorFlag) const {
-            return COLOR(FGND_BWHT, s_choiceNames.at((amqp_role_t)_value), colorFlag);
+            return COLOR(FGND_BWHT, s_choiceNames.at((AmqpRole_t)_value), colorFlag);
         }
         // static
-        std::map<amqp_role_t, const char*> AmqpRole::s_choiceNames = {
-            {amqp_role_t::SENDER, "sender"},
-            {amqp_role_t::RECEIVER, "receiver"}
+        std::map<AmqpRole_t, const char*> AmqpRole::s_choiceNames = {
+            {AmqpRole_t::SENDER, "sender"},
+            {AmqpRole_t::RECEIVER, "receiver"}
         };
 
 
-        AmqpSenderSettleMode::AmqpSenderSettleMode(amqp_sender_settle_mode_t v): AmqpUbyte((amqp_ubyte_t)v) {}
-        AmqpSenderSettleMode::AmqpSenderSettleMode(amqp_sender_settle_mode_t v, const char* name): AmqpUbyte((amqp_ubyte_t)v, name) {}
+        AmqpSenderSettleMode::AmqpSenderSettleMode(AmqpSenderSettleMode_t v): AmqpUbyte((uint8_t)v) {}
+        AmqpSenderSettleMode::AmqpSenderSettleMode(AmqpSenderSettleMode_t v, const char* name): AmqpUbyte((uint8_t)v, name) {}
         AmqpSenderSettleMode::~AmqpSenderSettleMode() {}
         std::string AmqpSenderSettleMode::valueStr(bool colorFlag) const {
-            return COLOR(FGND_BWHT, s_choiceNames.at((amqp_sender_settle_mode_t)_value), colorFlag);
+            return COLOR(FGND_BWHT, s_choiceNames.at((AmqpSenderSettleMode_t)_value), colorFlag);
         }
         // static
-        std::map<amqp_sender_settle_mode_t, const char*> AmqpSenderSettleMode::s_choiceNames = {
-            {amqp_sender_settle_mode_t::UNSETTLED, "unsettled"},
-            {amqp_sender_settle_mode_t::SETTLED, "settled"},
-            {amqp_sender_settle_mode_t::MIXED, "mixed"}
+        std::map<AmqpSenderSettleMode_t, const char*> AmqpSenderSettleMode::s_choiceNames = {
+            {AmqpSenderSettleMode_t::UNSETTLED, "unsettled"},
+            {AmqpSenderSettleMode_t::SETTLED, "settled"},
+            {AmqpSenderSettleMode_t::MIXED, "mixed"}
         };
 
 
-        AmqpReceiverSettleMode::AmqpReceiverSettleMode(amqp_receiver_settle_mode_t v): AmqpUbyte((amqp_ubyte_t)v) {}
-        AmqpReceiverSettleMode::AmqpReceiverSettleMode(amqp_receiver_settle_mode_t v, const char* name): AmqpUbyte((amqp_ubyte_t)v, name) {}
+        AmqpReceiverSettleMode::AmqpReceiverSettleMode(AmqpReceiverSettleMode_t v): AmqpUbyte((uint8_t)v) {}
+        AmqpReceiverSettleMode::AmqpReceiverSettleMode(AmqpReceiverSettleMode_t v, const char* name): AmqpUbyte((uint8_t)v, name) {}
         AmqpReceiverSettleMode::~AmqpReceiverSettleMode() {}
         std::string AmqpReceiverSettleMode::valueStr(bool colorFlag) const {
-            return COLOR(FGND_BWHT, s_choiceNames.at((amqp_receiver_settle_mode_t)_value), colorFlag);
+            return COLOR(FGND_BWHT, s_choiceNames.at((AmqpReceiverSettleMode_t)_value), colorFlag);
         }
         // static
-        std::map<amqp_receiver_settle_mode_t, const char*> AmqpReceiverSettleMode::s_choiceNames = {
-            {amqp_receiver_settle_mode_t::FIRST, "first"},
-            {amqp_receiver_settle_mode_t::SECOND, "second"}
+        std::map<AmqpReceiverSettleMode_t, const char*> AmqpReceiverSettleMode::s_choiceNames = {
+            {AmqpReceiverSettleMode_t::FIRST, "first"},
+            {AmqpReceiverSettleMode_t::SECOND, "second"}
         };
 
 
-        AmqpHandle::AmqpHandle(amqp_handle_t v): AmqpUint(v) {}
-        AmqpHandle::AmqpHandle(amqp_handle_t v, const char* name): AmqpUint(v, name) {}
+        AmqpHandle::AmqpHandle(uint32_t v): AmqpUint(v) {}
+        AmqpHandle::AmqpHandle(uint32_t v, const char* name): AmqpUint(v, name) {}
         AmqpHandle::~AmqpHandle() {}
 
 
-        AmqpSeconds::AmqpSeconds(amqp_seconds_t v): AmqpUint(v) {}
-        AmqpSeconds::AmqpSeconds(amqp_seconds_t v, const char* name): AmqpUint(v, name) {}
+        AmqpSeconds::AmqpSeconds(uint32_t v): AmqpUint(v) {}
+        AmqpSeconds::AmqpSeconds(uint32_t v, const char* name): AmqpUint(v, name) {}
         AmqpSeconds::~AmqpSeconds() {}
 
 
-        AmqpMilliseconds::AmqpMilliseconds(amqp_milliseconds_t v): AmqpUint(v) {}
-        AmqpMilliseconds::AmqpMilliseconds(amqp_milliseconds_t v, const char* name): AmqpUint(v, name) {}
+        AmqpMilliseconds::AmqpMilliseconds(uint32_t v): AmqpUint(v) {}
+        AmqpMilliseconds::AmqpMilliseconds(uint32_t v, const char* name): AmqpUint(v, name) {}
         AmqpMilliseconds::~AmqpMilliseconds() {}
 
 
@@ -609,23 +607,23 @@ namespace amqpAnalyze
         AmqpDeliveryTag::~AmqpDeliveryTag() {}
 
 
-        AmqpSequenceNum::AmqpSequenceNum(amqp_sequence_num_t v): AmqpUint(v) {}
-        AmqpSequenceNum::AmqpSequenceNum(amqp_sequence_num_t v, const char* name): AmqpUint(v, name) {}
+        AmqpSequenceNum::AmqpSequenceNum(uint32_t v): AmqpUint(v) {}
+        AmqpSequenceNum::AmqpSequenceNum(uint32_t v, const char* name): AmqpUint(v, name) {}
         AmqpSequenceNum::~AmqpSequenceNum() {}
 
 
-        AmqpDeliveryNum::AmqpDeliveryNum(amqp_delivery_num_t v): AmqpSequenceNum(v) {}
-        AmqpDeliveryNum::AmqpDeliveryNum(amqp_delivery_num_t v, const char* name): AmqpSequenceNum(v, name) {}
+        AmqpDeliveryNum::AmqpDeliveryNum(uint32_t v): AmqpSequenceNum(v) {}
+        AmqpDeliveryNum::AmqpDeliveryNum(uint32_t v, const char* name): AmqpSequenceNum(v, name) {}
         AmqpDeliveryNum::~AmqpDeliveryNum() {}
 
 
-        AmqpTransferNum::AmqpTransferNum(amqp_transfer_num_t v): AmqpSequenceNum(v) {}
-        AmqpTransferNum::AmqpTransferNum(amqp_transfer_num_t v, const char* name): AmqpSequenceNum(v, name) {}
+        AmqpTransferNum::AmqpTransferNum(uint32_t v): AmqpSequenceNum(v) {}
+        AmqpTransferNum::AmqpTransferNum(uint32_t v, const char* name): AmqpSequenceNum(v, name) {}
         AmqpTransferNum::~AmqpTransferNum() {}
 
 
-        AmqpMessageFormat::AmqpMessageFormat(amqp_message_format_t v): AmqpUint(v) {}
-        AmqpMessageFormat::AmqpMessageFormat(amqp_message_format_t v, const char* name): AmqpUint(v, name) {}
+        AmqpMessageFormat::AmqpMessageFormat(uint32_t v): AmqpUint(v) {}
+        AmqpMessageFormat::AmqpMessageFormat(uint32_t v, const char* name): AmqpUint(v, name) {}
         AmqpMessageFormat::~AmqpMessageFormat() {}
         std::string AmqpMessageFormat::valueStr(bool colorFlag) const {
             std::ostringstream oss;
@@ -644,16 +642,16 @@ namespace amqpAnalyze
         AmqpFields::AmqpFields(const char* name): AmqpMap(name) {}
         AmqpFields::~AmqpFields() {}
 
-        AmqpError::AmqpError(const amqp_error_t& v): AmqpSymbol() {
+        AmqpError::AmqpError(const std::string& v): AmqpSymbol() {
             checkAssignValue(v);
         }
-        AmqpError::AmqpError(const amqp_error_t& v, const char* name): AmqpSymbol(name) {
+        AmqpError::AmqpError(const std::string& v, const char* name): AmqpSymbol(name) {
             checkAssignValue(v);
         }
         AmqpError::~AmqpError() {}
-        void AmqpError::checkAssignValue(const amqp_error_t& v) {
+        void AmqpError::checkAssignValue(const std::string& v) {
             bool found = false;
-            for (amqp_error_list_citr_t i=s_amqpErrors.cbegin(); i!=s_amqpErrors.cend(); ++i) {
+            for (AmqpErrorListCitr_t i=s_amqpErrors.cbegin(); i!=s_amqpErrors.cend(); ++i) {
                 if (v.compare(*i) == 0) {
                     found = true;
                     break;
@@ -663,11 +661,11 @@ namespace amqpAnalyze
             _value.assign(v);
         }
         // static
-        amqp_provides_requires_list_t AmqpError::s_providesList = {
-            amqpRequiresProvides_t::ERROR_CONDITION
+        AmqpProvidesRequiresList_t AmqpError::s_providesList = {
+            AmqpRequiresProvides_t::ERROR_CONDITION
         };
         // static
-        amqp_error_list_t AmqpError::s_amqpErrors = {
+        AmqpErrorList_t AmqpError::s_amqpErrors = {
             "amqp:internal-error",
             "amqp:not-found",
             "amqp:unauthorized-access",
@@ -684,16 +682,16 @@ namespace amqpAnalyze
         };
 
 
-        AmqpConnectionError::AmqpConnectionError(const amqp_connection_error_t& v): AmqpSymbol() {
+        AmqpConnectionError::AmqpConnectionError(const std::string& v): AmqpSymbol() {
             checkAssignValue(v);
         }
-        AmqpConnectionError::AmqpConnectionError(const amqp_connection_error_t& v, const char* name): AmqpSymbol(name) {
+        AmqpConnectionError::AmqpConnectionError(const std::string& v, const char* name): AmqpSymbol(name) {
             checkAssignValue(v);
         }
         AmqpConnectionError::~AmqpConnectionError() {}
-        void AmqpConnectionError::checkAssignValue(const amqp_connection_error_t& v) {
+        void AmqpConnectionError::checkAssignValue(const std::string& v) {
             bool found = false;
-            for (amqp_connection_error_list_citr_t i=s_amqpConnectionErrors.cbegin(); i!=s_amqpConnectionErrors.cend(); ++i) {
+            for (AmqpConnectionErrorListCitr_t i=s_amqpConnectionErrors.cbegin(); i!=s_amqpConnectionErrors.cend(); ++i) {
                 if (v.compare(*i) == 0) {
                     found = true;
                     break;
@@ -703,27 +701,27 @@ namespace amqpAnalyze
             _value.assign(v);
         }
         // static
-        amqp_provides_requires_list_t AmqpConnectionError::s_providesList = {
-            amqpRequiresProvides_t::ERROR_CONDITION
+        AmqpProvidesRequiresList_t AmqpConnectionError::s_providesList = {
+            AmqpRequiresProvides_t::ERROR_CONDITION
         };
         // static
-        amqp_connection_error_list_t AmqpConnectionError::s_amqpConnectionErrors = {
+        AmqpConnectionErrorList_t AmqpConnectionError::s_amqpConnectionErrors = {
             "amqp:connection:forced",
             "amqp:connection:framing-error",
             "amqp:connection:redirect"
         };
 
 
-        AmqpSessionError::AmqpSessionError(const amqp_session_error_t& v): AmqpSymbol() {
+        AmqpSessionError::AmqpSessionError(const std::string& v): AmqpSymbol() {
             checkAssignValue(v);
         }
-        AmqpSessionError::AmqpSessionError(const amqp_session_error_t& v, const char* name): AmqpSymbol(name) {
+        AmqpSessionError::AmqpSessionError(const std::string& v, const char* name): AmqpSymbol(name) {
             checkAssignValue(v);
         }
         AmqpSessionError::~AmqpSessionError() {}
-        void AmqpSessionError::checkAssignValue(const amqp_session_error_t& v) {
+        void AmqpSessionError::checkAssignValue(const std::string& v) {
             bool found = false;
-            for (amqp_session_error_list_citr_t i=s_amqpSessionErrors.cbegin(); i!=s_amqpSessionErrors.cend(); ++i) {
+            for (AmqpSessionErrorListCitr_t i=s_amqpSessionErrors.cbegin(); i!=s_amqpSessionErrors.cend(); ++i) {
                 if (v.compare(*i) == 0) {
                     found = true;
                     break;
@@ -733,11 +731,11 @@ namespace amqpAnalyze
             _value.assign(v);
         }
         // static
-        amqp_provides_requires_list_t AmqpSessionError::s_providesList = {
-            amqpRequiresProvides_t::ERROR_CONDITION
+        AmqpProvidesRequiresList_t AmqpSessionError::s_providesList = {
+            AmqpRequiresProvides_t::ERROR_CONDITION
         };
         // static
-        amqp_session_error_list_t AmqpSessionError::s_amqpSessionErrors = {
+        AmqpSessionErrorList_t AmqpSessionError::s_amqpSessionErrors = {
             "amqp:session:window-violation",
             "amqp:session:errant-link",
             "amqp:session:handle-in-use",
@@ -745,16 +743,16 @@ namespace amqpAnalyze
         };
 
 
-        AmqpLinkError::AmqpLinkError(const amqp_link_error_t& v): AmqpSymbol() {
+        AmqpLinkError::AmqpLinkError(const std::string& v): AmqpSymbol() {
             checkAssignValue(v);
         }
-        AmqpLinkError::AmqpLinkError(const amqp_link_error_t& v, const char* name): AmqpSymbol(name) {
+        AmqpLinkError::AmqpLinkError(const std::string& v, const char* name): AmqpSymbol(name) {
             checkAssignValue(v);
         }
         AmqpLinkError::~AmqpLinkError() {}
-        void AmqpLinkError::checkAssignValue(const amqp_link_error_t& v) {
+        void AmqpLinkError::checkAssignValue(const std::string& v) {
             bool found = false;
-            for (amqp_link_error_list_citr_t i=s_amqpLinkErrors.cbegin(); i!=s_amqpLinkErrors.cend(); ++i) {
+            for (AmqpLinkErrorListCitr_t i=s_amqpLinkErrors.cbegin(); i!=s_amqpLinkErrors.cend(); ++i) {
                 if (v.compare(*i) == 0) {
                     found = true;
                     break;
@@ -764,11 +762,11 @@ namespace amqpAnalyze
             _value.assign(v);
         }
         // static
-        amqp_provides_requires_list_t AmqpLinkError::s_providesList = {
-            amqpRequiresProvides_t::ERROR_CONDITION
+        AmqpProvidesRequiresList_t AmqpLinkError::s_providesList = {
+            AmqpRequiresProvides_t::ERROR_CONDITION
         };
         // static
-        amqp_link_error_list_t AmqpLinkError::s_amqpLinkErrors = {
+        AmqpLinkErrorList_t AmqpLinkError::s_amqpLinkErrors = {
             "amqp:link:detach-forced",
             "amqp:link:transfer-limit-exceeded",
             "amqp:link:message-size-exceeded",
@@ -782,12 +780,12 @@ namespace amqpAnalyze
         AmqpAnnotations::~AmqpAnnotations() {}
 
 
-        AmqpMessageIdUlong::AmqpMessageIdUlong(amqp_msg_id_ulong_t v): AmqpUlong((amqp_ulong_t)v) {}
-        AmqpMessageIdUlong::AmqpMessageIdUlong(amqp_msg_id_ulong_t v, const char* name): AmqpUlong((amqp_ulong_t)v, name) {}
+        AmqpMessageIdUlong::AmqpMessageIdUlong(uint64_t v): AmqpUlong((uint64_t)v) {}
+        AmqpMessageIdUlong::AmqpMessageIdUlong(uint64_t v, const char* name): AmqpUlong((uint64_t)v, name) {}
         AmqpMessageIdUlong::~AmqpMessageIdUlong() {}
         // static
-        amqp_provides_requires_list_t AmqpMessageIdUlong::s_providesList = {
-            amqpRequiresProvides_t::MESSAGE_ID
+        AmqpProvidesRequiresList_t AmqpMessageIdUlong::s_providesList = {
+            AmqpRequiresProvides_t::MESSAGE_ID
         };
 
 
@@ -795,8 +793,8 @@ namespace amqpAnalyze
         AmqpMessageIdUuid::AmqpMessageIdUuid(const char* name): AmqpUuid(name) {}
         AmqpMessageIdUuid::~AmqpMessageIdUuid() {}
         // static
-        amqp_provides_requires_list_t AmqpMessageIdUuid::s_providesList = {
-            amqpRequiresProvides_t::MESSAGE_ID
+        AmqpProvidesRequiresList_t AmqpMessageIdUuid::s_providesList = {
+            AmqpRequiresProvides_t::MESSAGE_ID
         };
 
 
@@ -804,8 +802,8 @@ namespace amqpAnalyze
         AmqpMessageIdBinary::AmqpMessageIdBinary(const char* name): AmqpBinary(name) {}
         AmqpMessageIdBinary::~AmqpMessageIdBinary() {}
         // static
-        amqp_provides_requires_list_t AmqpMessageIdBinary::s_providesList = {
-            amqpRequiresProvides_t::MESSAGE_ID
+        AmqpProvidesRequiresList_t AmqpMessageIdBinary::s_providesList = {
+            AmqpRequiresProvides_t::MESSAGE_ID
         };
 
 
@@ -813,8 +811,8 @@ namespace amqpAnalyze
         AmqpMessageIdString::AmqpMessageIdString(const char* name): AmqpString(name) {}
         AmqpMessageIdString::~AmqpMessageIdString() {}
         // static
-        amqp_provides_requires_list_t AmqpMessageIdString::s_providesList = {
-            amqpRequiresProvides_t::MESSAGE_ID
+        AmqpProvidesRequiresList_t AmqpMessageIdString::s_providesList = {
+            AmqpRequiresProvides_t::MESSAGE_ID
         };
 
 
@@ -822,35 +820,35 @@ namespace amqpAnalyze
         AmqpAddress::AmqpAddress(const char* name): AmqpString(name) {}
         AmqpAddress::~AmqpAddress() {}
         // static
-        amqp_provides_requires_list_t AmqpAddress::s_providesList = {
-            amqpRequiresProvides_t::ADDRESS
+        AmqpProvidesRequiresList_t AmqpAddress::s_providesList = {
+            AmqpRequiresProvides_t::ADDRESS
         };
 
 
-        AmqpTerminusDurability::AmqpTerminusDurability(amqp_terminus_durability_t v): AmqpUint((amqp_uint_t)v) {}
-        AmqpTerminusDurability::AmqpTerminusDurability(amqp_terminus_durability_t v, const char* name): AmqpUint((amqp_uint_t)v, name) {}
+        AmqpTerminusDurability::AmqpTerminusDurability(AmqpTerminusDurability_t v): AmqpUint((uint32_t)v) {}
+        AmqpTerminusDurability::AmqpTerminusDurability(AmqpTerminusDurability_t v, const char* name): AmqpUint((uint32_t)v, name) {}
         AmqpTerminusDurability::~AmqpTerminusDurability() {}
         std::string AmqpTerminusDurability::valueStr(bool colorFlag) const {
-            return COLOR(FGND_BWHT, s_choiceNames.at((amqp_terminus_durability_t)_value), colorFlag);
+            return COLOR(FGND_BWHT, s_choiceNames.at((AmqpTerminusDurability_t)_value), colorFlag);
         }
         // static
-        std::map<amqp_terminus_durability_t, const char*> AmqpTerminusDurability::s_choiceNames = {
-            {amqp_terminus_durability_t::NONE, "none"},
-            {amqp_terminus_durability_t::CONFIGURATION, "configuration"},
-            {amqp_terminus_durability_t::UNSETTLED_STATE, "unsettled-state"}
+        std::map<AmqpTerminusDurability_t, const char*> AmqpTerminusDurability::s_choiceNames = {
+            {AmqpTerminusDurability_t::NONE, "none"},
+            {AmqpTerminusDurability_t::CONFIGURATION, "configuration"},
+            {AmqpTerminusDurability_t::UNSETTLED_STATE, "unsettled-state"}
         };
 
 
-        AmqpTerminusExpiryPolicy::AmqpTerminusExpiryPolicy(const amqp_terminus_expiry_policy_t& v): AmqpSymbol() {
+        AmqpTerminusExpiryPolicy::AmqpTerminusExpiryPolicy(const std::string& v): AmqpSymbol() {
             checkAssignValue(v);
         }
-        AmqpTerminusExpiryPolicy::AmqpTerminusExpiryPolicy(const amqp_terminus_expiry_policy_t& v, const char* name): AmqpSymbol(name) {
+        AmqpTerminusExpiryPolicy::AmqpTerminusExpiryPolicy(const std::string& v, const char* name): AmqpSymbol(name) {
             checkAssignValue(v);
         }
         AmqpTerminusExpiryPolicy::~AmqpTerminusExpiryPolicy() {}
-        void AmqpTerminusExpiryPolicy::checkAssignValue(const amqp_terminus_expiry_policy_t& v) {
+        void AmqpTerminusExpiryPolicy::checkAssignValue(const std::string& v) {
             bool found = false;
-            for (amqp_terminus_expiry_policy_list_citr_t i=s_terminusExpiryPolicyList.cbegin(); i!=s_terminusExpiryPolicyList.cend(); ++i) {
+            for (AmqpTerminusExpiryPolicyListCitr_t i=s_terminusExpiryPolicyList.cbegin(); i!=s_terminusExpiryPolicyList.cend(); ++i) {
                 if (v.compare(*i) == 0) {
                     found = true;
                     break;
@@ -860,7 +858,7 @@ namespace amqpAnalyze
             _value.assign(v);
         }
         // static
-        amqp_terminus_expiry_policy_list_t AmqpTerminusExpiryPolicy::s_terminusExpiryPolicyList = {
+        AmqpTerminusExpiryPolicyList_t AmqpTerminusExpiryPolicy::s_terminusExpiryPolicyList = {
              "link-detach",
              "session-end",
              "connection-close",
@@ -868,16 +866,16 @@ namespace amqpAnalyze
         };
 
 
-        AmqpStandardDistributionMode::AmqpStandardDistributionMode(const amqp_std_dist_mode_t& v): AmqpSymbol() {
+        AmqpStandardDistributionMode::AmqpStandardDistributionMode(const std::string& v): AmqpSymbol() {
             checkAssignValue(v);
         }
-        AmqpStandardDistributionMode::AmqpStandardDistributionMode(const amqp_std_dist_mode_t& v, const char* name): AmqpSymbol(name) {
+        AmqpStandardDistributionMode::AmqpStandardDistributionMode(const std::string& v, const char* name): AmqpSymbol(name) {
             checkAssignValue(v);
         }
         AmqpStandardDistributionMode::~AmqpStandardDistributionMode() {}
-        void AmqpStandardDistributionMode::checkAssignValue(const amqp_std_dist_mode_t& v) {
+        void AmqpStandardDistributionMode::checkAssignValue(const std::string& v) {
             bool found = false;
-            for (amqp_std_dist_mode_list_citr_tt i=s_StandardDistributionModeList.cbegin(); i!=s_StandardDistributionModeList.cend(); ++i) {
+            for (AmqpStdDistModeListCitr_t i=s_StandardDistributionModeList.cbegin(); i!=s_StandardDistributionModeList.cend(); ++i) {
                 if (v.compare(*i) == 0) {
                     found = true;
                     break;
@@ -887,13 +885,13 @@ namespace amqpAnalyze
             _value.assign(v);
         }
         // static
-        amqp_std_dist_mode_list_t AmqpStandardDistributionMode::s_StandardDistributionModeList {
+        AmqpStdDistModeList_t AmqpStandardDistributionMode::s_StandardDistributionModeList {
             "move",
             "copy"
         };
         // static
-        amqp_provides_requires_list_t AmqpStandardDistributionMode::s_providesList= {
-            amqpRequiresProvides_t::DISTRIBUTION_MODE
+        AmqpProvidesRequiresList_t AmqpStandardDistributionMode::s_providesList= {
+            AmqpRequiresProvides_t::DISTRIBUTION_MODE
         };
 
 
@@ -911,20 +909,20 @@ namespace amqpAnalyze
         AmqpTransactionId::AmqpTransactionId(const char* name): AmqpBinary(name) {}
         AmqpTransactionId::~AmqpTransactionId() {}
         // static
-        amqp_provides_requires_list_t AmqpTransactionId::s_providesList = {
-        	amqpRequiresProvides_t::TXN_ID
+        AmqpProvidesRequiresList_t AmqpTransactionId::s_providesList = {
+        	AmqpRequiresProvides_t::TXN_ID
         };
 
-        AmqpTransactionalCapability::AmqpTransactionalCapability(const amqp_transaction_capability_t& v): AmqpSymbol() {
+        AmqpTransactionalCapability::AmqpTransactionalCapability(const std::string& v): AmqpSymbol() {
             checkAssignValue(v);
         }
-        AmqpTransactionalCapability::AmqpTransactionalCapability(const amqp_transaction_capability_t& v, const char* name): AmqpSymbol(name) {
+        AmqpTransactionalCapability::AmqpTransactionalCapability(const std::string& v, const char* name): AmqpSymbol(name) {
             checkAssignValue(v);
         }
         AmqpTransactionalCapability::~AmqpTransactionalCapability() {}
-        void AmqpTransactionalCapability::checkAssignValue(const amqp_transaction_capability_t& v) {
+        void AmqpTransactionalCapability::checkAssignValue(const std::string& v) {
             bool found = false;
-            for (amqp_transaction_capability_list_citr_t i=s_transactionCapabilityList.cbegin(); i!=s_transactionCapabilityList.cend(); ++i) {
+            for (AmqpTransactionCapabilityListCitr_t i=s_transactionCapabilityList.cbegin(); i!=s_transactionCapabilityList.cend(); ++i) {
                 if (v.compare(*i) == 0) {
                     found = true;
                     break;
@@ -934,7 +932,7 @@ namespace amqpAnalyze
             _value.assign(v);
         }
         // static
-        amqp_transaction_capability_list_t AmqpTransactionalCapability::s_transactionCapabilityList = {
+        AmqpTransactionCapabilityList_t AmqpTransactionalCapability::s_transactionCapabilityList = {
             "local-transactions",
             "distributed-transactions",
             "promotable-transactions",
@@ -942,14 +940,14 @@ namespace amqpAnalyze
             "multi-ssns-per-txn"
         };
         // static
-        amqp_provides_requires_list_t AmqpTransactionalCapability::s_providesList = {
-            amqpRequiresProvides_t::TXN_CAPABILITY
+        AmqpProvidesRequiresList_t AmqpTransactionalCapability::s_providesList = {
+            AmqpRequiresProvides_t::TXN_CAPABILITY
         };
 
 
-        AmqpTransactionError::AmqpTransactionError(const amqp_transaction_error_t& v): AmqpSymbol() {
+        AmqpTransactionError::AmqpTransactionError(const std::string& v): AmqpSymbol() {
             bool found = false;
-            for (amqp_transaction_error_list_citr_t i=s_transactionErrorList.cbegin(); i!=s_transactionErrorList.cend(); ++i) {
+            for (AmqpTransactionErrorListCitr_t i=s_transactionErrorList.cbegin(); i!=s_transactionErrorList.cend(); ++i) {
                 if (v.compare(*i) == 0) {
                     found = true;
                     break;
@@ -958,9 +956,9 @@ namespace amqpAnalyze
             if (!found) throw amqpAnalyze::Error(MSG("Illegal value for TransactionalCapability: \"" << v << "\""));
             _value.assign(v);
         }
-        AmqpTransactionError::AmqpTransactionError(const amqp_transaction_error_t& v, const char* name): AmqpSymbol(name) {
+        AmqpTransactionError::AmqpTransactionError(const std::string& v, const char* name): AmqpSymbol(name) {
             bool found = false;
-            for (amqp_transaction_error_list_citr_t i=s_transactionErrorList.cbegin(); i!=s_transactionErrorList.cend(); ++i) {
+            for (AmqpTransactionErrorListCitr_t i=s_transactionErrorList.cbegin(); i!=s_transactionErrorList.cend(); ++i) {
                 if (v.compare(*i) == 0) {
                     found = true;
                     break;
@@ -971,30 +969,30 @@ namespace amqpAnalyze
         }
         AmqpTransactionError::~AmqpTransactionError() {}
         // static
-        amqp_transaction_error_list_t AmqpTransactionError::s_transactionErrorList = {
+        AmqpTransactionErrorList_t AmqpTransactionError::s_transactionErrorList = {
             "unknown-id",
             "transaction-rollback",
             "transaction-timeout"
         };
         // static
-        amqp_provides_requires_list_t AmqpTransactionError::s_providesList = {
-            amqpRequiresProvides_t::ERROR_CONDITION
+        AmqpProvidesRequiresList_t AmqpTransactionError::s_providesList = {
+            AmqpRequiresProvides_t::ERROR_CONDITION
         };
 
 
-        AmqpSaslCode::AmqpSaslCode(amqp_sasl_code_t v): AmqpUbyte((amqp_ubyte_t)v) {}
-        AmqpSaslCode::AmqpSaslCode(amqp_sasl_code_t v, const char* name): AmqpUbyte((amqp_ubyte_t)v, name) {}
+        AmqpSaslCode::AmqpSaslCode(AmqpSaslCode_t v): AmqpUbyte((uint8_t)v) {}
+        AmqpSaslCode::AmqpSaslCode(AmqpSaslCode_t v, const char* name): AmqpUbyte((uint8_t)v, name) {}
         AmqpSaslCode::~AmqpSaslCode() {}
         std::string AmqpSaslCode::valueStr(bool colorFlag) const {
-            return COLOR(FGND_BWHT, s_choiceNames.at((amqp_sasl_code_t)_value), colorFlag);
+            return COLOR(FGND_BWHT, s_choiceNames.at((AmqpSaslCode_t)_value), colorFlag);
         }
         // static
-        std::map<amqp_sasl_code_t, const char*> AmqpSaslCode::s_choiceNames = {
-            {amqp_sasl_code_t::OK, "ok"},
-            {amqp_sasl_code_t::AUTH, "auth"},
-            {amqp_sasl_code_t::SYS, "sys"},
-            {amqp_sasl_code_t::SYS_PERM, "sys-perm"},
-            {amqp_sasl_code_t::SYS_TEMP, "sys-temp"}
+        std::map<AmqpSaslCode_t, const char*> AmqpSaslCode::s_choiceNames = {
+            {AmqpSaslCode_t::OK, "ok"},
+            {AmqpSaslCode_t::AUTH, "auth"},
+            {AmqpSaslCode_t::SYS, "sys"},
+            {AmqpSaslCode_t::SYS_PERM, "sys-perm"},
+            {AmqpSaslCode_t::SYS_TEMP, "sys-temp"}
         };
 
 
@@ -1027,42 +1025,42 @@ namespace amqpAnalyze
             return _fieldListPtr->valueStr(colorFlag);
         }
         // static
-        std::map<amqpCompositeType_t, const char*> CompositeType::s_amqpCompositeTypeNames = {
-                        {amqpCompositeType_t::ERROR, "error"},
-                        {amqpCompositeType_t::RECEIVED, "received"},
-                        {amqpCompositeType_t::ACCEPTED, "accepted"},
-                        {amqpCompositeType_t::REJECTED, "rejected"},
-                        {amqpCompositeType_t::RELEASED, "released"},
-                        {amqpCompositeType_t::MODIFIED, "modified"},
-                        {amqpCompositeType_t::SOURCE, "source"},
-                        {amqpCompositeType_t::TARGET, "target"},
-                        {amqpCompositeType_t::DELETE_ON_CLOSE, "delete-on-close"},
-                        {amqpCompositeType_t::DELETE_ON_NO_LINKS, "delete-on-no-links"},
-                        {amqpCompositeType_t::DELETE_ON_NO_MESSAGES, "delete-on-no-messages"},
-                        {amqpCompositeType_t::DELETE_ON_NO_LINKS_OR_MESSAGES, "delete-on-no-links-or-messages"},
-                        {amqpCompositeType_t::COORDINATOR, "coordinator"},
-                        {amqpCompositeType_t::DECLARE, "declare"},
-                        {amqpCompositeType_t::DISCHARGE, "discharge"},
-                        {amqpCompositeType_t::DECLARED, "declared"},
-                        {amqpCompositeType_t::TRANSACTIONAL_STATE, "transactional-state"},
-                        {amqpCompositeType_t::SASL_MECHANISMS, "sasl-mechanisms"},
-                        {amqpCompositeType_t::SASL_INIT, "sasl-init"},
-                        {amqpCompositeType_t::SASL_CHALLENGE, "sasl-challenge"},
-                        {amqpCompositeType_t::SASL_RESPONSE, "sasl-response"},
-                        {amqpCompositeType_t::SASL_OUTCOME, "sasl-outcome"}
+        std::map<AmqpCompositeType_t, const char*> CompositeType::s_amqpCompositeTypeNames = {
+                        {AmqpCompositeType_t::ERROR, "error"},
+                        {AmqpCompositeType_t::RECEIVED, "received"},
+                        {AmqpCompositeType_t::ACCEPTED, "accepted"},
+                        {AmqpCompositeType_t::REJECTED, "rejected"},
+                        {AmqpCompositeType_t::RELEASED, "released"},
+                        {AmqpCompositeType_t::MODIFIED, "modified"},
+                        {AmqpCompositeType_t::SOURCE, "source"},
+                        {AmqpCompositeType_t::TARGET, "target"},
+                        {AmqpCompositeType_t::DELETE_ON_CLOSE, "delete-on-close"},
+                        {AmqpCompositeType_t::DELETE_ON_NO_LINKS, "delete-on-no-links"},
+                        {AmqpCompositeType_t::DELETE_ON_NO_MESSAGES, "delete-on-no-messages"},
+                        {AmqpCompositeType_t::DELETE_ON_NO_LINKS_OR_MESSAGES, "delete-on-no-links-or-messages"},
+                        {AmqpCompositeType_t::COORDINATOR, "coordinator"},
+                        {AmqpCompositeType_t::DECLARE, "declare"},
+                        {AmqpCompositeType_t::DISCHARGE, "discharge"},
+                        {AmqpCompositeType_t::DECLARED, "declared"},
+                        {AmqpCompositeType_t::TRANSACTIONAL_STATE, "transactional-state"},
+                        {AmqpCompositeType_t::SASL_MECHANISMS, "sasl-mechanisms"},
+                        {AmqpCompositeType_t::SASL_INIT, "sasl-init"},
+                        {AmqpCompositeType_t::SASL_CHALLENGE, "sasl-challenge"},
+                        {AmqpCompositeType_t::SASL_RESPONSE, "sasl-response"},
+                        {AmqpCompositeType_t::SASL_OUTCOME, "sasl-outcome"}
         };
         // static
-        amqp_provides_requires_list_t CompositeType::s_providesList = {};
+        AmqpProvidesRequiresList_t CompositeType::s_providesList = {};
 
 
         AmqpErrorRecord::AmqpErrorRecord(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpErrorRecord::AmqpErrorRecord(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpErrorRecord::~AmqpErrorRecord() {}
         // static
-        const fieldTypeList_t AmqpErrorRecord::s_fieldTypeList = {
-            FieldType("condition", amqpPrimitiveType_t::SYMBOL_TYPE, true, false, {amqpRequiresProvides_t::ERROR_CONDITION}),
-            FieldType("description", amqpPrimitiveType_t::STRING_TYPE, false, false),
-            FieldType("info", amqpPrimitiveType_t::FIELDS_TYPE, false, false)
+        const FieldTypeList_t AmqpErrorRecord::s_fieldTypeList = {
+            FieldType("condition", AmqpPrimitiveType_t::SYMBOL_TYPE, true, false, {AmqpRequiresProvides_t::ERROR_CONDITION}),
+            FieldType("description", AmqpPrimitiveType_t::STRING_TYPE, false, false),
+            FieldType("info", AmqpPrimitiveType_t::FIELDS_TYPE, false, false)
         };
 
 
@@ -1070,24 +1068,24 @@ namespace amqpAnalyze
         AmqpReceived::AmqpReceived(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpReceived::~AmqpReceived() {}
         // static
-        const fieldTypeList_t AmqpReceived::s_fieldTypeList = {
-            FieldType("section-number", amqpPrimitiveType_t::UINT_TYPE, true, false),
-            FieldType("section-offset", amqpPrimitiveType_t::ULONG_TYPE, true, false)
+        const FieldTypeList_t AmqpReceived::s_fieldTypeList = {
+            FieldType("section-number", AmqpPrimitiveType_t::UINT_TYPE, true, false),
+            FieldType("section-offset", AmqpPrimitiveType_t::ULONG_TYPE, true, false)
         };
         // static
-        amqp_provides_requires_list_t AmqpReceived::s_providesList = {
-        	amqpRequiresProvides_t::DELIVERY_STATE
+        AmqpProvidesRequiresList_t AmqpReceived::s_providesList = {
+        	AmqpRequiresProvides_t::DELIVERY_STATE
         };
 
         AmqpAccepted::AmqpAccepted(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpAccepted::AmqpAccepted(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpAccepted::~AmqpAccepted() {}
         // static
-        const fieldTypeList_t AmqpAccepted::s_fieldTypeList = {};
+        const FieldTypeList_t AmqpAccepted::s_fieldTypeList = {};
         // static
-        amqp_provides_requires_list_t AmqpAccepted::s_providesList = {
-        	amqpRequiresProvides_t::DELIVERY_STATE,
-        	amqpRequiresProvides_t::OUTCOME
+        AmqpProvidesRequiresList_t AmqpAccepted::s_providesList = {
+        	AmqpRequiresProvides_t::DELIVERY_STATE,
+        	AmqpRequiresProvides_t::OUTCOME
         };
 
 
@@ -1095,13 +1093,13 @@ namespace amqpAnalyze
         AmqpRejected::AmqpRejected(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpRejected::~AmqpRejected() {}
         // static
-        const fieldTypeList_t AmqpRejected::s_fieldTypeList = {
-            FieldType("error", amqpPrimitiveType_t::AMQP_ERROR_TYPE, false, false)
+        const FieldTypeList_t AmqpRejected::s_fieldTypeList = {
+            FieldType("error", AmqpPrimitiveType_t::AMQP_ERROR_TYPE, false, false)
         };
         // static
-        amqp_provides_requires_list_t AmqpRejected::s_providesList = {
-        	amqpRequiresProvides_t::DELIVERY_STATE,
-        	amqpRequiresProvides_t::OUTCOME
+        AmqpProvidesRequiresList_t AmqpRejected::s_providesList = {
+        	AmqpRequiresProvides_t::DELIVERY_STATE,
+        	AmqpRequiresProvides_t::OUTCOME
         };
 
 
@@ -1109,11 +1107,11 @@ namespace amqpAnalyze
         AmqpReleased::AmqpReleased(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpReleased::~AmqpReleased() {}
         // static
-        const fieldTypeList_t AmqpReleased::s_fieldTypeList = {};
+        const FieldTypeList_t AmqpReleased::s_fieldTypeList = {};
         // static
-        amqp_provides_requires_list_t AmqpReleased::s_providesList = {
-        	amqpRequiresProvides_t::DELIVERY_STATE,
-        	amqpRequiresProvides_t::OUTCOME
+        AmqpProvidesRequiresList_t AmqpReleased::s_providesList = {
+        	AmqpRequiresProvides_t::DELIVERY_STATE,
+        	AmqpRequiresProvides_t::OUTCOME
         };
 
 
@@ -1121,15 +1119,15 @@ namespace amqpAnalyze
         AmqpModified::AmqpModified(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpModified::~AmqpModified() {}
         // static
-        const fieldTypeList_t AmqpModified::s_fieldTypeList = {
-            FieldType("delivery-failed", amqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
-            FieldType("undeliverable-here", amqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
-            FieldType("message-annotations", amqpPrimitiveType_t::FIELDS_TYPE, false, false)
+        const FieldTypeList_t AmqpModified::s_fieldTypeList = {
+            FieldType("delivery-failed", AmqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
+            FieldType("undeliverable-here", AmqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
+            FieldType("message-annotations", AmqpPrimitiveType_t::FIELDS_TYPE, false, false)
         };
         // static
-        amqp_provides_requires_list_t AmqpModified::s_providesList = {
-        	amqpRequiresProvides_t::DELIVERY_STATE,
-        	amqpRequiresProvides_t::OUTCOME
+        AmqpProvidesRequiresList_t AmqpModified::s_providesList = {
+        	AmqpRequiresProvides_t::DELIVERY_STATE,
+        	AmqpRequiresProvides_t::OUTCOME
         };
 
 
@@ -1137,22 +1135,22 @@ namespace amqpAnalyze
         AmqpSource::AmqpSource(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpSource::~AmqpSource() {}
         // static
-        const fieldTypeList_t AmqpSource::s_fieldTypeList = {
-            FieldType("address", "*", false, false, {amqpRequiresProvides_t::ADDRESS}),
-            FieldType("durable", amqpPrimitiveType_t::TERMINUS_DURABILITY_TYPE, false, false),
-            FieldType("expiry-policy", amqpPrimitiveType_t::TERMINUS_EXPIRY_POLICY_TYPE, false, false),
-            FieldType("timeout", amqpPrimitiveType_t::SECONDS_TYPE, false, false),
-            FieldType("dynamic", amqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
-            FieldType("dynamic-node-properties", amqpPrimitiveType_t::NODE_PROPERTIES_TYPE, false, false),
-            FieldType("distribution-mode", amqpPrimitiveType_t::SYMBOL_TYPE, false, false, {amqpRequiresProvides_t::DISTRIBUTION_MODE}),
-            FieldType("filter", amqpPrimitiveType_t::FILTER_SET_TYPE, false, false),
-            FieldType("default-outcome", "*", false, false, {amqpRequiresProvides_t::OUTCOME}),
-            FieldType("outcomes", amqpPrimitiveType_t::SYMBOL_TYPE, false, true),
-            FieldType("capabilities", amqpPrimitiveType_t::SYMBOL_TYPE, false, true)
+        const FieldTypeList_t AmqpSource::s_fieldTypeList = {
+            FieldType("address", "*", false, false, {AmqpRequiresProvides_t::ADDRESS}),
+            FieldType("durable", AmqpPrimitiveType_t::TERMINUS_DURABILITY_TYPE, false, false),
+            FieldType("expiry-policy", AmqpPrimitiveType_t::TERMINUS_EXPIRY_POLICY_TYPE, false, false),
+            FieldType("timeout", AmqpPrimitiveType_t::SECONDS_TYPE, false, false),
+            FieldType("dynamic", AmqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
+            FieldType("dynamic-node-properties", AmqpPrimitiveType_t::NODE_PROPERTIES_TYPE, false, false),
+            FieldType("distribution-mode", AmqpPrimitiveType_t::SYMBOL_TYPE, false, false, {AmqpRequiresProvides_t::DISTRIBUTION_MODE}),
+            FieldType("filter", AmqpPrimitiveType_t::FILTER_SET_TYPE, false, false),
+            FieldType("default-outcome", "*", false, false, {AmqpRequiresProvides_t::OUTCOME}),
+            FieldType("outcomes", AmqpPrimitiveType_t::SYMBOL_TYPE, false, true),
+            FieldType("capabilities", AmqpPrimitiveType_t::SYMBOL_TYPE, false, true)
         };
         // static
-        amqp_provides_requires_list_t AmqpSource::s_providesList = {
-        	amqpRequiresProvides_t::SOURCE
+        AmqpProvidesRequiresList_t AmqpSource::s_providesList = {
+        	AmqpRequiresProvides_t::SOURCE
         };
 
 
@@ -1160,58 +1158,58 @@ namespace amqpAnalyze
         AmqpTarget::AmqpTarget(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpTarget::~AmqpTarget() {}
         // static
-        const fieldTypeList_t AmqpTarget::s_fieldTypeList = {
-            FieldType("address", "*", false, false, {amqpRequiresProvides_t::ADDRESS}),
-            FieldType("durable", amqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
-            FieldType("expiry-policy", amqpPrimitiveType_t::TERMINUS_EXPIRY_POLICY_TYPE, false, false),
-            FieldType("timeout", amqpPrimitiveType_t::SECONDS_TYPE, false, false),
-            FieldType("dynamic", amqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
-            FieldType("dynamic-node-properties", amqpPrimitiveType_t::NODE_PROPERTIES_TYPE, false, false),
-            FieldType("capabilities", amqpPrimitiveType_t::SYMBOL_TYPE, false, true)
+        const FieldTypeList_t AmqpTarget::s_fieldTypeList = {
+            FieldType("address", "*", false, false, {AmqpRequiresProvides_t::ADDRESS}),
+            FieldType("durable", AmqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
+            FieldType("expiry-policy", AmqpPrimitiveType_t::TERMINUS_EXPIRY_POLICY_TYPE, false, false),
+            FieldType("timeout", AmqpPrimitiveType_t::SECONDS_TYPE, false, false),
+            FieldType("dynamic", AmqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
+            FieldType("dynamic-node-properties", AmqpPrimitiveType_t::NODE_PROPERTIES_TYPE, false, false),
+            FieldType("capabilities", AmqpPrimitiveType_t::SYMBOL_TYPE, false, true)
         };
         // static
-        amqp_provides_requires_list_t AmqpTarget::s_providesList = {
-        	amqpRequiresProvides_t::TARGET
+        AmqpProvidesRequiresList_t AmqpTarget::s_providesList = {
+        	AmqpRequiresProvides_t::TARGET
         };
 
         AmqpDeleteOnClose::AmqpDeleteOnClose(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpDeleteOnClose::AmqpDeleteOnClose(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpDeleteOnClose::~AmqpDeleteOnClose() {}
         // static
-        const fieldTypeList_t AmqpDeleteOnClose::s_fieldTypeList = {};
+        const FieldTypeList_t AmqpDeleteOnClose::s_fieldTypeList = {};
 
 
         AmqpDeleteOnNoLinks::AmqpDeleteOnNoLinks(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpDeleteOnNoLinks::AmqpDeleteOnNoLinks(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpDeleteOnNoLinks::~AmqpDeleteOnNoLinks() {}
         // static
-        const fieldTypeList_t AmqpDeleteOnNoLinks::s_fieldTypeList = {};
+        const FieldTypeList_t AmqpDeleteOnNoLinks::s_fieldTypeList = {};
 
 
         AmqpDeleteOnNoMessages::AmqpDeleteOnNoMessages(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpDeleteOnNoMessages::AmqpDeleteOnNoMessages(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpDeleteOnNoMessages::~AmqpDeleteOnNoMessages() {}
         // static
-        const fieldTypeList_t AmqpDeleteOnNoMessages::s_fieldTypeList = {};
+        const FieldTypeList_t AmqpDeleteOnNoMessages::s_fieldTypeList = {};
 
 
         AmqpDeleteOnNoLinksOrMessages::AmqpDeleteOnNoLinksOrMessages(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpDeleteOnNoLinksOrMessages::AmqpDeleteOnNoLinksOrMessages(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpDeleteOnNoLinksOrMessages::~AmqpDeleteOnNoLinksOrMessages() {}
         // static
-        const fieldTypeList_t AmqpDeleteOnNoLinksOrMessages::s_fieldTypeList = {};
+        const FieldTypeList_t AmqpDeleteOnNoLinksOrMessages::s_fieldTypeList = {};
 
 
         AmqpCoordinator::AmqpCoordinator(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpCoordinator::AmqpCoordinator(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpCoordinator::~AmqpCoordinator() {}
         // static
-        const fieldTypeList_t AmqpCoordinator::s_fieldTypeList = {
-            FieldType("capabilities", amqpPrimitiveType_t::SYMBOL_TYPE, false, true, {amqpRequiresProvides_t::TXN_CAPABILITY})
+        const FieldTypeList_t AmqpCoordinator::s_fieldTypeList = {
+            FieldType("capabilities", AmqpPrimitiveType_t::SYMBOL_TYPE, false, true, {AmqpRequiresProvides_t::TXN_CAPABILITY})
         };
         // static
-        amqp_provides_requires_list_t AmqpCoordinator::s_providesList = {
-        	amqpRequiresProvides_t::TARGET
+        AmqpProvidesRequiresList_t AmqpCoordinator::s_providesList = {
+        	AmqpRequiresProvides_t::TARGET
         };
 
 
@@ -1219,8 +1217,8 @@ namespace amqpAnalyze
         AmqpDeclare::AmqpDeclare(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpDeclare::~AmqpDeclare() {}
         // static
-        const fieldTypeList_t AmqpDeclare::s_fieldTypeList = {
-            FieldType("global-id", "*", false, false, {amqpRequiresProvides_t::GLOBAL_TX_ID}) // NOTE: GLOBAL_TX_ID is not yet defined by AMQP 1.0 spec
+        const FieldTypeList_t AmqpDeclare::s_fieldTypeList = {
+            FieldType("global-id", "*", false, false, {AmqpRequiresProvides_t::GLOBAL_TX_ID}) // NOTE: GLOBAL_TX_ID is not yet defined by AMQP 1.0 spec
         };
 
 
@@ -1228,9 +1226,9 @@ namespace amqpAnalyze
         AmqpDischarge::AmqpDischarge(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpDischarge::~AmqpDischarge() {}
         // static
-        const fieldTypeList_t AmqpDischarge::s_fieldTypeList = {
-            FieldType("txn-id", "*", true, false, {amqpRequiresProvides_t::TXN_ID}),
-            FieldType("fail", amqpPrimitiveType_t::BOOLEAN_TYPE, false, false)
+        const FieldTypeList_t AmqpDischarge::s_fieldTypeList = {
+            FieldType("txn-id", "*", true, false, {AmqpRequiresProvides_t::TXN_ID}),
+            FieldType("fail", AmqpPrimitiveType_t::BOOLEAN_TYPE, false, false)
         };
 
 
@@ -1238,13 +1236,13 @@ namespace amqpAnalyze
         AmqpDeclared::AmqpDeclared(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpDeclared::~AmqpDeclared() {}
         // static
-        const fieldTypeList_t AmqpDeclared::s_fieldTypeList = {
-            FieldType("txn-id", "*", true, false, {amqpRequiresProvides_t::TXN_ID})
+        const FieldTypeList_t AmqpDeclared::s_fieldTypeList = {
+            FieldType("txn-id", "*", true, false, {AmqpRequiresProvides_t::TXN_ID})
         };
         // static
-        amqp_provides_requires_list_t AmqpDeclared::s_providesList = {
-        	amqpRequiresProvides_t::DELIVERY_STATE,
-        	amqpRequiresProvides_t::OUTCOME
+        AmqpProvidesRequiresList_t AmqpDeclared::s_providesList = {
+        	AmqpRequiresProvides_t::DELIVERY_STATE,
+        	AmqpRequiresProvides_t::OUTCOME
         };
 
 
@@ -1252,13 +1250,13 @@ namespace amqpAnalyze
         AmqpTransactionalState::AmqpTransactionalState(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpTransactionalState::~AmqpTransactionalState() {}
         // static
-        const fieldTypeList_t AmqpTransactionalState::s_fieldTypeList = {
-            FieldType("txn-id", "*", true, false, {amqpRequiresProvides_t::TXN_ID}),
-            FieldType("outcome", "*", false, false, {amqpRequiresProvides_t::OUTCOME})
+        const FieldTypeList_t AmqpTransactionalState::s_fieldTypeList = {
+            FieldType("txn-id", "*", true, false, {AmqpRequiresProvides_t::TXN_ID}),
+            FieldType("outcome", "*", false, false, {AmqpRequiresProvides_t::OUTCOME})
         };
         // static
-        amqp_provides_requires_list_t AmqpTransactionalState::s_providesList = {
-        	amqpRequiresProvides_t::DELIVERY_STATE
+        AmqpProvidesRequiresList_t AmqpTransactionalState::s_providesList = {
+        	AmqpRequiresProvides_t::DELIVERY_STATE
         };
 
 
@@ -1266,8 +1264,8 @@ namespace amqpAnalyze
         AmqpSaslMechanisms::AmqpSaslMechanisms(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpSaslMechanisms::~AmqpSaslMechanisms() {}
         // static
-        const fieldTypeList_t AmqpSaslMechanisms::s_fieldTypeList = {
-            FieldType("sasl-server-mechanisms", amqpPrimitiveType_t::SYMBOL_TYPE, true, true)
+        const FieldTypeList_t AmqpSaslMechanisms::s_fieldTypeList = {
+            FieldType("sasl-server-mechanisms", AmqpPrimitiveType_t::SYMBOL_TYPE, true, true)
         };
 
 
@@ -1275,10 +1273,10 @@ namespace amqpAnalyze
         AmqpSaslInit::AmqpSaslInit(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpSaslInit::~AmqpSaslInit() {}
         // static
-        const fieldTypeList_t AmqpSaslInit::s_fieldTypeList = {
-            FieldType("mechanism", amqpPrimitiveType_t::SYMBOL_TYPE, true, false),
-            FieldType("initial-response", amqpPrimitiveType_t::BINARY_TYPE, false, false),
-            FieldType("hostname", amqpPrimitiveType_t::STRING_TYPE, false, false)
+        const FieldTypeList_t AmqpSaslInit::s_fieldTypeList = {
+            FieldType("mechanism", AmqpPrimitiveType_t::SYMBOL_TYPE, true, false),
+            FieldType("initial-response", AmqpPrimitiveType_t::BINARY_TYPE, false, false),
+            FieldType("hostname", AmqpPrimitiveType_t::STRING_TYPE, false, false)
         };
 
 
@@ -1286,8 +1284,8 @@ namespace amqpAnalyze
         AmqpSaslChallenge::AmqpSaslChallenge(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpSaslChallenge::~AmqpSaslChallenge() {}
         // static
-        const fieldTypeList_t AmqpSaslChallenge::s_fieldTypeList = {
-            FieldType("challenge", amqpPrimitiveType_t::BINARY_TYPE, true, false)
+        const FieldTypeList_t AmqpSaslChallenge::s_fieldTypeList = {
+            FieldType("challenge", AmqpPrimitiveType_t::BINARY_TYPE, true, false)
         };
 
 
@@ -1295,8 +1293,8 @@ namespace amqpAnalyze
         AmqpSaslResponse::AmqpSaslResponse(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpSaslResponse::~AmqpSaslResponse() {}
         // static
-        const fieldTypeList_t AmqpSaslResponse::s_fieldTypeList = {
-            FieldType("response", amqpPrimitiveType_t::BINARY_TYPE, true, false)
+        const FieldTypeList_t AmqpSaslResponse::s_fieldTypeList = {
+            FieldType("response", AmqpPrimitiveType_t::BINARY_TYPE, true, false)
         };
 
 
@@ -1304,9 +1302,9 @@ namespace amqpAnalyze
         AmqpSaslOutcome::AmqpSaslOutcome(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpSaslOutcome::~AmqpSaslOutcome() {}
         // static
-        const fieldTypeList_t AmqpSaslOutcome::s_fieldTypeList = {
-            FieldType("code", amqpPrimitiveType_t::SASL_CODE_TYPE, true, false),
-            FieldType("additional-data", amqpPrimitiveType_t::BINARY_TYPE, false, false)
+        const FieldTypeList_t AmqpSaslOutcome::s_fieldTypeList = {
+            FieldType("code", AmqpPrimitiveType_t::SASL_CODE_TYPE, true, false),
+            FieldType("additional-data", AmqpPrimitiveType_t::BINARY_TYPE, false, false)
         };
 
 

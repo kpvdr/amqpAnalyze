@@ -1,5 +1,5 @@
 /*
- * FrameHeader.hpp
+ * Performative.hpp
  *
  *  Created on: Apr 3, 2017
  *      Author: kpvdr
@@ -9,21 +9,13 @@
 #define SRC_AMQPANALYZE_AMQP10_PERFORMATIVE_HPP_
 
 #include <amqpAnalyze/amqp10/AmqpBlock.hpp>
-//#include <amqpAnalyze/amqp10/Frame.hpp>
-//#include <cstdint>
-#include <map>
-#include <sstream>
-#include <vector>
 
 namespace amqpAnalyze
 {
     namespace amqp10
     {
-        class AmqpList;
-        class FieldType;
-        typedef std::vector<FieldType> fieldTypeList_t;
 
-        enum class performativeType_t:uint64_t {
+        enum class PerformativeType_t:uint64_t {
             OPEN=0x10,
             BEGIN,
             ATTACH,
@@ -41,15 +33,15 @@ namespace amqpAnalyze
 
             std::ostringstream& appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const override;
             inline const AmqpList* fieldList() const { return _fieldListPtr; }
-            virtual const fieldTypeList_t& fieldTypeList() const = 0;
-            virtual performativeType_t type() const = 0;
+            virtual const FieldTypeList_t& fieldTypeList() const = 0;
+            virtual PerformativeType_t type() const = 0;
             inline const char* typeStr() const { return s_performativeTypeName.at(type()); }
             void validate() override;
 
         protected:
             AmqpList* _fieldListPtr;
 
-            static std::map<performativeType_t, const char*> s_performativeTypeName;
+            static std::map<PerformativeType_t, const char*> s_performativeTypeName;
         };
 
 
@@ -57,10 +49,10 @@ namespace amqpAnalyze
         public:
             AmqpOpen(uint64_t packetNum, std::size_t dataOffset, AmqpList* fieldListPtr);
             virtual ~AmqpOpen();
-            inline const fieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; };
-            inline performativeType_t type() const override { return performativeType_t::OPEN; }
+            inline const FieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; };
+            inline PerformativeType_t type() const override { return PerformativeType_t::OPEN; }
             void validate() override;
-            static const fieldTypeList_t s_fieldTypeList;
+            static const FieldTypeList_t s_fieldTypeList;
         };
 
 
@@ -68,10 +60,10 @@ namespace amqpAnalyze
         public:
             AmqpBegin(uint64_t packetNum, std::size_t dataOffset, AmqpList* fieldListPtr);
             virtual ~AmqpBegin();
-            inline const fieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; };
-            inline performativeType_t type() const override { return performativeType_t::BEGIN; }
+            inline const FieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; };
+            inline PerformativeType_t type() const override { return PerformativeType_t::BEGIN; }
             void validate() override;
-            static const fieldTypeList_t s_fieldTypeList;
+            static const FieldTypeList_t s_fieldTypeList;
         };
 
 
@@ -79,10 +71,10 @@ namespace amqpAnalyze
         public:
             AmqpAttach(uint64_t packetNum, std::size_t dataOffset, AmqpList* fieldListPtr);
             virtual ~AmqpAttach();
-            inline const fieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; };
-            inline performativeType_t type() const override { return performativeType_t::ATTACH; }
+            inline const FieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; };
+            inline PerformativeType_t type() const override { return PerformativeType_t::ATTACH; }
             void validate() override;
-            static const fieldTypeList_t s_fieldTypeList;
+            static const FieldTypeList_t s_fieldTypeList;
         };
 
 
@@ -90,10 +82,10 @@ namespace amqpAnalyze
         public:
             AmqpFlow(uint64_t packetNum, std::size_t dataOffset, AmqpList* fieldListPtr);
             virtual ~AmqpFlow();
-            inline const fieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; };
-            inline performativeType_t type() const override { return performativeType_t::FLOW; }
+            inline const FieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; };
+            inline PerformativeType_t type() const override { return PerformativeType_t::FLOW; }
             void validate() override;
-            static const fieldTypeList_t s_fieldTypeList;
+            static const FieldTypeList_t s_fieldTypeList;
         };
 
 
@@ -101,10 +93,10 @@ namespace amqpAnalyze
         public:
             AmqpTransfer(uint64_t packetNum, std::size_t dataOffset, AmqpList* fieldListPtr);
             virtual ~AmqpTransfer();
-            inline const fieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; };
-            inline performativeType_t type() const override { return performativeType_t::TRANSFER; }
+            inline const FieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; };
+            inline PerformativeType_t type() const override { return PerformativeType_t::TRANSFER; }
             void validate() override;
-            static const fieldTypeList_t s_fieldTypeList;
+            static const FieldTypeList_t s_fieldTypeList;
         };
 
 
@@ -112,10 +104,10 @@ namespace amqpAnalyze
         public:
             AmqpDisposition(uint64_t packetNum, std::size_t dataOffset, AmqpList* fieldListPtr);
             virtual ~AmqpDisposition();
-            inline const fieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; };
-            inline performativeType_t type() const override { return performativeType_t::DISPOSITION; }
+            inline const FieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; };
+            inline PerformativeType_t type() const override { return PerformativeType_t::DISPOSITION; }
             void validate() override;
-            static const fieldTypeList_t s_fieldTypeList;
+            static const FieldTypeList_t s_fieldTypeList;
         };
 
 
@@ -123,10 +115,10 @@ namespace amqpAnalyze
         public:
             AmqpDetach(uint64_t packetNum, std::size_t dataOffset, AmqpList* fieldListPtr);
             virtual ~AmqpDetach();
-            inline const fieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; };
-            inline performativeType_t type() const override { return performativeType_t::DETACH; }
+            inline const FieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; };
+            inline PerformativeType_t type() const override { return PerformativeType_t::DETACH; }
             void validate() override;
-            static const fieldTypeList_t s_fieldTypeList;
+            static const FieldTypeList_t s_fieldTypeList;
         };
 
 
@@ -134,10 +126,10 @@ namespace amqpAnalyze
         public:
             AmqpEnd(uint64_t packetNum, std::size_t dataOffset, AmqpList* fieldListPtr);
             virtual ~AmqpEnd();
-            inline const fieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; };
-            inline performativeType_t type() const override { return performativeType_t::END; }
+            inline const FieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; };
+            inline PerformativeType_t type() const override { return PerformativeType_t::END; }
             void validate() override;
-            static const fieldTypeList_t s_fieldTypeList;
+            static const FieldTypeList_t s_fieldTypeList;
         };
 
 
@@ -145,10 +137,10 @@ namespace amqpAnalyze
         public:
             AmqpClose(uint64_t packetNum, std::size_t dataOffset, AmqpList* fieldListPtr);
             virtual ~AmqpClose();
-            inline const fieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; };
-            inline performativeType_t type() const override { return performativeType_t::CLOSE; }
+            inline const FieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; };
+            inline PerformativeType_t type() const override { return PerformativeType_t::CLOSE; }
             void validate() override;
-            static const fieldTypeList_t s_fieldTypeList;
+            static const FieldTypeList_t s_fieldTypeList;
         };
 
 

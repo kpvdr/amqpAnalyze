@@ -7,9 +7,6 @@
 
 #include <amqpAnalyze/amqp10/AmqpBlock.hpp>
 
-#include <amqpAnalyze/Error.hpp>
-#include <amqpAnalyze/amqp10/FrameBuffer.hpp>
-
 namespace amqpAnalyze
 {
     namespace amqp10
@@ -22,7 +19,7 @@ namespace amqpAnalyze
         {}
 
         AmqpBlock::~AmqpBlock() {
-            for (error_ptr_list_itr_t i=_errorPtrList.begin(); i!=_errorPtrList.end(); ++i) {
+            for (ErrorPtrListItr_t i=_errorPtrList.begin(); i!=_errorPtrList.end(); ++i) {
                 delete (*i);
             }
             _errorPtrList.clear();
@@ -33,7 +30,7 @@ namespace amqpAnalyze
         }
 
         std::ostringstream& AmqpBlock::appendStringEpilog(std::ostringstream& oss, std::size_t margin, bool colorFlag) const {
-            for (error_ptr_list_citr_t i=_errorPtrList.cbegin(); i!=_errorPtrList.cend(); ++i) {
+            for (ErrorPtrListCitr_t i=_errorPtrList.cbegin(); i!=_errorPtrList.cend(); ++i) {
                 oss << "\n" << std::string(margin, ' ') << (*i)->formattedMessage(colorFlag);
             }
             return oss;
@@ -43,7 +40,7 @@ namespace amqpAnalyze
             return _dataOffset;
         }
 
-        const error_ptr_list_t AmqpBlock::errorPtrList() const {
+        const ErrorPtrList_t AmqpBlock::errorPtrList() const {
             return _errorPtrList;
         }
 

@@ -11,10 +11,7 @@
 #include <amqpAnalyze/Error.hpp>
 #include <amqpAnalyze/Options.hpp>
 #include <amqpAnalyze/Packet.hpp>
-
-#include <iomanip>
 #include <iostream>
-#include <pcap.h>
 
 
 namespace amqpAnalyze

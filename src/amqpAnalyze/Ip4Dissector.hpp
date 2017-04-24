@@ -1,17 +1,15 @@
 /*
- * IpDissector.hpp
+ * Ip4Dissector.hpp
  *
  *  Created on: Apr 2, 2017
- *      Author: kvdr
+ *      Author: kpvdr
  */
 
 #ifndef SRC_AMQPANALYZE_IP4DISSECTOR_HPP_
 #define SRC_AMQPANALYZE_IP4DISSECTOR_HPP_
 
 #include <amqpAnalyze/IpDissector.hpp>
-
 #include <netinet/ip.h>
-#include <vector>
 
 struct pcap_pkthdr;
 
@@ -26,7 +24,7 @@ namespace amqpAnalyze
                      const struct pcap_pkthdr* pcapPacketHeaderPtr,
                      const uint8_t* packetPtr,
                      const uint32_t packetOffs,
-                     protocol_list_t& protocolList);
+                     DissectorList_t& protocolList);
         virtual ~Ip4Dissector();
 
         void appendString(std::ostringstream& oss, size_t margin) const override;

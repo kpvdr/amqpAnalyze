@@ -2,14 +2,13 @@
  * Ip6Dissector.cpp
  *
  *  Created on: Apr 2, 2017
- *      Author: kvdr
+ *      Author: kpvdr
  */
 
 #include <amqpAnalyze/Ip6Dissector.hpp>
 
 #include <amqpAnalyze/Error.hpp>
 #include <amqpAnalyze/TcpDissector.hpp>
-
 #include <arpa/inet.h>
 #include <cstring>
 
@@ -20,7 +19,7 @@ Ip6Dissector::Ip6Dissector(const Options* optionsPtr,
                            const struct pcap_pkthdr* pcapPacketHeaderPtr,
                            const uint8_t* packetPtr,
                            const uint32_t packetOffs,
-                           protocol_list_t& protocolList):
+                           DissectorList_t& protocolList):
 				IpDissector(optionsPtr, packetNum, packetOffs, protocolList)
 {
     std::memcpy((char*)&_ip6Header, (const char*)(packetPtr+packetOffs), sizeof(struct ip6_hdr));

@@ -2,7 +2,7 @@
  * IpConnectionMap.cpp
  *
  *  Created on: Apr 2, 2017
- *      Author: kvdr
+ *      Author: kpvdr
  */
 
 #include <amqpAnalyze/IpConnectionMap.hpp>

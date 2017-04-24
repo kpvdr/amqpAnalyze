@@ -1,5 +1,5 @@
 /*
- * Buffer.hpp
+ * FrameBuffer.hpp
  *
  *  Created on: Apr 5, 2017
  *      Author: kpvdr
@@ -9,11 +9,6 @@
 #define SRC_AMQPANALYZE_AMQP10_FRAMEBUFFER_HPP_
 
 #include <amqpAnalyze/amqp10/Type.hpp>
-
-#include <array>
-#include <cstdint>
-#include <string>
-#include <vector>
 
 namespace amqpAnalyze
 {
@@ -49,17 +44,17 @@ namespace amqpAnalyze
             int64_t getInt64();
             float getFloat();
             double getDouble();
-            amqp_decimal32_t& getDecimal32(amqp_decimal32_t& value);
-            amqp_decimal64_t& getDecimal64(amqp_decimal64_t& value);
-            amqp_decimal128_t& getDecimal128(amqp_decimal128_t& value);
+            AmqpDecimal32_t& getDecimal32(AmqpDecimal32_t& value);
+            AmqpDecimal64_t& getDecimal64(AmqpDecimal64_t& value);
+            AmqpDecimal128_t& getDecimal128(AmqpDecimal128_t& value);
             char32_t getChar();
-            amqp_uuid_t& getUuid(amqp_uuid_t& value);
-            amqp_binary_t& getBinary(amqp_binary_t& value, std::size_t size);
-            amqp_string_t& getString(amqp_string_t& value, std::size_t size);
-            amqp_symbol_t& getSymbol(amqp_symbol_t& value, std::size_t size);
-            amqp_list_t& getList(amqp_list_t& value, std::size_t size, std::size_t count);
-            amqp_map_t& getMap(amqp_map_t& value, std::size_t size, std::size_t count);
-            amqp_array_t& getArray(amqp_array_t& value, std::size_t size, std::size_t count);
+            AmqpUuid_t& getUuid(AmqpUuid_t& value);
+            AmqpBinary_t& getBinary(AmqpBinary_t& value, std::size_t size);
+            std::string& getString(std::string& value, std::size_t size);
+            std::string& getSymbol(std::string& value, std::size_t size);
+            AmqpList_t& getList(AmqpList_t& value, std::size_t size, std::size_t count);
+            AmqpMap_t& getMap(AmqpMap_t& value, std::size_t size, std::size_t count);
+            AmqpArray_t& getArray(AmqpArray_t& value, std::size_t size, std::size_t count);
 
         protected:
             const uint64_t _packetNum;

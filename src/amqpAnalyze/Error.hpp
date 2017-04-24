@@ -8,7 +8,6 @@
 #ifndef SRC_AMQPANALYZE_ERROR_HPP_
 #define SRC_AMQPANALYZE_ERROR_HPP_
 
-#include <cstdint>
 #include <map>
 #include <sstream>
 #include <vector>
@@ -32,29 +31,27 @@ namespace amqpAnalyze
     };
 #define MSG(message) (::amqpAnalyze::Message() << message)
 
-    enum error_severity_t:uint8_t {
+    enum class ErrorSeverity_t:uint8_t {
         ERROR,
         WARNING,
         INFO
     };
 
+
+
     class Error: public std::runtime_error
     {
     public:
         explicit Error(const std::string& err_msg = std::string());
-        explicit Error(error_severity_t errorSeverity, const std::string& err_msg = std::string());
+        explicit Error(ErrorSeverity_t errorSeverity, const std::string& err_msg = std::string());
         virtual ~Error();
         virtual std::string formattedMessage(bool colorFlag) const;
         virtual const char* typeStr() const;
-        static std::map<error_severity_t, const char*> s_errorSeverityNames;
+        static std::map<ErrorSeverity_t, const char*> s_errorSeverityNames;
     protected:
         std::ostringstream& formattedSeverity(std::ostringstream& oss, bool colorFlag) const;
-        error_severity_t _errorSeverity;
+        ErrorSeverity_t _errorSeverity;
     };
-
-    typedef std::vector<const Error*> error_ptr_list_t;
-    typedef error_ptr_list_t::iterator error_ptr_list_itr_t;
-    typedef error_ptr_list_t::const_iterator error_ptr_list_citr_t;
 
 
 
@@ -63,8 +60,8 @@ namespace amqpAnalyze
     public:
         explicit AmqpDecodeError(const amqp10::FrameBuffer& frameBuffer, const std::string& errorMessage);
         explicit AmqpDecodeError(uint64_t packetNum, std::size_t amqpDataOffset, const std::string& errorMessage);
-        explicit AmqpDecodeError(error_severity_t errorSeverity, const amqp10::FrameBuffer& frameBuffer, const std::string& errorMessage);
-        explicit AmqpDecodeError(error_severity_t errorSeverity, uint64_t packetNum, std::size_t amqpDataOffset, const std::string& errorMessage);
+        explicit AmqpDecodeError(ErrorSeverity_t errorSeverity, const amqp10::FrameBuffer& frameBuffer, const std::string& errorMessage);
+        explicit AmqpDecodeError(ErrorSeverity_t errorSeverity, uint64_t packetNum, std::size_t amqpDataOffset, const std::string& errorMessage);
         virtual ~AmqpDecodeError();
         std::size_t amqpDataOffset() const;
         uint64_t packetNum() const;
@@ -82,8 +79,8 @@ namespace amqpAnalyze
     public:
         explicit AmqpValidationError(const amqp10::FrameBuffer& frameBuffer, const std::string& errorMessage);
         explicit AmqpValidationError(uint64_t packetNum, std::size_t amqpDataOffset, const std::string& errorMessage);
-        explicit AmqpValidationError(error_severity_t errorSeverity, const amqp10::FrameBuffer& frameBuffer, const std::string& errorMessage);
-        explicit AmqpValidationError(error_severity_t errorSeverity, uint64_t packetNum, std::size_t amqpDataOffset, const std::string& errorMessage);
+        explicit AmqpValidationError(ErrorSeverity_t errorSeverity, const amqp10::FrameBuffer& frameBuffer, const std::string& errorMessage);
+        explicit AmqpValidationError(ErrorSeverity_t errorSeverity, uint64_t packetNum, std::size_t amqpDataOffset, const std::string& errorMessage);
         virtual ~AmqpValidationError();
         virtual const char* typeStr() const override;
     };

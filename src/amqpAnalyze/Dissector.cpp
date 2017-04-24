@@ -1,19 +1,19 @@
 /*
- * WireProtocol.cpp
+ * Dissector.cpp
  *
  *  Created on: Apr 2, 2017
- *      Author: kvdr
+ *      Author: kpvdr
  */
 
-#include <amqpAnalyze/WireDissector.hpp>
+#include <amqpAnalyze/Dissector.hpp>
 
 namespace amqpAnalyze {
 
-WireDissector::WireDissector(const Options* optionsPtr,
-                             const WireDissector* parent,
+Dissector::Dissector(const Options* optionsPtr,
+                             const Dissector* parent,
                              uint64_t packetNum,
                              uint32_t packetOffs,
-                             protocol_list_t& protocolList):
+                             DissectorList_t& protocolList):
        _optionsPtr(optionsPtr),
        _parent(parent),
        _packetNum(packetNum),
@@ -21,6 +21,6 @@ WireDissector::WireDissector(const Options* optionsPtr,
        _protocolList(protocolList)
 {}
 
-WireDissector::~WireDissector() {}
+Dissector::~Dissector() {}
 
 } /* namespace amqp_analyze */

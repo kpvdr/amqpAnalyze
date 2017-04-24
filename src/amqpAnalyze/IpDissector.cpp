@@ -13,8 +13,8 @@ namespace amqpAnalyze
     IpDissector::IpDissector(const Options* optionsPtr,
                              uint64_t packetNum,
                              const uint32_t packetOffs,
-                             protocol_list_t& protocolList):
-            WireDissector(optionsPtr, nullptr, packetNum, packetOffs, protocolList)
+                             DissectorList_t& protocolList):
+            Dissector(optionsPtr, nullptr, packetNum, packetOffs, protocolList)
     {}
 
     IpDissector::~IpDissector() {}

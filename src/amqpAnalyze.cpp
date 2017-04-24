@@ -8,11 +8,7 @@
 #include <amqpAnalyze.hpp>
 
 #include <amqpAnalyze_config.hpp>
-#include <amqpAnalyze/Error.hpp>
-#include <amqpAnalyze/FileParser.hpp>
 #include <amqpAnalyze/Options.hpp>
-
-#include <cstdlib>
 #include <iostream>
 #include <libgen.h>
 

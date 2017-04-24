@@ -7,7 +7,6 @@
 
 #include <amqpAnalyze/amqp10/FrameError.hpp>
 
-#include <amqpAnalyze/Error.hpp>
 #include <iomanip>
 #include <std/AnsiTermColors.hpp>
 

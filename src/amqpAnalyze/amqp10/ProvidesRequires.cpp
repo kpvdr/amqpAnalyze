@@ -14,18 +14,18 @@ namespace amqpAnalyze
     namespace amqp10
     {
 
-        std::map<amqpRequiresProvides_t, const char*> providesRequiresNames = {
-            {amqpRequiresProvides_t::ADDRESS, "address"},
-            {amqpRequiresProvides_t::DELIVERY_STATE, "delivery-state"},
-            {amqpRequiresProvides_t::DISTRIBUTION_MODE, "distribution-mode"},
-            {amqpRequiresProvides_t::ERROR_CONDITION, "error-condition"},
-            {amqpRequiresProvides_t::GLOBAL_TX_ID, "global-tx-id"},
-            {amqpRequiresProvides_t::MESSAGE_ID, "message-id"},
-            {amqpRequiresProvides_t::OUTCOME, "outcome"},
-            {amqpRequiresProvides_t::SOURCE, "source"},
-            {amqpRequiresProvides_t::TARGET, "target"},
-            {amqpRequiresProvides_t::TXN_CAPABILITY, "txn-capability"},
-            {amqpRequiresProvides_t::TXN_ID, "txn-id"}
+        std::map<AmqpRequiresProvides_t, const char*> providesRequiresNames = {
+            {AmqpRequiresProvides_t::ADDRESS, "address"},
+            {AmqpRequiresProvides_t::DELIVERY_STATE, "delivery-state"},
+            {AmqpRequiresProvides_t::DISTRIBUTION_MODE, "distribution-mode"},
+            {AmqpRequiresProvides_t::ERROR_CONDITION, "error-condition"},
+            {AmqpRequiresProvides_t::GLOBAL_TX_ID, "global-tx-id"},
+            {AmqpRequiresProvides_t::MESSAGE_ID, "message-id"},
+            {AmqpRequiresProvides_t::OUTCOME, "outcome"},
+            {AmqpRequiresProvides_t::SOURCE, "source"},
+            {AmqpRequiresProvides_t::TARGET, "target"},
+            {AmqpRequiresProvides_t::TXN_CAPABILITY, "txn-capability"},
+            {AmqpRequiresProvides_t::TXN_ID, "txn-id"}
         };
 
     } /* namespace amqp10 */

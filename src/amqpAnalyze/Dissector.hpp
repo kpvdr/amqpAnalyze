@@ -1,21 +1,18 @@
 /*
- * WireProtocol.hpp
+ * Dissector.hpp
  *
  *  Created on: Apr 2, 2017
- *      Author: kvdr
+ *      Author: kpvdr
  */
 
 #ifndef SRC_AMQPANALYZE__WIREDISSECTOR_HPP_
 #define SRC_AMQPANALYZE__WIREDISSECTOR_HPP_
 
+#include <amqpAnalyze/FwdDecls.hpp>
 #include <sstream>
-#include <deque>
 
 namespace amqpAnalyze
 {
-    class Options;
-    class WireDissector;
-    typedef std::deque<WireDissector*> protocol_list_t;
 
     enum class dissector_t:uint8_t {
         DISSECTOR_NONE = 0,
@@ -25,23 +22,23 @@ namespace amqpAnalyze
         DISSECTOR_AMQP
     };
 
-    class WireDissector {
+    class Dissector {
     public:
-        WireDissector(const Options* optionsPtr,
-                      const WireDissector* parent,
+        Dissector(const Options* optionsPtr,
+                      const Dissector* parent,
                       uint64_t packetNum,
                       uint32_t packetOffs,
-                      protocol_list_t& protocolList);
-        virtual ~WireDissector();
+                      DissectorList_t& protocolList);
+        virtual ~Dissector();
         virtual void appendString(std::ostringstream& oss, size_t margin) const = 0;
         virtual dissector_t dissectorType() const = 0;
 
     protected:
         const Options* _optionsPtr;
-        const WireDissector* _parent;
+        const Dissector* _parent;
         const uint64_t _packetNum;
         const uint32_t _packetOffs;
-        protocol_list_t& _protocolList;
+        DissectorList_t& _protocolList;
     };
 
 } /* namespace amqp_analyze */

@@ -9,21 +9,13 @@
 #define SRC_AMQPANALYZE_AMQP10_FRAME_HPP_
 
 #include <amqpAnalyze/amqp10/AmqpBlock.hpp>
-#include <amqpAnalyze/amqp10/Type.hpp>
-#include <cstdint>
-#include <map>
-#include <std/AnsiTermColors.hpp>
-#include <string>
 
 namespace amqpAnalyze
 {
     namespace amqp10
     {
 
-        class FrameBuffer;
-        class Performative;
-
-        enum frameType_t:uint8_t {
+        enum FrameType_t:uint8_t {
             AMQP_FRAME = 0,
             SASL_FRAME
         };
@@ -34,7 +26,7 @@ namespace amqpAnalyze
             struct hdr {
                 const uint32_t _frameSize;
                 const uint8_t _doff;
-                const frameType_t _type;
+                const FrameType_t _type;
                 const uint16_t _typeSpecific;
                 hdr(const struct hdr* hdrPtr);
             };
@@ -47,8 +39,8 @@ namespace amqpAnalyze
             const std::string& extendedHeader() const;
             std::size_t extendedHeaderSize() const;
             uint32_t frameSize() const;
-            frameType_t frameType() const;
-            const amqp_block_list_t& sectionPtrList() const;
+            FrameType_t frameType() const;
+            const AmqpBlockList_t& sectionPtrList() const;
             uint16_t typeSpecific() const;
             void validate() override;
 
@@ -57,8 +49,8 @@ namespace amqpAnalyze
             const std::size_t _extendedHeaderSize;
             std::string _extendedHeader;
             AmqpBlock* _performative;
-            amqp_block_list_t _sectionPtrList;
-            static std::map<frameType_t, const char*> s_frameTypeName;
+            AmqpBlockList_t _sectionPtrList;
+            static std::map<FrameType_t, const char*> s_frameTypeName;
         };
 
     } /* namespace amqp10 */

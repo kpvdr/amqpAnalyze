@@ -2,14 +2,14 @@
  * AmqpDissector.hpp
  *
  *  Created on: Apr 2, 2017
- *      Author: kvdr
+ *      Author: kpvdr
  */
 
 #ifndef SRC_AMQPANALYZE_AMQPDISSECTOR_HPP_
 #define SRC_AMQPANALYZE_AMQPDISSECTOR_HPP_
 
 #include <amqpAnalyze/amqp10/AmqpBlock.hpp>
-#include <amqpAnalyze/WireDissector.hpp>
+#include <amqpAnalyze/Dissector.hpp>
 
 struct pcap_pkthdr;
 
@@ -17,15 +17,15 @@ namespace amqpAnalyze
 {
 
 
-    class AmqpDissector: public WireDissector {
+    class AmqpDissector: public Dissector {
     public:
         AmqpDissector(const Options* optionsPtr,
-                      const WireDissector* parent,
+                      const Dissector* parent,
                       uint64_t packetNum,
                       const struct pcap_pkthdr* pcapPacketHeaderPtr,
                       const uint8_t* packetPtr,
                       uint32_t packetOffs,
-                      protocol_list_t& protocolList,
+                      DissectorList_t& protocolList,
                       std::size_t amqpDataSize);
         virtual ~AmqpDissector();
 
@@ -34,7 +34,7 @@ namespace amqpAnalyze
 
     protected:
         std::string _debugHexFrameData;
-        amqp10::amqp_block_list_t _amqpBlockList;
+        amqp10::AmqpBlockList_t _amqpBlockList;
     };
 
 } /* namespace amqpAnalyze */

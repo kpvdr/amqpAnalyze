@@ -2,14 +2,13 @@
  * TcpDissector.hpp
  *
  *  Created on: Apr 2, 2017
- *      Author: kvdr
+ *      Author: kpvdr
  */
 
 #ifndef SRC_AMQPANALYZE_TCPDISSECTOR_HPP_
 #define SRC_AMQPANALYZE_TCPDISSECTOR_HPP_
 
-#include <amqpAnalyze/WireDissector.hpp>
-
+#include <amqpAnalyze/Dissector.hpp>
 #include <netinet/tcp.h>
 
 struct pcap_pkthdr;
@@ -19,15 +18,15 @@ namespace amqpAnalyze
 
     class IpDissector;
 
-    class TcpDissector: public WireDissector {
+    class TcpDissector: public Dissector {
     public:
         TcpDissector(const Options* optionsPtr,
-                     const WireDissector* parent,
+                     const Dissector* parent,
                      uint64_t packetNum,
                      const struct pcap_pkthdr* pcapPacketHeaderPtr,
                      const uint8_t* packetPtr,
                      const uint32_t packetOffs,
-                     protocol_list_t& protocolList);
+                     DissectorList_t& protocolList);
         virtual ~TcpDissector();
 
         void appendString(std::ostringstream& oss, size_t margin) const override;

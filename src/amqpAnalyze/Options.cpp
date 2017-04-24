@@ -9,7 +9,6 @@
 
 #include <amqpAnalyze/Error.hpp>
 #include <iostream>
-#include <libgen.h>
 #include <cstring>
 #include <sys/stat.h>
 

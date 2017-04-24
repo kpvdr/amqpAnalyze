@@ -13,10 +13,10 @@ namespace amqpAnalyze
     {
 
         FieldType::FieldType(const char* fieldName,
-                             amqpPrimitiveType_t primitiveType,
+                             AmqpPrimitiveType_t primitiveType,
                              bool mandatoryFlag,
                              bool multipleFlag,
-                             std::initializer_list<amqpRequiresProvides_t> _requiresInitList):
+                             std::initializer_list<AmqpRequiresProvides_t> _requiresInitList):
             _fieldName(fieldName),
             _unionType(type::PRIMITIVE),
             _types(primitiveType),
@@ -29,7 +29,7 @@ namespace amqpAnalyze
                              const char* type,
                              bool mandatoryFlag,
                              bool multipleFlag,
-                             std::initializer_list<amqpRequiresProvides_t> _requiresInitList):
+                             std::initializer_list<AmqpRequiresProvides_t> _requiresInitList):
             _fieldName(fieldName),
             _unionType(type::WILDCARD),
             _types(type),

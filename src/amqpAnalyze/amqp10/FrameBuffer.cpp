@@ -9,10 +9,7 @@
 
 #include <amqpAnalyze/amqp10/Decoder.hpp>
 #include <amqpAnalyze/Error.hpp>
-
-#include <endian.h>
 #include <iomanip>
-#include <sstream>
 
 namespace amqpAnalyze
 {
@@ -161,7 +158,7 @@ namespace amqpAnalyze
             return d;
         }
 
-        amqp_decimal32_t& FrameBuffer::getDecimal32(amqp_decimal32_t& value) {
+        AmqpDecimal32_t& FrameBuffer::getDecimal32(AmqpDecimal32_t& value) {
             checkSize(4 * sizeof(uint8_t), "getDecimal32");
             for (std::size_t i=0; i<4; ++i) {
                 value[i] = *(uint8_t*)(_dataPtr + _dataOffset);
@@ -170,7 +167,7 @@ namespace amqpAnalyze
             return value;
         }
 
-        amqp_decimal64_t& FrameBuffer::getDecimal64(amqp_decimal64_t& value) {
+        AmqpDecimal64_t& FrameBuffer::getDecimal64(AmqpDecimal64_t& value) {
             checkSize(8 * sizeof(uint8_t), "getDecimal64");
             for (std::size_t i=0; i<8; ++i) {
                 value[i] = *(uint8_t*)(_dataPtr + _dataOffset);
@@ -179,7 +176,7 @@ namespace amqpAnalyze
             return value;
         }
 
-        amqp_decimal128_t& FrameBuffer::getDecimal128(amqp_decimal128_t& value) {
+        AmqpDecimal128_t& FrameBuffer::getDecimal128(AmqpDecimal128_t& value) {
             checkSize(16 * sizeof(uint8_t), "getDecimal128");
             for (std::size_t i=0; i<16; ++i) {
                 value[i] = *(uint8_t*)(_dataPtr + _dataOffset);
@@ -195,7 +192,7 @@ namespace amqpAnalyze
             return c;
         }
 
-        amqp_uuid_t& FrameBuffer::getUuid(amqp_uuid_t& value) {
+        AmqpUuid_t& FrameBuffer::getUuid(AmqpUuid_t& value) {
             checkSize(16 * sizeof(uint8_t), "getUuid");
             for (std::size_t i=0; i<16; ++i) {
                 value[i] = *(uint8_t*)(_dataPtr + _dataOffset);
@@ -204,7 +201,7 @@ namespace amqpAnalyze
             return value;
         }
 
-        amqp_binary_t& FrameBuffer::getBinary(amqp_binary_t& value, std::size_t size) {
+        AmqpBinary_t& FrameBuffer::getBinary(AmqpBinary_t& value, std::size_t size) {
             checkSize(size, "getBinary");
             for (std::size_t i=0; i<size; ++i) {
                 value.push_back(*(uint8_t*)(_dataPtr + _dataOffset + i));
@@ -213,21 +210,21 @@ namespace amqpAnalyze
             return value;
         }
 
-        amqp_string_t& FrameBuffer::getString(amqp_string_t& value, std::size_t size) {
+        std::string& FrameBuffer::getString(std::string& value, std::size_t size) {
             checkSize(size, "getString");
             value.assign((const char*)(_dataPtr + _dataOffset), size);
             _dataOffset += size;
             return value;
         }
 
-        amqp_symbol_t& FrameBuffer::getSymbol(amqp_symbol_t& value, std::size_t size) {
+        std::string& FrameBuffer::getSymbol(std::string& value, std::size_t size) {
             checkSize(size, "getSymbol");
             value.assign((const char*)(_dataPtr + _dataOffset), size);
             _dataOffset += size;
             return value;
         }
 
-        amqp_list_t& FrameBuffer::getList(amqp_list_t& value, std::size_t size, std::size_t count) {
+        AmqpList_t& FrameBuffer::getList(AmqpList_t& value, std::size_t size, std::size_t count) {
             const size_t startOffs = _dataOffset;
             for (std::size_t i=0; i<count; ++i) {
                 value.push_back((PrimitiveType*)Decoder::decode(*this));
@@ -238,7 +235,7 @@ namespace amqpAnalyze
             return value;
         }
 
-        amqp_map_t& FrameBuffer::getMap(amqp_map_t& value, std::size_t size, std::size_t count) {
+        AmqpMap_t& FrameBuffer::getMap(AmqpMap_t& value, std::size_t size, std::size_t count) {
             const size_t startOffs = _dataOffset;
             for (std::size_t i=0; i<count; i+=2) {
                 PrimitiveType* key = (PrimitiveType*)Decoder::decode(*this);
@@ -251,7 +248,7 @@ namespace amqpAnalyze
             return value;
         }
 
-        amqp_array_t& FrameBuffer::getArray(amqp_array_t& value, std::size_t size, std::size_t count) {
+        AmqpArray_t& FrameBuffer::getArray(AmqpArray_t& value, std::size_t size, std::size_t count) {
             const size_t startOffs = _dataOffset;
             uint8_t ctor = getUint8();
             for (std::size_t i=0; i<count; ++i) {

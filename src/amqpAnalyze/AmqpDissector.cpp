@@ -2,7 +2,7 @@
  * AmqpDissector.cpp
  *
  *  Created on: Apr 2, 2017
- *      Author: kvdr
+ *      Author: kpvdr
  */
 
 #include <amqpAnalyze/AmqpDissector.hpp>
@@ -10,27 +10,22 @@
 #include <amqpAnalyze/amqp10/Frame.hpp>
 #include <amqpAnalyze/amqp10/FrameBuffer.hpp>
 #include <amqpAnalyze/amqp10/ProtocolHeader.hpp>
-#include <amqpAnalyze/Error.hpp>
 #include <amqpAnalyze/Options.hpp>
-#include <deque>
-#include <pcap.h>
-#include <std/AnsiTermColors.hpp>
-
-// debug
 #include <iomanip>
 #include <cmath>
+#include <std/AnsiTermColors.hpp>
 
 namespace amqpAnalyze {
 
 AmqpDissector::AmqpDissector(const Options* optionsPtr,
-                             const WireDissector* parent,
+                             const Dissector* parent,
                              uint64_t packetNum,
                              const struct pcap_pkthdr* pcapPacketHeaderPtr,
                              const uint8_t* packetPtr,
                              uint32_t packetOffs,
-                             protocol_list_t& protocolList,
+                             DissectorList_t& protocolList,
                              std::size_t amqpDataSize):
-		WireDissector(optionsPtr, parent, packetNum, packetOffs, protocolList),
+		Dissector(optionsPtr, parent, packetNum, packetOffs, protocolList),
 		_amqpBlockList()
 {
     // TODO: use FrameBuffer for this
@@ -81,7 +76,7 @@ AmqpDissector::AmqpDissector(const Options* optionsPtr,
 }
 
 AmqpDissector::~AmqpDissector() {
-    for (amqp10::amqp_block_list_itr_t i=_amqpBlockList.begin(); i!=_amqpBlockList.end(); ++i) {
+    for (amqp10::AmqpBlockListItr_t i=_amqpBlockList.begin(); i!=_amqpBlockList.end(); ++i) {
         delete (*i);
     }
     _amqpBlockList.clear();
@@ -90,7 +85,7 @@ AmqpDissector::~AmqpDissector() {
 void AmqpDissector::appendString(std::ostringstream& oss, size_t margin) const {
     if (_optionsPtr->s_showAmqpDataFlag) oss << "\n" << _debugHexFrameData;
     oss << "\n" << std::string(margin, ' ') << COLOR(FGND_GRN, "AMQP", _optionsPtr->s_colorFlag) << ": ";
-    for (amqp10::amqp_block_list_citr_t i=_amqpBlockList.begin(); i!=_amqpBlockList.end(); ++i) {
+    for (amqp10::AmqpBlockListCitr_t i=_amqpBlockList.begin(); i!=_amqpBlockList.end(); ++i) {
         (*i)->appendString(oss, margin + 6, i == _amqpBlockList.begin(), _optionsPtr->s_colorFlag);
     }
 }

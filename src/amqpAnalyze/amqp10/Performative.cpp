@@ -8,14 +8,11 @@
 #include <amqpAnalyze/amqp10/Performative.hpp>
 
 #include <amqpAnalyze/amqp10/FieldType.hpp>
-#include <amqpAnalyze/amqp10/FrameBuffer.hpp>
-#include <amqpAnalyze/amqp10/Section.hpp>
+#include <amqpAnalyze/amqp10/ProvidesRequires.hpp>
 #include <amqpAnalyze/amqp10/Type.hpp>
-#include <amqpAnalyze/Error.hpp>
+#include <cstring>
 #include <iomanip>
-#include <netinet/in.h>
 #include <std/AnsiTermColors.hpp>
-#include <string.h>
 
 namespace amqpAnalyze
 {
@@ -28,7 +25,7 @@ namespace amqpAnalyze
         {}
 
         Performative::~Performative() {
-            for (amqp_list_itr_t i=_fieldListPtr->value().begin(); i!=_fieldListPtr->value().end(); ++i) {
+            for (AmqpListItr_t i=_fieldListPtr->value().begin(); i!=_fieldListPtr->value().end(); ++i) {
                 delete *i;
             }
             _fieldListPtr->value().clear();
@@ -39,7 +36,7 @@ namespace amqpAnalyze
             if (!ignoreFirstMargin) oss << "\n" << std::string(margin, ' ') << "[" << std::hex << std::setfill('0') << std::setw(4) << _dataOffset << "] ";
             oss  << "p " << COLOR(FGND_BYLW, typeStr(), colorFlag);
             if (_fieldListPtr != nullptr) {
-                _fieldListPtr->appendString(oss, margin + 9 + ::strlen(typeStr()), true, colorFlag);
+                _fieldListPtr->appendString(oss, margin + 9 + std::strlen(typeStr()), true, colorFlag);
             }
             return appendStringEpilog(oss, margin + 9, colorFlag);
         }
@@ -52,16 +49,16 @@ namespace amqpAnalyze
         }
 
         // static
-        std::map<performativeType_t, const char*> Performative::s_performativeTypeName = {
-            {performativeType_t::OPEN, "open"},
-            {performativeType_t::BEGIN, "begin"},
-            {performativeType_t::ATTACH, "attach"},
-            {performativeType_t::FLOW, "flow"},
-            {performativeType_t::TRANSFER, "transfer"},
-            {performativeType_t::DISPOSITION, "disposition"},
-            {performativeType_t::DETACH, "detach"},
-            {performativeType_t::END, "end"},
-            {performativeType_t::CLOSE, "close"}
+        std::map<PerformativeType_t, const char*> Performative::s_performativeTypeName = {
+            {PerformativeType_t::OPEN, "open"},
+            {PerformativeType_t::BEGIN, "begin"},
+            {PerformativeType_t::ATTACH, "attach"},
+            {PerformativeType_t::FLOW, "flow"},
+            {PerformativeType_t::TRANSFER, "transfer"},
+            {PerformativeType_t::DISPOSITION, "disposition"},
+            {PerformativeType_t::DETACH, "detach"},
+            {PerformativeType_t::END, "end"},
+            {PerformativeType_t::CLOSE, "close"}
         };
 
 
@@ -74,17 +71,17 @@ namespace amqpAnalyze
         AmqpOpen::~AmqpOpen() {}
 
         // static
-        const fieldTypeList_t AmqpOpen::s_fieldTypeList = {
-            FieldType("container-id", amqpPrimitiveType_t::STRING_TYPE, true, false),
-            FieldType("hostname", amqpPrimitiveType_t::STRING_TYPE, false, false),
-            FieldType("max-frame-size", amqpPrimitiveType_t::UINT_TYPE, false, false),
-            FieldType("channel-max", amqpPrimitiveType_t::USHORT_TYPE, false, false),
-            FieldType("idle-time-out", amqpPrimitiveType_t::MILLISECONDS_TYPE, false, false),
-            FieldType("outgoing-locales", amqpPrimitiveType_t::LANGUAGE_TAG_TYPE, false, true),
-            FieldType("incoming-locales", amqpPrimitiveType_t::LANGUAGE_TAG_TYPE, false, true),
-            FieldType("offered-capabilities", amqpPrimitiveType_t::SYMBOL_TYPE, false, true),
-            FieldType("desired-capabilities", amqpPrimitiveType_t::SYMBOL_TYPE, false, true),
-            FieldType("properties", amqpPrimitiveType_t::FIELDS_TYPE, false, false)
+        const FieldTypeList_t AmqpOpen::s_fieldTypeList = {
+            FieldType("container-id", AmqpPrimitiveType_t::STRING_TYPE, true, false),
+            FieldType("hostname", AmqpPrimitiveType_t::STRING_TYPE, false, false),
+            FieldType("max-frame-size", AmqpPrimitiveType_t::UINT_TYPE, false, false),
+            FieldType("channel-max", AmqpPrimitiveType_t::USHORT_TYPE, false, false),
+            FieldType("idle-time-out", AmqpPrimitiveType_t::MILLISECONDS_TYPE, false, false),
+            FieldType("outgoing-locales", AmqpPrimitiveType_t::LANGUAGE_TAG_TYPE, false, true),
+            FieldType("incoming-locales", AmqpPrimitiveType_t::LANGUAGE_TAG_TYPE, false, true),
+            FieldType("offered-capabilities", AmqpPrimitiveType_t::SYMBOL_TYPE, false, true),
+            FieldType("desired-capabilities", AmqpPrimitiveType_t::SYMBOL_TYPE, false, true),
+            FieldType("properties", AmqpPrimitiveType_t::FIELDS_TYPE, false, false)
         };
 
         void AmqpOpen::validate() {
@@ -101,15 +98,15 @@ namespace amqpAnalyze
         AmqpBegin::~AmqpBegin() {}
 
         // static
-        const fieldTypeList_t AmqpBegin::s_fieldTypeList = {
-            FieldType("remote-channel", amqpPrimitiveType_t::USHORT_TYPE, false, false),
-            FieldType("next-outgoing-id", amqpPrimitiveType_t::TRANSFER_NUMBER_TYPE, true, false),
-            FieldType("incoming-window", amqpPrimitiveType_t::UINT_TYPE, true, false),
-            FieldType("outgoing-window", amqpPrimitiveType_t::UINT_TYPE, true, false),
-            FieldType("handle-max", amqpPrimitiveType_t::HANDLE_TYPE, false, false),
-            FieldType("offered-capabilities", amqpPrimitiveType_t::SYMBOL_TYPE, false, true),
-            FieldType("desired-capabilities", amqpPrimitiveType_t::SYMBOL_TYPE, false, true),
-            FieldType("properties", amqpPrimitiveType_t::FIELDS_TYPE, false, false)
+        const FieldTypeList_t AmqpBegin::s_fieldTypeList = {
+            FieldType("remote-channel", AmqpPrimitiveType_t::USHORT_TYPE, false, false),
+            FieldType("next-outgoing-id", AmqpPrimitiveType_t::TRANSFER_NUMBER_TYPE, true, false),
+            FieldType("incoming-window", AmqpPrimitiveType_t::UINT_TYPE, true, false),
+            FieldType("outgoing-window", AmqpPrimitiveType_t::UINT_TYPE, true, false),
+            FieldType("handle-max", AmqpPrimitiveType_t::HANDLE_TYPE, false, false),
+            FieldType("offered-capabilities", AmqpPrimitiveType_t::SYMBOL_TYPE, false, true),
+            FieldType("desired-capabilities", AmqpPrimitiveType_t::SYMBOL_TYPE, false, true),
+            FieldType("properties", AmqpPrimitiveType_t::FIELDS_TYPE, false, false)
         };
 
         void AmqpBegin::validate() {
@@ -126,21 +123,21 @@ namespace amqpAnalyze
         AmqpAttach::~AmqpAttach() {}
 
         // static
-        const fieldTypeList_t AmqpAttach::s_fieldTypeList = {
-            FieldType("name", amqpPrimitiveType_t::STRING_TYPE, true, false),
-            FieldType("handle", amqpPrimitiveType_t::HANDLE_TYPE, true, false),
-            FieldType("role", amqpPrimitiveType_t::ROLE_TYPE, true, false),
-            FieldType("snd-settle-mode", amqpPrimitiveType_t::SENDER_SETTLE_MODE_TYPE, false, false),
-            FieldType("rcv-settle-mode", amqpPrimitiveType_t::RECEIVER_SETTLE_MODE_TYPE, false, false),
-            FieldType("source", "*", false, false, {amqpRequiresProvides_t::SOURCE}),
-            FieldType("target", "*", false, false, {amqpRequiresProvides_t::TARGET}),
-            FieldType("unsettled", amqpPrimitiveType_t::MAP_TYPE, false, false),
-            FieldType("incomplete-unsettled", amqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
-            FieldType("initial-delivery-count", amqpPrimitiveType_t::SEQUENCE_NUMBER_TYPE, false, false),
-            FieldType("max-message-size", amqpPrimitiveType_t::ULONG_TYPE, false, false),
-            FieldType("offered-capabilities", amqpPrimitiveType_t::SYMBOL_TYPE, false, true),
-            FieldType("desired-capabilities", amqpPrimitiveType_t::SYMBOL_TYPE, false, true),
-            FieldType("properties", amqpPrimitiveType_t::FIELDS_TYPE, false, false)
+        const FieldTypeList_t AmqpAttach::s_fieldTypeList = {
+            FieldType("name", AmqpPrimitiveType_t::STRING_TYPE, true, false),
+            FieldType("handle", AmqpPrimitiveType_t::HANDLE_TYPE, true, false),
+            FieldType("role", AmqpPrimitiveType_t::ROLE_TYPE, true, false),
+            FieldType("snd-settle-mode", AmqpPrimitiveType_t::SENDER_SETTLE_MODE_TYPE, false, false),
+            FieldType("rcv-settle-mode", AmqpPrimitiveType_t::RECEIVER_SETTLE_MODE_TYPE, false, false),
+            FieldType("source", "*", false, false, {AmqpRequiresProvides_t::SOURCE}),
+            FieldType("target", "*", false, false, {AmqpRequiresProvides_t::TARGET}),
+            FieldType("unsettled", AmqpPrimitiveType_t::MAP_TYPE, false, false),
+            FieldType("incomplete-unsettled", AmqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
+            FieldType("initial-delivery-count", AmqpPrimitiveType_t::SEQUENCE_NUMBER_TYPE, false, false),
+            FieldType("max-message-size", AmqpPrimitiveType_t::ULONG_TYPE, false, false),
+            FieldType("offered-capabilities", AmqpPrimitiveType_t::SYMBOL_TYPE, false, true),
+            FieldType("desired-capabilities", AmqpPrimitiveType_t::SYMBOL_TYPE, false, true),
+            FieldType("properties", AmqpPrimitiveType_t::FIELDS_TYPE, false, false)
         };
 
         void AmqpAttach::validate() {
@@ -157,18 +154,18 @@ namespace amqpAnalyze
         AmqpFlow::~AmqpFlow() {}
 
         // static
-        const fieldTypeList_t AmqpFlow::s_fieldTypeList = {
-            FieldType("next-incoming-id", amqpPrimitiveType_t::TRANSFER_NUMBER_TYPE, false, false),
-            FieldType("incoming-window", amqpPrimitiveType_t::UINT_TYPE, true, false),
-            FieldType("next-outgoing-id", amqpPrimitiveType_t::TRANSFER_NUMBER_TYPE, true, false),
-            FieldType("outgoing-window", amqpPrimitiveType_t::UINT_TYPE, true, false),
-            FieldType("handle", amqpPrimitiveType_t::HANDLE_TYPE, false, false),
-            FieldType("delivery-count", amqpPrimitiveType_t::SEQUENCE_NUMBER_TYPE, false, false),
-            FieldType("link-credit", amqpPrimitiveType_t::UINT_TYPE, false, false),
-            FieldType("available", amqpPrimitiveType_t::UINT_TYPE, false, false),
-            FieldType("drain", amqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
-            FieldType("echo", amqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
-            FieldType("properties", amqpPrimitiveType_t::FIELDS_TYPE, false, false)
+        const FieldTypeList_t AmqpFlow::s_fieldTypeList = {
+            FieldType("next-incoming-id", AmqpPrimitiveType_t::TRANSFER_NUMBER_TYPE, false, false),
+            FieldType("incoming-window", AmqpPrimitiveType_t::UINT_TYPE, true, false),
+            FieldType("next-outgoing-id", AmqpPrimitiveType_t::TRANSFER_NUMBER_TYPE, true, false),
+            FieldType("outgoing-window", AmqpPrimitiveType_t::UINT_TYPE, true, false),
+            FieldType("handle", AmqpPrimitiveType_t::HANDLE_TYPE, false, false),
+            FieldType("delivery-count", AmqpPrimitiveType_t::SEQUENCE_NUMBER_TYPE, false, false),
+            FieldType("link-credit", AmqpPrimitiveType_t::UINT_TYPE, false, false),
+            FieldType("available", AmqpPrimitiveType_t::UINT_TYPE, false, false),
+            FieldType("drain", AmqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
+            FieldType("echo", AmqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
+            FieldType("properties", AmqpPrimitiveType_t::FIELDS_TYPE, false, false)
         };
 
         void AmqpFlow::validate() {
@@ -185,18 +182,18 @@ namespace amqpAnalyze
         AmqpTransfer::~AmqpTransfer() {}
 
         // static
-        const fieldTypeList_t AmqpTransfer::s_fieldTypeList = {
-            FieldType("handle", amqpPrimitiveType_t::HANDLE_TYPE, true, false),
-            FieldType("delivery-id", amqpPrimitiveType_t::DELIVERY_NUMBER_TYPE, false, false),
-            FieldType("delivery-tag", amqpPrimitiveType_t::DELIVERY_TAG_TYPE, false, false),
-            FieldType("message-format", amqpPrimitiveType_t::MESSAGE_FORMAT_TYPE, false, false),
-            FieldType("settled", amqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
-            FieldType("more", amqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
-            FieldType("rcv-settle-mode", amqpPrimitiveType_t::RECEIVER_SETTLE_MODE_TYPE, false, false),
-            FieldType("state", "*", false, false, {amqpRequiresProvides_t::DELIVERY_STATE}),
-            FieldType("resume", amqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
-            FieldType("aborted", amqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
-            FieldType("batchable", amqpPrimitiveType_t::BOOLEAN_TYPE, false, false)
+        const FieldTypeList_t AmqpTransfer::s_fieldTypeList = {
+            FieldType("handle", AmqpPrimitiveType_t::HANDLE_TYPE, true, false),
+            FieldType("delivery-id", AmqpPrimitiveType_t::DELIVERY_NUMBER_TYPE, false, false),
+            FieldType("delivery-tag", AmqpPrimitiveType_t::DELIVERY_TAG_TYPE, false, false),
+            FieldType("message-format", AmqpPrimitiveType_t::MESSAGE_FORMAT_TYPE, false, false),
+            FieldType("settled", AmqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
+            FieldType("more", AmqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
+            FieldType("rcv-settle-mode", AmqpPrimitiveType_t::RECEIVER_SETTLE_MODE_TYPE, false, false),
+            FieldType("state", "*", false, false, {AmqpRequiresProvides_t::DELIVERY_STATE}),
+            FieldType("resume", AmqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
+            FieldType("aborted", AmqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
+            FieldType("batchable", AmqpPrimitiveType_t::BOOLEAN_TYPE, false, false)
         };
 
         void AmqpTransfer::validate() {
@@ -213,13 +210,13 @@ namespace amqpAnalyze
         AmqpDisposition::~AmqpDisposition() {}
 
         // static
-        const fieldTypeList_t AmqpDisposition::s_fieldTypeList = {
-            FieldType("role", amqpPrimitiveType_t::ROLE_TYPE, true, false),
-            FieldType("first", amqpPrimitiveType_t::DELIVERY_NUMBER_TYPE, true, false),
-            FieldType("last", amqpPrimitiveType_t::DELIVERY_NUMBER_TYPE, false, false),
-            FieldType("settled", amqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
-            FieldType("state", "*", false, false, {amqpRequiresProvides_t::DELIVERY_STATE}),
-            FieldType("batchable", amqpPrimitiveType_t::BOOLEAN_TYPE, false, false)
+        const FieldTypeList_t AmqpDisposition::s_fieldTypeList = {
+            FieldType("role", AmqpPrimitiveType_t::ROLE_TYPE, true, false),
+            FieldType("first", AmqpPrimitiveType_t::DELIVERY_NUMBER_TYPE, true, false),
+            FieldType("last", AmqpPrimitiveType_t::DELIVERY_NUMBER_TYPE, false, false),
+            FieldType("settled", AmqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
+            FieldType("state", "*", false, false, {AmqpRequiresProvides_t::DELIVERY_STATE}),
+            FieldType("batchable", AmqpPrimitiveType_t::BOOLEAN_TYPE, false, false)
         };
 
         void AmqpDisposition::validate() {
@@ -236,9 +233,9 @@ namespace amqpAnalyze
         AmqpDetach::~AmqpDetach() {}
 
         // static
-        const fieldTypeList_t AmqpDetach::s_fieldTypeList = {
-            FieldType("handle", amqpPrimitiveType_t::HANDLE_TYPE, true, false),
-            FieldType("closed", amqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
+        const FieldTypeList_t AmqpDetach::s_fieldTypeList = {
+            FieldType("handle", AmqpPrimitiveType_t::HANDLE_TYPE, true, false),
+            FieldType("closed", AmqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
             FieldType("error", "error", false, false)
         };
 
@@ -256,7 +253,7 @@ namespace amqpAnalyze
         AmqpEnd::~AmqpEnd() {}
 
         // static
-        const fieldTypeList_t AmqpEnd::s_fieldTypeList = {
+        const FieldTypeList_t AmqpEnd::s_fieldTypeList = {
             FieldType("error", "error", false, false)
         };
 
@@ -274,7 +271,7 @@ namespace amqpAnalyze
         AmqpClose::~AmqpClose() {}
 
         // static
-        const fieldTypeList_t AmqpClose::s_fieldTypeList = {
+        const FieldTypeList_t AmqpClose::s_fieldTypeList = {
             FieldType("error", "error", false, false)
         };
 

@@ -8,8 +8,6 @@
 #include <amqpAnalyze/amqp10/ProtocolHeader.hpp>
 
 #include <amqpAnalyze/amqp10/FrameBuffer.hpp>
-#include <amqpAnalyze/Error.hpp>
-#include <cstring>
 #include <iomanip>
 #include <netinet/in.h>
 #include <std/AnsiTermColors.hpp>
@@ -44,14 +42,14 @@ namespace amqpAnalyze
             return appendStringEpilog(oss, margin, colorFlag);
         }
 
-        protocolId_t ProtocolHeader::protocolId() const {
+        ProtocolId_t ProtocolHeader::protocolId() const {
             return _hdr._protocolId;
         }
 
         void ProtocolHeader::validate() {
-            if (_hdr._protocolId != 0 &&
-                _hdr._protocolId != 2 &&
-                _hdr._protocolId != 3) {
+            if (_hdr._protocolId != ProtocolId_t(0) &&
+                _hdr._protocolId != ProtocolId_t(2) &&
+                _hdr._protocolId != ProtocolId_t(3)) {
                 addError(new amqpAnalyze::AmqpValidationError(_packetNum, _dataOffset,
                          MSG("ProtocolHeader::ProtocolHeader(): Invalid AMQP protocol id: 0x" << std::hex
                              << (int)_hdr._protocolId)));
@@ -59,10 +57,10 @@ namespace amqpAnalyze
         }
 
         // static
-        std::map<uint8_t, const char*> ProtocolHeader::s_protocolIdName = {
-            {protocolId_t::AMQP, "AMQP"},
-            {protocolId_t::TLS, "TLS"},
-            {protocolId_t::SASL, "SASL"}
+        std::map<ProtocolId_t, const char*> ProtocolHeader::s_protocolIdName = {
+            {ProtocolId_t::AMQP, "AMQP"},
+            {ProtocolId_t::TLS, "TLS"},
+            {ProtocolId_t::SASL, "SASL"}
         };
 
     } /* namespace amqp10 */

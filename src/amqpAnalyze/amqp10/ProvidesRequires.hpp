@@ -9,14 +9,13 @@
 #define SRC_AMQPANALYZE_AMQP10_PROVIDESREQUIRES_HPP_
 
 #include <map>
-#include <vector>
 
 namespace amqpAnalyze
 {
     namespace amqp10
     {
 
-        enum class amqpRequiresProvides_t {
+        enum class AmqpRequiresProvides_t {
             ADDRESS = 1,
             DELIVERY_STATE,
             DISTRIBUTION_MODE,
@@ -29,10 +28,8 @@ namespace amqpAnalyze
             TXN_CAPABILITY,
             TXN_ID
         };
-        typedef std::vector<amqpRequiresProvides_t> amqp_provides_requires_list_t;
-        typedef amqp_provides_requires_list_t::const_iterator amqp_provides_requires_list_citr_t;
 
-        extern std::map<amqpRequiresProvides_t, const char*> providesRequiresNames;
+        extern std::map<AmqpRequiresProvides_t, const char*> providesRequiresNames;
 
 
     } /* namespace amqp10 */

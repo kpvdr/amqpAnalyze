@@ -2,16 +2,14 @@
  * Ip6Dissector.hpp
  *
  *  Created on: Apr 2, 2017
- *      Author: kvdr
+ *      Author: kpvdr
  */
 
 #ifndef SRC_AMQPANALYZE_IP6DISSECTOR_HPP_
 #define SRC_AMQPANALYZE_IP6DISSECTOR_HPP_
 
 #include <amqpAnalyze/IpDissector.hpp>
-
 #include <array>
-#include <deque>
 #include <netinet/ip6.h>
 
 struct pcap_pkthdr;
@@ -27,7 +25,7 @@ public:
 	             const struct pcap_pkthdr* pcapPacketHeaderPtr,
 	             const uint8_t* packetPtr,
                  const uint32_t packetOffs,
-                 protocol_list_t& protocolList);
+                 DissectorList_t& protocolList);
 	virtual ~Ip6Dissector();
 
 	void appendString(std::ostringstream& oss, size_t margin) const override;

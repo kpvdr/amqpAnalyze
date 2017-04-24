@@ -9,7 +9,6 @@
 #define SRC_AMQPANALYZE_AMQP10_FRAMEERROR_HPP_
 
 #include <amqpAnalyze/amqp10/AmqpBlock.hpp>
-#include <sstream>
 
 namespace amqpAnalyze
 {

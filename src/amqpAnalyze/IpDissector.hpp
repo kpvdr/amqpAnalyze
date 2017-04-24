@@ -8,18 +8,18 @@
 #ifndef SRC_AMQPANALYZE_IPDISSECTOR_HPP_
 #define SRC_AMQPANALYZE_IPDISSECTOR_HPP_
 
-#include <amqpAnalyze/WireDissector.hpp>
+#include <amqpAnalyze/Dissector.hpp>
 
 namespace amqpAnalyze
 {
 
-    class IpDissector: public WireDissector
+    class IpDissector: public Dissector
     {
     public:
         IpDissector(const Options* optionsPtr,
                     uint64_t packetNum,
                     const uint32_t packetOffs,
-                    protocol_list_t& protocolList);
+                    DissectorList_t& protocolList);
         virtual ~IpDissector();
 
         virtual std::string getSourceAddrStr() const = 0;
