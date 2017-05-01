@@ -9,7 +9,6 @@
 #define SRC_AMQPANALYZE_FILEPARSER_HPP_
 
 #include <amqpAnalyze/amqp10/ConnectionHandler.hpp>
-#include <amqpAnalyze/TcpConnectionMap.hpp>
 #include <pcap.h>
 #include <vector>
 
@@ -27,7 +26,6 @@ namespace amqpAnalyze
         struct timeval _firstPakcetTimestamp;
         uint64_t _packetNumber;
         std::vector<Packet*> _packetList;
-        TcpConnectionMap _tcpConnectionMap;
         amqp10::ConnectionHandler _amqpConnectionHandler;
     };
 

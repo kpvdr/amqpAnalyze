@@ -15,7 +15,6 @@
 #include <amqpAnalyze/TcpDissector.hpp>
 #include <amqpAnalyze/Options.hpp>
 #include <amqpAnalyze/TcpAddressInfo.hpp>
-#include <amqpAnalyze/Utils.hpp>
 #include <iomanip>
 #include <cmath>
 #include <std/AnsiTermColors.hpp>

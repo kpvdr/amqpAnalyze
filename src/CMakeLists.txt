@@ -38,9 +38,7 @@ set(amqpAnalyze_HEADERS
     amqpAnalyze/Options.hpp
     amqpAnalyze/Packet.hpp
     amqpAnalyze/TcpAddressInfo.hpp
-    amqpAnalyze/TcpConnectionMap.hpp
     amqpAnalyze/TcpDissector.hpp
-    #amqpAnalyze/Utils.hpp
     std/AnsiTermColors.hpp
 )
 
@@ -73,9 +71,7 @@ set(amqpAnalyze_SOURCES
     amqpAnalyze/Options.cpp
     amqpAnalyze/Packet.cpp
     amqpAnalyze/TcpAddressInfo.cpp
-    amqpAnalyze/TcpConnectionMap.cpp
     amqpAnalyze/TcpDissector.cpp
-    #amqpAnalyze/Utils.cpp
 )
  
 

@@ -29,7 +29,6 @@ namespace amqpAnalyze
         _firstPakcetTimestamp({0, 0}),
         _packetNumber(0LL),
         _packetList(),
-        _tcpConnectionMap(),
         _amqpConnectionHandler()
     {}
 
@@ -56,34 +55,6 @@ namespace amqpAnalyze
             std::cout << (*i)->toString() << "\n";
         }
         std::cout << "\n";
-
-/*
-        // print hashList
-        std::deque<std::size_t> hashList;
-        uint32_t hashCount = _ipConnectionMap.getIpHashList(hashList);
-        std::cout << "\n" << " Found " << hashCount << " connections:" << "\n";
-        for (std::deque<std::size_t>::const_iterator i=hashList.cbegin(); i!=hashList.cend(); ++i) {
-            std::cout << "\n" << "Hash=0x" << std::setw(16) << std::setfill('0') << std::hex << *i << std::dec << "\n" << "-----------------------" << "\n";
-            const std::deque<const Packet*>* packetListPtr = _ipConnectionMap.getPacketList(*i);
-            for (std::deque<const Packet*>::const_iterator j=packetListPtr->cbegin(); j!=packetListPtr->cend(); ++j) {
-                std::cout << (*j)->toString() << "\n";
-            }
-        }
-*/
-/*
-        // print indexList
-        std::deque<std::pair<std::string, std::size_t>> indexList;
-        uint32_t count = _ipConnectionMap.getIpConnectionIndexList(indexList);
-        std::cout << "\n" << " Found " << count << " connections:" << "\n";
-        for (std::deque<std::pair<std::string, std::size_t>>::const_iterator i=indexList.cbegin(); i!=indexList.cend(); ++i) {
-            std::cout << "\n" << "Connection: [" << i->first << "]:" << "\n" << std::string(i->first.length() + 15, '-') << "\n\n";
-            const std::deque<const Packet*>* packetListPtr = _ipConnectionMap.getPacketList(i->second);
-            for (std::deque<const Packet*>::const_iterator j=packetListPtr->cbegin(); j!=packetListPtr->cend(); ++j) {
-                std::cout << (*j)->toString() << "\n";
-            }
-        }
-*/
-
         std::cout << "done" << std::endl;
     }
 
@@ -97,7 +68,6 @@ namespace amqpAnalyze
         timersub(&pkthdr->ts, &_firstPakcetTimestamp, &relativeTimestamp);
         Packet* packetPtr = new Packet(pkthdr, packet, ++_packetNumber, relativeTimestamp);
         _packetList.push_back(packetPtr);
-        _tcpConnectionMap.addPacket(packetPtr);
     }
 
 } /* namespace amqpAnalyze */
