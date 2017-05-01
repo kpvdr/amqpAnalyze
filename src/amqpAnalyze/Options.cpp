@@ -12,6 +12,9 @@
 #include <cstring>
 #include <sys/stat.h>
 
+// Global Options ptr instance
+amqpAnalyze::Options* g_optionsPtr;
+
 namespace amqpAnalyze
 {
 
@@ -28,7 +31,7 @@ namespace amqpAnalyze
         while (!done) {
             int option_index = 0;
             opterr = 0; // disable printing of error message from within getopt_long()
-            c = ::getopt_long(argc, argv, "cdhv", s_longOptions, &option_index);
+            c = ::getopt_long(argc, argv, "cdhsv", s_longOptions, &option_index);
             if (c == -1) break;
             switch(c) {
             case 'c':
@@ -40,6 +43,9 @@ namespace amqpAnalyze
             case 'h':
                 printHelp(basename(argv[0]));
                 throw amqpAnalyze::Error(""); // exit without an error message
+            case 's':
+                s_showStateFlag = true;
+                break;
             case 'v':
                 s_validateFlag = true;
                 break;
@@ -74,6 +80,7 @@ namespace amqpAnalyze
                   << "options: -h --help           Print help\n"
                   << "         -c --color          Use ANSI color\n"
                   << "         -d --show-amqp-data Show hex dump of AMQP data for each packet\n"
+                  << "         -s --show_state     Show connection, session and link state\n"
                   << "         -v --validate       Validate AMQP data to AMQP 1.0 specification\n"
                   << "   FILE: pcapng file to be analyzed" << std::endl;
     }
@@ -81,11 +88,13 @@ namespace amqpAnalyze
     bool Options::s_colorFlag = false;
     std::string Options::s_fileName;
     bool Options::s_showAmqpDataFlag = false;
+    bool Options::s_showStateFlag = false;
     bool Options::s_validateFlag = false;
     struct option Options::s_longOptions[] = {
         {"color",          no_argument, 0, 'c'},
         {"show-amqp-data", no_argument, 0, 'd'},
         {"help",           no_argument, 0, 'h'},
+        {"show_state",     no_argument, 0, 's'},
         {"validate",       no_argument, 0, 'v'},
         {0, 0, 0, 0}
     };

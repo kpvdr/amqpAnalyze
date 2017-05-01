@@ -17,6 +17,14 @@ namespace amqpAnalyze
     namespace amqp10
     {
 
+        enum class AmqpBlockType_t {
+            PROTOCOL_HEADER,
+            FRAME,
+            FRAME_ERROR,
+            PERFORMATIVE,
+            SECTION
+        };
+
         class AmqpBlock
         {
         public:
@@ -24,22 +32,27 @@ namespace amqpAnalyze
             virtual ~AmqpBlock();
 
             void addError(const amqpAnalyze::Error* errorPtr);
-            virtual std::ostringstream& appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const = 0;
-            virtual std::ostringstream& appendStringEpilog(std::ostringstream& oss, std::size_t margin, bool colorFlag) const;
+            virtual std::ostringstream& appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const = 0;
+            virtual std::ostringstream& appendStringEpilog(std::ostringstream& oss, std::size_t margin) const;
+            virtual AmqpBlockType_t blockType() const = 0;
             std::size_t dataOffset() const;
             const ErrorPtrList_t errorPtrList() const;
             bool hasErrors() const;
+            const char* name() const;
             uint64_t packetNum() const;
+            void setStateStr(const std::string& stateStr);
             virtual void validate() = 0;
 
         protected:
             const uint64_t _packetNum;
             const std::size_t _dataOffset;
+            std::string _stateStr;
             ErrorPtrList_t _errorPtrList;
+            static std::map<AmqpBlockType_t, const char*> s_AmqpBlockTypeNames;
         };
 
         // Function pointer to error handler AmqpBlock::addError
-        typedef void (AmqpBlock::*addErrorFp)(const amqpAnalyze::Error*);
+        //typedef void (AmqpBlock::*addErrorFp)(const amqpAnalyze::Error*);
 
     } /* namespace amqp10 */
 } /* namespace amqpAnalyze */

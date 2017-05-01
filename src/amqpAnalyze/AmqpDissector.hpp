@@ -19,8 +19,7 @@ namespace amqpAnalyze
 
     class AmqpDissector: public Dissector {
     public:
-        AmqpDissector(const Options* optionsPtr,
-                      const Dissector* parent,
+        AmqpDissector(const Dissector* parent,
                       uint64_t packetNum,
                       const struct pcap_pkthdr* pcapPacketHeaderPtr,
                       const uint8_t* packetPtr,
@@ -30,7 +29,7 @@ namespace amqpAnalyze
         virtual ~AmqpDissector();
 
         void appendString(std::ostringstream& oss, size_t margin) const override;
-        inline dissector_t dissectorType() const override { return dissector_t::DISSECTOR_AMQP; }
+        inline DissectorType_t dissectorType() const override { return DissectorType_t::DISSECTOR_AMQP; }
 
     protected:
         std::string _debugHexFrameData;

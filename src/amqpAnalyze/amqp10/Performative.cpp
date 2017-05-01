@@ -10,6 +10,7 @@
 #include <amqpAnalyze/amqp10/FieldType.hpp>
 #include <amqpAnalyze/amqp10/ProvidesRequires.hpp>
 #include <amqpAnalyze/amqp10/Type.hpp>
+#include <amqpAnalyze/Options.hpp>
 #include <cstring>
 #include <iomanip>
 #include <std/AnsiTermColors.hpp>
@@ -32,13 +33,14 @@ namespace amqpAnalyze
             delete _fieldListPtr;
         }
 
-        std::ostringstream& Performative::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const {
+        std::ostringstream& Performative::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
             if (!ignoreFirstMargin) oss << "\n" << std::string(margin, ' ') << "[" << std::hex << std::setfill('0') << std::setw(4) << _dataOffset << "] ";
-            oss  << "p " << COLOR(FGND_BYLW, typeStr(), colorFlag);
+            oss  << "p " << COLOR(FGND_BYLW, typeStr(), g_optionsPtr->s_colorFlag);
             if (_fieldListPtr != nullptr) {
-                _fieldListPtr->appendString(oss, margin + 9 + std::strlen(typeStr()), true, colorFlag);
+                _fieldListPtr->appendString(oss, margin + 9 + std::strlen(typeStr()), true, g_optionsPtr->s_colorFlag);
             }
-            return appendStringEpilog(oss, margin + 9, colorFlag);
+            if (g_optionsPtr->s_showStateFlag && !_stateStr.empty()) oss << " | " << COLOR(FGND_YLW, _stateStr, g_optionsPtr->s_colorFlag);
+            return appendStringEpilog(oss, margin + 9);
         }
 
         void Performative::validate() {

@@ -12,6 +12,7 @@
 #include <amqpAnalyze/amqp10/FrameError.hpp>
 #include <amqpAnalyze/amqp10/Performative.hpp>
 #include <amqpAnalyze/amqp10/Section.hpp>
+#include <amqpAnalyze/Options.hpp>
 #include <iomanip>
 #include <netinet/in.h>
 #include <std/AnsiTermColors.hpp>
@@ -34,6 +35,7 @@ namespace amqpAnalyze
             _extendedHeaderSize((_hdr._doff * 4) - 8),
             _extendedHeader((char*)frameBuffer.getStructPtr(_extendedHeaderSize)),
             _performative(nullptr),
+            _frameError(nullptr),
             _sectionPtrList()
         {
             if (!frameBuffer.empty()) {
@@ -50,7 +52,7 @@ namespace amqpAnalyze
                         }
                     }
                 } catch (const amqpAnalyze::Error& e) {
-                    _performative = new FrameError(frameBuffer.getPacketNum(), frameBuffer.getFrameOffsetSnapshot(), e);
+                    _frameError = new FrameError(frameBuffer.getPacketNum(), frameBuffer.getFrameOffsetSnapshot(), e);
                     frameBuffer.popFrameOffsetSnapshot();
                     frameBuffer.ignore(_hdr._frameSize - (frameBuffer.getOffset() - _dataOffset)); // ignore rest of frame
                 }
@@ -69,28 +71,26 @@ namespace amqpAnalyze
             _sectionPtrList.clear();
         }
 
-        std::ostringstream& Frame::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const {
+        std::ostringstream& Frame::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
             std::string m(margin, ' ');
             if (margin > 0 && !ignoreFirstMargin) oss << "\n" << m;
             oss << "[" << std::setw(4) << std::setfill('0') << std::hex << _dataOffset  << "] f ";
-            oss << COLOR(FGND_BCYN, "AMQP frame", colorFlag) << ": size=0x" << _hdr._frameSize << " doff=0x" << (int)_hdr._doff;
+            oss << COLOR(FGND_BCYN, "AMQP frame", g_optionsPtr->s_colorFlag) << ": size=0x" << _hdr._frameSize << " doff=0x" << (int)_hdr._doff;
             oss << " type=0x" << (int)_hdr._type << " (" << s_frameTypeName[_hdr._type] << ")";
-            oss << (_hdr._type == 0 ? " chnl=0x" : " typeSpecific=0x") << _hdr._typeSpecific;
+            oss << (_hdr._type == FrameType_t::AMQP_FRAME ? " chnl=0x" : " typeSpecific=0x") << _hdr._typeSpecific;
             if (_extendedHeaderSize > 0) {
                 oss << " extHdrSize=0x" << _extendedHeaderSize;
             }
             oss << ":";
             if (_performative == nullptr) oss << " heartbeat";
-            for (ErrorPtrListCitr_t i=_errorPtrList.cbegin(); i!=_errorPtrList.cend(); ++i) {
-                oss << "\n" << m << (*i)->formattedMessage(colorFlag);
-            }
+            if (!_stateStr.empty()) oss << " | " << _stateStr;
             if (_performative != nullptr) {
-                _performative->appendString(oss, margin, false, colorFlag);
+                _performative->appendString(oss, margin, false);
                 for (AmqpBlockListCitr_t i=_sectionPtrList.cbegin(); i!=_sectionPtrList.cend(); ++i) {
-                    (*i)->appendString(oss, margin, false, colorFlag);
+                    (*i)->appendString(oss, margin, false);
                 }
             }
-            return appendStringEpilog(oss, margin + 9, colorFlag);
+            return appendStringEpilog(oss, margin);
         }
 
         uint8_t Frame::doff() const {
@@ -140,8 +140,8 @@ namespace amqpAnalyze
 
         // static
         std::map<FrameType_t, const char*> Frame::s_frameTypeName = {
-            {AMQP_FRAME, "AMQP"},
-            {SASL_FRAME, "SASL"}
+            {FrameType_t::AMQP_FRAME, "AMQP"},
+            {FrameType_t::SASL_FRAME, "SASL"}
         };
 
     } /* namespace amqp10 */

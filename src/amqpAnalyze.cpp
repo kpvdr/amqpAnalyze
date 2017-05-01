@@ -8,26 +8,26 @@
 #include <amqpAnalyze.hpp>
 
 #include <amqpAnalyze_config.hpp>
+#include <amqpAnalyze/amqp10/ConnectionHandler.hpp>
+#include <amqpAnalyze/FileParser.hpp>
 #include <amqpAnalyze/Options.hpp>
 #include <iostream>
 #include <libgen.h>
 
-// Global FileParser instance
-amqpAnalyze::FileParser* g_fileParserPtr;
-
-// Global function wrapper
-void packetHandler(u_char *userData, const struct ::pcap_pkthdr* pkthdr, const u_char* packet) {
-    return g_fileParserPtr->packetHandler(userData, pkthdr, packet);
-}
-
 int main(int argc, char** argv) {
     std::cout << basename(argv[0]) << " v" << amqpAnalyze_VERSION_MAJOR << "." << amqpAnalyze_VERSION_MINOR << "\n";
     try {
-        amqpAnalyze::Options o(argc, argv);
-        // Create global file parser
-        g_fileParserPtr = new amqpAnalyze::FileParser(&o);
+        // Create global instances
+        g_optionsPtr = new amqpAnalyze::Options(argc, argv);
+        g_fileParserPtr = new amqpAnalyze::FileParser();
+        g_amqpConnectionHandlerPtr = new amqpAnalyze::amqp10::ConnectionHandler();
+
         g_fileParserPtr->parse();
+
+        // Delete global instances
+        delete g_amqpConnectionHandlerPtr;
         delete g_fileParserPtr;
+        delete g_optionsPtr;
     } catch (const std::runtime_error& e) {
         std::cerr << e.what() << std::endl;
         std::exit(EXIT_FAILURE);

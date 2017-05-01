@@ -14,15 +14,23 @@
 #include <iostream>
 
 
+// Global FileParser instance
+amqpAnalyze::FileParser* g_fileParserPtr;
+
+// Global function wrapper
+void packetHandler(u_char *userData, const struct ::pcap_pkthdr* pkthdr, const u_char* packet) {
+    return g_fileParserPtr->packetHandler(userData, pkthdr, packet);
+}
+
 namespace amqpAnalyze
 {
 
-    FileParser::FileParser(const Options* optionsPtr):
-        _optionsPtr(optionsPtr),
+    FileParser::FileParser():
         _firstPakcetTimestamp({0, 0}),
         _packetNumber(0LL),
         _packetList(),
-        _ipConnectionMap()
+        _tcpConnectionMap(),
+        _amqpConnectionHandler()
     {}
 
     FileParser::~FileParser() {
@@ -34,12 +42,12 @@ namespace amqpAnalyze
 
     void FileParser::parse() {
         char errbuf[PCAP_ERRBUF_SIZE];
-        pcap_t* descr = ::pcap_open_offline(_optionsPtr->s_fileName.c_str(), errbuf);
+        pcap_t* descr = ::pcap_open_offline(g_optionsPtr->s_fileName.c_str(), errbuf);
         if (descr == nullptr) {
-            throw Error(MSG("Opening pcap file \"" << _optionsPtr->s_fileName << "\" failed: " << errbuf));
+            throw Error(MSG("Opening pcap file \"" << g_optionsPtr->s_fileName << "\" failed: " << errbuf));
         }
         if (::pcap_loop(descr, 0, ::packetHandler, nullptr) < 0) {
-            throw Error(MSG("Parsing pcap file \"" << _optionsPtr->s_fileName << "\" failed: " << pcap_geterr(descr)));
+            throw Error(MSG("Parsing pcap file \"" << g_optionsPtr->s_fileName << "\" failed: " << pcap_geterr(descr)));
         }
         ::pcap_close(descr);
 
@@ -87,9 +95,9 @@ namespace amqpAnalyze
         }
         struct timeval relativeTimestamp;
         timersub(&pkthdr->ts, &_firstPakcetTimestamp, &relativeTimestamp);
-        Packet* packetPtr = new Packet(_optionsPtr, pkthdr, packet, ++_packetNumber, relativeTimestamp);
+        Packet* packetPtr = new Packet(pkthdr, packet, ++_packetNumber, relativeTimestamp);
         _packetList.push_back(packetPtr);
-        _ipConnectionMap.addPacket(packetPtr);
+        _tcpConnectionMap.addPacket(packetPtr);
     }
 
 } /* namespace amqpAnalyze */

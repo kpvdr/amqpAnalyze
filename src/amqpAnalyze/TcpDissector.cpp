@@ -7,63 +7,74 @@
 
 #include <amqpAnalyze/TcpDissector.hpp>
 
+#include <amqpAnalyze/amqp10/ConnectionHandler.hpp>
 #include <amqpAnalyze/AmqpDissector.hpp>
 #include <amqpAnalyze/IpDissector.hpp>
 #include <amqpAnalyze/Ip4Dissector.hpp>
 #include <amqpAnalyze/Ip6Dissector.hpp>
-#include <amqpAnalyze/Options.hpp>
 #include <cstring>
 #include <pcap.h>
 #include <std/AnsiTermColors.hpp>
 
+// debug
+#include <iostream>
+
 namespace amqpAnalyze
 {
 
-    TcpDissector::TcpDissector(const Options* optionsPtr,
-                               const Dissector* parent,
+    TcpDissector::TcpDissector(const Dissector* parent,
                                uint64_t packetNum,
                                const struct pcap_pkthdr* pcapPacketHeaderPtr,
                                const uint8_t* packetPtr,
                                const uint32_t packetOffs,
                                DissectorList_t& protocolList):
-            Dissector(optionsPtr, parent, packetNum, packetOffs, protocolList)
+            Dissector(parent, packetNum, packetOffs, protocolList)
     {
         std::memcpy((char*)&_tcpHeader, (const char*)(packetPtr+packetOffs), sizeof(struct tcphdr));
         _hdrSizeBytes = _tcpHeader.doff * sizeof(uint32_t);  // doff is tcp header size in 32-bit words
         _remainingDataLength = pcapPacketHeaderPtr->caplen - packetOffs - _hdrSizeBytes;
-        if (_remainingDataLength) {
-            try {
-                _protocolList.push_front(new AmqpDissector(optionsPtr,
-                                                           this,
-                                                           _packetNum,
-                                                           pcapPacketHeaderPtr,
-                                                           packetPtr,
-                                                           packetOffs + _hdrSizeBytes,
-                                                           protocolList,
-                                                           _remainingDataLength));
-            } catch (Error& e) {
-                // ignore, non-AMQP
-                // TODO, create specific error class for this!
+        _tcpAddressInfo.setAddress(this);
+//std::cout << "[" << _packetNum << "]" << _tcpAddressInfo << "\n";
+        try {
+            if (_tcpHeader.fin) {
+                // Notify connection state objects of TCP close
+                g_amqpConnectionHandlerPtr->tcpClose(_tcpAddressInfo);
             }
+            if (_remainingDataLength) {
+                try {
+                    _protocolList.push_front(new AmqpDissector(this,
+                                                               _packetNum,
+                                                               pcapPacketHeaderPtr,
+                                                               packetPtr,
+                                                               packetOffs + _hdrSizeBytes,
+                                                               protocolList,
+                                                               _remainingDataLength));
+                } catch (Error& e) {
+                    // ignore, non-AMQP
+                    // TODO, create specific error class for this!
+                }
+            }
+        } catch (const Error& e) {
+            std::cout << AC_F_BRED(g_optionsPtr->s_colorFlag) << "Error: " << e.what() << AC_RST(g_optionsPtr->s_colorFlag) << std::endl;
         }
     }
 
     TcpDissector::~TcpDissector() {}
 
     void TcpDissector::appendString(std::ostringstream& oss, size_t margin) const {
-        oss << "\n" << std::string(margin, ' ') << COLOR(FGND_GRN, "TCP", _optionsPtr->s_colorFlag) << ": "
-            << getSourceTcpAddrStr() << " -> " << getDestinationAddrStr() << " [" << getFlagsAsString() << "]";
+        oss << "\n" << std::string(margin, ' ') << COLOR(FGND_GRN, "TCP", g_optionsPtr->s_colorFlag) << ": "
+            << getSourceAddrStr() << " -> " << getDestinationAddrStr() << " [" << getFlagsAsString() << "]";
     }
 
-    std::string TcpDissector::getSourceTcpAddrStr() const {
+    std::string TcpDissector::getSourceAddrStr(bool colorFlag) const {
         std::stringstream oss;
-        oss << ((IpDissector*)_parent)->getSourceAddrStr() << ":" << COLOR(FGND_BLU, std::to_string(getSourcePort()), _optionsPtr->s_colorFlag);
+        oss << ((IpDissector*)_parent)->getSourceAddrStr() << ":" << COLOR(FGND_BLU, std::to_string(getSourcePort()), colorFlag);
         return oss.str();
     }
 
-    std::string TcpDissector::getDestinationAddrStr() const {
+    std::string TcpDissector::getDestinationAddrStr(bool colorFlag) const {
         std::stringstream oss;
-        oss << ((IpDissector*)_parent)->getDestinationAddrStr() << ":" << COLOR(FGND_BLU, std::to_string(getDestinationPort()), _optionsPtr->s_colorFlag);
+        oss << ((IpDissector*)_parent)->getDestinationAddrStr() << ":" << COLOR(FGND_BLU, std::to_string(getDestinationPort()), colorFlag);
         return oss.str();
     }
 
@@ -100,9 +111,9 @@ namespace amqpAnalyze
         }
         std::stringstream oss;
         if (srcAddrGreater) {
-            oss << getDestinationAddrStr() << ", " << getSourceTcpAddrStr();
+            oss << getDestinationAddrStr() << ", " << getSourceAddrStr();
         } else {
-            oss << getSourceTcpAddrStr() << ", " << getDestinationAddrStr();
+            oss << getSourceAddrStr() << ", " << getDestinationAddrStr();
         }
         return oss.str();
     }
@@ -120,7 +131,7 @@ namespace amqpAnalyze
         bool spacer = false;
         if (_tcpHeader.fin) { oss << "FIN"; spacer = true; }
         if (_tcpHeader.syn) { oss << (spacer?" ":"") << "SYN"; spacer = true; }
-        if (_tcpHeader.rst) { oss << (spacer?" ":"") << COLOR(FGND_RED, "RST", _optionsPtr->s_colorFlag); }
+        if (_tcpHeader.rst) { oss << (spacer?" ":"") << COLOR(FGND_RED, "RST", g_optionsPtr->s_colorFlag); }
         if (_tcpHeader.psh) { oss << (spacer?" ":"") << "PSH"; spacer = true; }
         if (_tcpHeader.ack) { oss << (spacer?" ":"") << "ACK"; spacer = true; }
         if (_tcpHeader.urg) { oss << (spacer?" ":"") << "URG"; }
@@ -138,6 +149,10 @@ namespace amqpAnalyze
     std::size_t TcpDissector::getConnectionHash() const {
         std::hash<std::string> hashFn;
         return hashFn(getConnectionIndex());
+    }
+
+    const TcpAddressInfo& TcpDissector::getTcpAddressInfo() const {
+        return _tcpAddressInfo;
     }
 
 } /* namespace amqpAnalyze */

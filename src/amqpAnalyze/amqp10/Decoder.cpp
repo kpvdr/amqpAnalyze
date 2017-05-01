@@ -436,7 +436,7 @@ namespace amqpAnalyze
                 return new AmqpNull(fieldType._fieldName);
             }
             switch (fieldType._unionType) {
-                case FieldType::type::PRIMITIVE:
+                case FieldType::FieldType_t::PRIMITIVE:
                     switch (fieldType._types._primitiveType) {
                         case AmqpPrimitiveType_t::MILLISECONDS_TYPE:
                             switch (code) {
@@ -558,7 +558,7 @@ namespace amqpAnalyze
                         default:
                             return Decoder::decodePrimitive(code, frameBuffer, fieldType._fieldName);
                     }
-                case FieldType::type::WILDCARD: {
+                case FieldType::FieldType_t::WILDCARD: {
                     Type* typePtr = nullptr;
                     if (code > 0) {
                         typePtr = Decoder::decodePrimitive(code, frameBuffer, fieldType._fieldName);

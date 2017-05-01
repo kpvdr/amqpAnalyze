@@ -18,8 +18,7 @@ namespace amqpAnalyze
     class Packet
     {
     public:
-        Packet(const Options* optionsPtr,
-               const struct pcap_pkthdr* pcapPacketHeaderPtr,
+        Packet(const struct pcap_pkthdr* pcapPacketHeaderPtr,
                const uint8_t* packetPtr,
                uint64_t packetNum,
                const struct timeval& relativeTimestamp);
@@ -28,12 +27,11 @@ namespace amqpAnalyze
         std::string connectionIndex() const;
 
     protected:
-        const Options* _optionsPtr;
         const uint64_t _packetNum;
         const struct timeval _relativeTimestamp;
         const uint32_t _captureLength;
         const uint32_t _packetLength;
-        DissectorList_t _protocolList;
+        DissectorList_t _dissectorList;
     };
 
 } /* namespace amqpAnalyze */

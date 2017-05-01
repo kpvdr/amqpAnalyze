@@ -14,19 +14,17 @@
 
 namespace amqpAnalyze {
 
-Ip4Dissector::Ip4Dissector(const Options* optionsPtr,
-                           uint64_t packetNum,
+Ip4Dissector::Ip4Dissector(uint64_t packetNum,
                            const struct pcap_pkthdr* pcapPacketHeaderPtr,
                            const uint8_t* packetPtr,
                            const uint32_t packetOffs,
                            DissectorList_t& protocolList):
-		IpDissector(optionsPtr, packetNum, packetOffs, protocolList)
+		IpDissector(packetNum, packetOffs, protocolList)
 {
     std::memcpy((char*)&_ip4Header, (const char*)(packetPtr+packetOffs), sizeof(struct ip));
     switch (_ip4Header.ip_p) {
     case IPPROTO_TCP:
-        _protocolList.push_front(new TcpDissector(optionsPtr,
-                                                  this,
+        _protocolList.push_front(new TcpDissector(this,
                                                   _packetNum,
                                                   pcapPacketHeaderPtr,
                                                   packetPtr,

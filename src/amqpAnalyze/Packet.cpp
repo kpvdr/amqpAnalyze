@@ -22,36 +22,32 @@
 namespace amqpAnalyze
 {
 
-    Packet::Packet(const Options* optionsPtr,
-                   const struct pcap_pkthdr* pcapPacketHeaderPtr,
+    Packet::Packet(const struct pcap_pkthdr* pcapPacketHeaderPtr,
                    const uint8_t* packetPtr,
                    uint64_t packetNum,
                    const struct timeval& relativeTimestamp):
-        _optionsPtr(optionsPtr),
         _packetNum(packetNum),
         _relativeTimestamp({relativeTimestamp.tv_sec, relativeTimestamp.tv_usec}),
         _captureLength(pcapPacketHeaderPtr->caplen),
         _packetLength(pcapPacketHeaderPtr->len),
-		_protocolList()
+		_dissectorList()
     {
     	// Ethernet header
         const struct ether_header* ethernetHeader = (struct ether_header*)packetPtr;
         switch (::ntohs(ethernetHeader->ether_type)) {
         case ETHERTYPE_IP:
-        	_protocolList.push_front(new Ip4Dissector(optionsPtr,
-        	                                          _packetNum,
-        	                                          pcapPacketHeaderPtr,
-        	                                          packetPtr,
-        	                                          sizeof(struct ether_header),
-        	                                          _protocolList));
+        	_dissectorList.push_front(new Ip4Dissector(_packetNum,
+        	                                           pcapPacketHeaderPtr,
+        	                                           packetPtr,
+        	                                           sizeof(struct ether_header),
+        	                                           _dissectorList));
         	break;
         case ETHERTYPE_IPV6:
-        	_protocolList.push_front(new Ip6Dissector(optionsPtr,
-        	                                          _packetNum,
-        	                                          pcapPacketHeaderPtr,
-        	                                          packetPtr,
-        	                                          sizeof(struct ether_header),
-        	                                          _protocolList));
+        	_dissectorList.push_front(new Ip6Dissector(_packetNum,
+        	                                           pcapPacketHeaderPtr,
+        	                                           packetPtr,
+        	                                           sizeof(struct ether_header),
+        	                                           _dissectorList));
         	break;
         default:
         	throw Error(MSG("[" << _packetNum << "] Ethernet header: protocol not IP, found 0x" << std::hex << ethernetHeader->ether_type));
@@ -59,10 +55,10 @@ namespace amqpAnalyze
     }
 
     Packet::~Packet() {
-    	for (std::deque<Dissector*>::iterator i=_protocolList.begin(); i!=_protocolList.end(); ++i) {
+    	for (std::deque<Dissector*>::iterator i=_dissectorList.begin(); i!=_dissectorList.end(); ++i) {
     		delete (*i);
     	}
-    	_protocolList.clear();
+    	_dissectorList.clear();
     }
 
     std::string Packet::toString(std::size_t margin) const {
@@ -72,20 +68,20 @@ namespace amqpAnalyze
     	    << _relativeTimestamp.tv_usec << "s  " << _captureLength;
     	if (_captureLength != _packetLength) oss << "/" << _packetLength;
     	oss << " bytes";
-    	for (std::deque<Dissector*>::const_iterator i=_protocolList.cbegin(); i!=_protocolList.cend(); ++i) {
+    	for (std::deque<Dissector*>::const_iterator i=_dissectorList.cbegin(); i!=_dissectorList.cend(); ++i) {
     		(*i)->appendString(oss, margin + 2);
     	}
     	return oss.str();
     }
 
     std::string Packet::connectionIndex() const {
-        if (_protocolList.size() < 2) {
+        if (_dissectorList.size() < 2) {
             throw Error(MSG("[" << _packetNum << "] Insufficient protocol dissectors in list"));
         }
-        if (_protocolList[1]->dissectorType() != dissector_t::DISSECTOR_TCP) {
-            throw Error(MSG("[" << _packetNum << "] Unexpected dissector type at index 1: 0x" << std::hex << (int)_protocolList[1]->dissectorType()));
+        if (_dissectorList[1]->dissectorType() != DissectorType_t::DISSECTOR_TCP) {
+            throw Error(MSG("[" << _packetNum << "] Unexpected dissector type at index 1: 0x" << std::hex << (int)_dissectorList[1]->dissectorType()));
         }
-        TcpDissector* tcpDissector = (TcpDissector*)_protocolList[1];
+        TcpDissector* tcpDissector = (TcpDissector*)_dissectorList[1];
         return tcpDissector->getConnectionIndex();
     }
 

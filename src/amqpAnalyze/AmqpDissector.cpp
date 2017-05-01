@@ -7,29 +7,34 @@
 
 #include <amqpAnalyze/AmqpDissector.hpp>
 
+#include <amqpAnalyze.hpp>
+#include <amqpAnalyze/amqp10/ConnectionHandler.hpp>
 #include <amqpAnalyze/amqp10/Frame.hpp>
 #include <amqpAnalyze/amqp10/FrameBuffer.hpp>
 #include <amqpAnalyze/amqp10/ProtocolHeader.hpp>
+#include <amqpAnalyze/TcpDissector.hpp>
 #include <amqpAnalyze/Options.hpp>
+#include <amqpAnalyze/TcpAddressInfo.hpp>
+#include <amqpAnalyze/Utils.hpp>
 #include <iomanip>
 #include <cmath>
 #include <std/AnsiTermColors.hpp>
+#include <typeinfo>
 
 namespace amqpAnalyze {
 
-AmqpDissector::AmqpDissector(const Options* optionsPtr,
-                             const Dissector* parent,
+AmqpDissector::AmqpDissector(const Dissector* parent,
                              uint64_t packetNum,
                              const struct pcap_pkthdr* pcapPacketHeaderPtr,
                              const uint8_t* packetPtr,
                              uint32_t packetOffs,
                              DissectorList_t& protocolList,
                              std::size_t amqpDataSize):
-		Dissector(optionsPtr, parent, packetNum, packetOffs, protocolList),
+		Dissector(parent, packetNum, packetOffs, protocolList),
 		_amqpBlockList()
 {
     // TODO: use FrameBuffer for this
-    if (_optionsPtr->s_showAmqpDataFlag) {
+    if (g_optionsPtr->s_showAmqpDataFlag) {
         std::ostringstream oss;
         for (std::size_t i=0; i<std::ceil(amqpDataSize/16.0); ++i) {
             if (i > 0) oss << "\n";
@@ -55,23 +60,29 @@ AmqpDissector::AmqpDissector(const Options* optionsPtr,
         }
         _debugHexFrameData.assign(oss.str());
     }
+//std::cout << _debugHexFrameData << "\n\n";
 
 
     try {
         amqp10::FrameBuffer frameBuffer(packetNum, packetPtr + packetOffs, amqpDataSize);
         while (!frameBuffer.empty()) {
+            amqp10::AmqpBlock* amqpBlockPtr = nullptr;
             if (std::string((const char*)frameBuffer.getDataPtr(), 4).compare("AMQP") == 0) {
-                amqp10::ProtocolHeader* php(new amqp10::ProtocolHeader(frameBuffer));
-                if (_optionsPtr->s_validateFlag) php->validate();
-                _amqpBlockList.push_back(php);
+                amqpBlockPtr = new amqp10::ProtocolHeader(frameBuffer);
+                if (g_optionsPtr->s_validateFlag) amqpBlockPtr->validate();
             } else {
-                amqp10::Frame* fp(new amqp10::Frame(frameBuffer));
-                if (_optionsPtr->s_validateFlag) fp->validate();
-                _amqpBlockList.push_back(fp);
+                amqpBlockPtr = new amqp10::Frame(frameBuffer);
+                if (g_optionsPtr->s_validateFlag) amqpBlockPtr->validate();
             }
+            _amqpBlockList.push_back(amqpBlockPtr);
+            const TcpDissector* tcpDissectorPtr(dynamic_cast<const TcpDissector*>(_parent));
+            if (tcpDissectorPtr == nullptr) {
+                throw amqpAnalyze::Error(MSG("AmqpDissector::AmqpDissector(): Unexpected dissector found: expected \"TcpDissector\", found \"" << _parent->name() << "\""));
+            }
+            g_amqpConnectionHandlerPtr->handleFrame(tcpDissectorPtr->getTcpAddressInfo(), amqpBlockPtr);
         }
     } catch (const Error& e) {
-        std::cout << AC_F_BRED(_optionsPtr->s_colorFlag) << "Error: " << e.what() << AC_RST(_optionsPtr->s_colorFlag) << std::endl;
+        std::cout << AC_F_BRED(g_optionsPtr->s_colorFlag) << "Error: " << e.what() << AC_RST(g_optionsPtr->s_colorFlag) << std::endl;
     }
 }
 
@@ -83,10 +94,10 @@ AmqpDissector::~AmqpDissector() {
 }
 
 void AmqpDissector::appendString(std::ostringstream& oss, size_t margin) const {
-    if (_optionsPtr->s_showAmqpDataFlag) oss << "\n" << _debugHexFrameData;
-    oss << "\n" << std::string(margin, ' ') << COLOR(FGND_GRN, "AMQP", _optionsPtr->s_colorFlag) << ": ";
+    if (g_optionsPtr->s_showAmqpDataFlag) oss << "\n" << _debugHexFrameData;
+    oss << "\n" << std::string(margin, ' ') << COLOR(FGND_GRN, "AMQP", g_optionsPtr->s_colorFlag) << ": ";
     for (amqp10::AmqpBlockListCitr_t i=_amqpBlockList.begin(); i!=_amqpBlockList.end(); ++i) {
-        (*i)->appendString(oss, margin + 6, i == _amqpBlockList.begin(), _optionsPtr->s_colorFlag);
+        (*i)->appendString(oss, margin + 6, i == _amqpBlockList.begin());
     }
 }
 

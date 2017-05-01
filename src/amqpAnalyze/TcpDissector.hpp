@@ -9,6 +9,8 @@
 #define SRC_AMQPANALYZE_TCPDISSECTOR_HPP_
 
 #include <amqpAnalyze/Dissector.hpp>
+#include <amqpAnalyze/Options.hpp>
+#include <amqpAnalyze/TcpAddressInfo.hpp>
 #include <netinet/tcp.h>
 
 struct pcap_pkthdr;
@@ -16,12 +18,9 @@ struct pcap_pkthdr;
 namespace amqpAnalyze
 {
 
-    class IpDissector;
-
     class TcpDissector: public Dissector {
     public:
-        TcpDissector(const Options* optionsPtr,
-                     const Dissector* parent,
+        TcpDissector(const Dissector* parent,
                      uint64_t packetNum,
                      const struct pcap_pkthdr* pcapPacketHeaderPtr,
                      const uint8_t* packetPtr,
@@ -30,9 +29,9 @@ namespace amqpAnalyze
         virtual ~TcpDissector();
 
         void appendString(std::ostringstream& oss, size_t margin) const override;
-        inline dissector_t dissectorType() const override { return dissector_t::DISSECTOR_TCP; }
-        std::string getSourceTcpAddrStr() const;
-        std::string getDestinationAddrStr() const;
+        inline DissectorType_t dissectorType() const override { return DissectorType_t::DISSECTOR_TCP; }
+        std::string getSourceAddrStr(bool colorFlag = g_optionsPtr->s_colorFlag) const;
+        std::string getDestinationAddrStr(bool colorFlag = g_optionsPtr->s_colorFlag) const;
         std::string getConnectionIndex() const;
         uint16_t getSourcePort() const;
         uint16_t getDestinationPort() const;
@@ -40,11 +39,13 @@ namespace amqpAnalyze
         uint32_t getSequence() const;
         uint32_t getAckSequence() const;
         std::size_t getConnectionHash() const;
+        const TcpAddressInfo& getTcpAddressInfo() const;
 
     protected:
         struct tcphdr _tcpHeader;
         uint32_t _hdrSizeBytes;
         uint32_t _remainingDataLength;
+        TcpAddressInfo _tcpAddressInfo;
     };
 
 } /* namespace amqpAnalyze */

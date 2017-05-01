@@ -32,9 +32,12 @@ namespace amqpAnalyze
         public:
             Section(uint64_t packetNum, std::size_t dataOffset);
             virtual ~Section();
-            virtual std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const override;
+
+            virtual std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;
+            inline AmqpBlockType_t blockType() const override { return AmqpBlockType_t::SECTION; }
             virtual SectionType_t type() const = 0;
             void validate() override;
+
         protected:
             static std::map<SectionType_t, const char*> s_sectionTypeName;
         };
@@ -48,7 +51,7 @@ namespace amqpAnalyze
         public:
             AmqpHeader(uint64_t packetNum, std::size_t dataOffset, AmqpList* listPtr);
             virtual ~AmqpHeader();
-            std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const override;
+            std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;
             inline SectionType_t type() const override { return SectionType_t::HEADER; };
             void validate() override;
             static const FieldTypeList_t s_fieldTypeList;
@@ -62,7 +65,7 @@ namespace amqpAnalyze
         public:
             AmqpDeliveryAnnotations(uint64_t packetNum, std::size_t dataOffset, AmqpAnnotations* annotationsPtr);
             virtual ~AmqpDeliveryAnnotations();
-            std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const override;
+            std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;
             inline SectionType_t type() const override { return SectionType_t::DELIVERY_ANNOTATIONS; };
             void validate() override;
         protected:
@@ -76,7 +79,7 @@ namespace amqpAnalyze
         public:
             AmqpMessageAnnotations(uint64_t packetNum, std::size_t dataOffset, AmqpAnnotations* annotationsPtr);
             virtual ~AmqpMessageAnnotations();
-            std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const override;
+            std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;
             inline SectionType_t type() const override { return SectionType_t::MESSAGE_ANNOTATIONS; };
             void validate() override;
         protected:
@@ -90,7 +93,7 @@ namespace amqpAnalyze
         public:
             AmqpProperties(uint64_t packetNum, std::size_t dataOffset, AmqpList* listPtr);
             virtual ~AmqpProperties();
-            std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const override;
+            std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;
             inline SectionType_t type() const override { return SectionType_t::PROPERTIES; };
             void validate() override;
             static const FieldTypeList_t s_fieldTypeList;
@@ -105,7 +108,7 @@ namespace amqpAnalyze
         public:
             AmqpApplicationProperties(uint64_t packetNum, std::size_t dataOffset, AmqpMap* mapPtr);
             virtual ~AmqpApplicationProperties();
-            std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const override;
+            std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;
             inline SectionType_t type() const override { return SectionType_t::APPLICATION_PROPERTIES; };
             void validate() override;
         protected:
@@ -119,7 +122,7 @@ namespace amqpAnalyze
         public:
             AmqpData(uint64_t packetNum, std::size_t dataOffset, AmqpBinary* binaryPtr);
             virtual ~AmqpData();
-            std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const override;
+            std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;
             inline SectionType_t type() const override { return SectionType_t::RAW_DATA; };
             void validate() override;
         protected:
@@ -133,7 +136,7 @@ namespace amqpAnalyze
         public:
             AmqpSequence(uint64_t packetNum, std::size_t dataOffset, AmqpList* listPtr);
             virtual ~AmqpSequence();
-            std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const override;
+            std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;
             inline SectionType_t type() const override { return SectionType_t::AMQP_SEQUENCE; };
             void validate() override;
         protected:
@@ -147,7 +150,7 @@ namespace amqpAnalyze
         public:
             AmqpValue(uint64_t packetNum, std::size_t dataOffset, PrimitiveType* valuePtr);
             virtual ~AmqpValue();
-            std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const override;
+            std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;
             inline SectionType_t type() const override { return SectionType_t::AMQP_VALUE; };
             void validate() override;
         protected:
@@ -161,7 +164,7 @@ namespace amqpAnalyze
         public:
             AmqpFooter(uint64_t packetNum, std::size_t dataOffset, AmqpAnnotations* annotationsPtr);
             virtual ~AmqpFooter();
-            std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const override;
+            std::ostringstream&  appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;
             inline SectionType_t type() const override { return SectionType_t::FOOTER; };
             void validate() override;
         protected:

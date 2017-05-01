@@ -29,9 +29,9 @@ namespace amqpAnalyze
                       bool multipleFlag,
                       std::initializer_list<AmqpRequiresProvides_t> _requiresInit = {});
             virtual ~FieldType();
-            typedef enum class type {PRIMITIVE, WILDCARD} type_t;
+            enum class FieldType_t {PRIMITIVE, WILDCARD};
             const char* _fieldName;
-            type_t _unionType;
+            FieldType_t _unionType;
             union ctype {
                 const AmqpPrimitiveType_t _primitiveType;
                 const char* _type;

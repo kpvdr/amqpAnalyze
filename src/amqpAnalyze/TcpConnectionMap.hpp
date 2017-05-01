@@ -5,8 +5,8 @@
  *      Author: kpvdr
  */
 
-#ifndef SRC_AMQPANALYZE_IPCONNECTIONMAP_HPP_
-#define SRC_AMQPANALYZE_IPCONNECTIONMAP_HPP_
+#ifndef SRC_AMQPANALYZE_TCPCONNECTIONMAP_HPP_
+#define SRC_AMQPANALYZE_TCPCONNECTIONMAP_HPP_
 
 #include <amqpAnalyze/FwdDecls.hpp>
 #include <map>
@@ -15,13 +15,13 @@
 namespace amqpAnalyze
 {
 
-    class IpConnectionMap {
+    class TcpConnectionMap {
     protected:
         std::map<std::size_t, std::deque<const Packet*>*> _connectionMap;
         std::map<std::string, std::size_t> _connectionIndex;
     public:
-        IpConnectionMap();
-        virtual ~IpConnectionMap();
+        TcpConnectionMap();
+        virtual ~TcpConnectionMap();
         void addPacket(const Packet* packetPtr);
         uint32_t getIpHashList(std::deque<std::size_t>& list) const;
         uint32_t getIpConnectionIndexList(std::deque<std::pair<std::string, std::size_t>>& list) const;
@@ -31,4 +31,4 @@ namespace amqpAnalyze
 
 } /* namespace amqpAnalyze */
 
-#endif /* SRC_AMQPANALYZE_IPCONNECTIONMAP_HPP_ */
+#endif /* SRC_AMQPANALYZE_TCPCONNECTIONMAP_HPP_ */

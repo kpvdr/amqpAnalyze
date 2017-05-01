@@ -16,6 +16,9 @@
 namespace amqpAnalyze
 {
 
+    class Dissector;
+    typedef std::deque<Dissector*> DissectorList_t;
+
     class Error;
     typedef std::vector<const Error*> ErrorPtrList_t;
     typedef ErrorPtrList_t::iterator ErrorPtrListItr_t;
@@ -25,8 +28,9 @@ namespace amqpAnalyze
 
     class Packet;
 
-    class Dissector;
-    typedef std::deque<Dissector*> DissectorList_t;
+    struct TcpAddressInfo;
+
+    class TcpDissector;
 
 } /* namespace amqpAnalyze */
 

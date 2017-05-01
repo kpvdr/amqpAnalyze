@@ -8,6 +8,7 @@
 #include <amqpAnalyze/amqp10/ProtocolHeader.hpp>
 
 #include <amqpAnalyze/amqp10/FrameBuffer.hpp>
+#include <amqpAnalyze/Options.hpp>
 #include <iomanip>
 #include <netinet/in.h>
 #include <std/AnsiTermColors.hpp>
@@ -17,12 +18,24 @@ namespace amqpAnalyze
     namespace amqp10
     {
 
+        AmqpVersion::AmqpVersion(): _major(0), _minor(0), _revision(0) {}
+
+        AmqpVersion::AmqpVersion(uint8_t major, uint8_t minor, uint8_t revision):
+            _major(major),
+            _minor(minor),
+            _revision(revision)
+        {}
+
+        void AmqpVersion::set(const AmqpVersion& v) {
+            _major = v._major;
+            _minor = v._minor;
+            _revision = v._revision;
+        }
+
         ProtocolHeader::hdr::hdr(const struct hdr* hdrPtr):
                 _magic(::ntohl(hdrPtr->_magic)),
                 _protocolId(hdrPtr->_protocolId),
-                _major(hdrPtr->_major),
-                _minor(hdrPtr->_minor),
-                _revision(hdrPtr->_revision)
+                _version(hdrPtr->_version)
         {}
 
         ProtocolHeader::ProtocolHeader(FrameBuffer& frameBuffer):
@@ -34,12 +47,13 @@ namespace amqpAnalyze
 
         ProtocolHeader::~ProtocolHeader() {}
 
-        std::ostringstream& ProtocolHeader::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreMargin, bool colorFlag) const {
+        std::ostringstream& ProtocolHeader::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreMargin) const {
             if (margin > 0 && !ignoreMargin) oss << "\n" << std::string(margin, ' ');
             oss << "[" << std::hex << std::setfill('0') << std::setw(4) << _dataOffset << "] h " << std::dec;
-            oss << AC(colorFlag, FGND_BCYN) << "AMQP header v" << (int)_hdr._major << "." << (int)_hdr._minor << "." << (int)_hdr._revision;
-            oss << AC(colorFlag, RST) << " pid=0x" << std::hex << (int)_hdr._protocolId << " (" << s_protocolIdName[_hdr._protocolId] << ")";
-            return appendStringEpilog(oss, margin, colorFlag);
+            oss << AC(g_optionsPtr->s_colorFlag, FGND_BCYN) << "AMQP header v" << (int)_hdr._version._major << "." << (int)_hdr._version._minor << "." << (int)_hdr._version._revision;
+            oss << AC(g_optionsPtr->s_colorFlag, RST) << " pid=0x" << std::hex << (int)_hdr._protocolId << " (" << s_protocolIdName[_hdr._protocolId] << ")";
+            if (g_optionsPtr->s_showStateFlag && !_stateStr.empty()) oss << " | " << COLOR(FGND_YLW, _stateStr, g_optionsPtr->s_colorFlag);
+            return appendStringEpilog(oss, margin);
         }
 
         ProtocolId_t ProtocolHeader::protocolId() const {

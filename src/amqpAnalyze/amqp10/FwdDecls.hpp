@@ -14,6 +14,8 @@
 
 namespace amqpAnalyze
 {
+    struct TcpConnectionInfo;
+
     namespace amqp10
     {
 
@@ -24,16 +26,32 @@ namespace amqpAnalyze
         // Function pointer to error handler AmqpBlock::addError
         typedef void (AmqpBlock::*addErrorFp)(const amqpAnalyze::Error*);
 
+        class AmqpClose;
+        class AmqpOpen;
+
         enum class AmqpRequiresProvides_t;
         typedef std::vector<AmqpRequiresProvides_t> AmqpProvidesRequiresList_t;
         typedef AmqpProvidesRequiresList_t::const_iterator AmqpProvidesRequiresListCitr_t;
 
+        class Connection;
+
+        class ConnectionHandler;
+        typedef void (ConnectionHandler::*tcpCloseCallbackFp)(const struct TcpConnectionInfo*);
+
+        class Endpoint;
+
         class FieldType;
         typedef std::vector<FieldType> FieldTypeList_t;
 
+        class Frame;
+
         class FrameBuffer;
 
+        class FrameError;
+
         class Performative;
+
+        class ProtocolHeader;
 
         class Section;
 

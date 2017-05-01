@@ -16,8 +16,7 @@ namespace amqpAnalyze
     class IpDissector: public Dissector
     {
     public:
-        IpDissector(const Options* optionsPtr,
-                    uint64_t packetNum,
+        IpDissector(uint64_t packetNum,
                     const uint32_t packetOffs,
                     DissectorList_t& protocolList);
         virtual ~IpDissector();

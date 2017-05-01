@@ -7,20 +7,31 @@
 
 #include <amqpAnalyze/Dissector.hpp>
 
-namespace amqpAnalyze {
+namespace amqpAnalyze
+{
 
-Dissector::Dissector(const Options* optionsPtr,
-                             const Dissector* parent,
-                             uint64_t packetNum,
-                             uint32_t packetOffs,
-                             DissectorList_t& protocolList):
-       _optionsPtr(optionsPtr),
-       _parent(parent),
-       _packetNum(packetNum),
-       _packetOffs(packetOffs),
-       _protocolList(protocolList)
-{}
+    Dissector::Dissector(const Dissector* parent,
+                         uint64_t packetNum,
+                         uint32_t packetOffs,
+                         DissectorList_t& protocolList):
+           _parent(parent),
+           _packetNum(packetNum),
+           _packetOffs(packetOffs),
+           _protocolList(protocolList)
+    {}
 
-Dissector::~Dissector() {}
+    Dissector::~Dissector() {}
+
+    const char* Dissector::name() const {
+        return s_DissectorTypeNames[dissectorType()];
+    }
+
+    // static
+    std::map<DissectorType_t, const char*> Dissector::s_DissectorTypeNames = {
+        {DissectorType_t::DISSECTOR_IP4, "Ip4Dissector"},
+        {DissectorType_t::DISSECTOR_IP6, "Ip6Dissector"},
+        {DissectorType_t::DISSECTOR_TCP, "TcpDissector"},
+        {DissectorType_t::DISSECTOR_AMQP, "AmqpDissector"}
+    };
 
 } /* namespace amqp_analyze */

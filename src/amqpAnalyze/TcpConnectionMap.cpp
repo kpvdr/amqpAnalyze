@@ -5,15 +5,14 @@
  *      Author: kpvdr
  */
 
-#include <amqpAnalyze/IpConnectionMap.hpp>
-
 #include <amqpAnalyze/Packet.hpp>
+#include <amqpAnalyze/TcpConnectionMap.hpp>
 
 namespace amqpAnalyze {
 
-IpConnectionMap::IpConnectionMap(): _connectionMap() {}
+TcpConnectionMap::TcpConnectionMap(): _connectionMap() {}
 
-IpConnectionMap::~IpConnectionMap() {
+TcpConnectionMap::~TcpConnectionMap() {
     for (std::map<std::size_t, std::deque<const Packet*>*>::iterator i=_connectionMap.begin(); i!=_connectionMap.end(); ++i) {
         delete i->second;
     }
@@ -21,9 +20,9 @@ IpConnectionMap::~IpConnectionMap() {
     _connectionIndex.clear();
 }
 
-void IpConnectionMap::addPacket(const Packet* packetPtr) {
+void TcpConnectionMap::addPacket(const Packet* packetPtr) {
     std::string connectionString = packetPtr->connectionIndex();
-    std::size_t connectionHash = IpConnectionMap::hash(connectionString);
+    std::size_t connectionHash = TcpConnectionMap::hash(connectionString);
     std::deque<const Packet*>* listPtr = nullptr;
     try {
         listPtr = _connectionMap.at(connectionHash);
@@ -35,7 +34,7 @@ void IpConnectionMap::addPacket(const Packet* packetPtr) {
     listPtr->push_back(packetPtr);
 }
 
-uint32_t IpConnectionMap::getIpHashList(std::deque<std::size_t>& list) const {
+uint32_t TcpConnectionMap::getIpHashList(std::deque<std::size_t>& list) const {
     uint32_t count = 0;
     for (std::map<std::size_t, std::deque<const Packet*>*>::const_iterator i=_connectionMap.cbegin(); i!=_connectionMap.cend(); ++i) {
         list.push_back(i->first);
@@ -44,7 +43,7 @@ uint32_t IpConnectionMap::getIpHashList(std::deque<std::size_t>& list) const {
     return count;
 }
 
-uint32_t IpConnectionMap::getIpConnectionIndexList(std::deque<std::pair<std::string, std::size_t>>& list) const {
+uint32_t TcpConnectionMap::getIpConnectionIndexList(std::deque<std::pair<std::string, std::size_t>>& list) const {
     uint32_t count = 0;
     for (std::map<std::string, std::size_t>::const_iterator i=_connectionIndex.cbegin(); i!=_connectionIndex.cend(); ++i) {
         list.push_back(*i);
@@ -53,12 +52,12 @@ uint32_t IpConnectionMap::getIpConnectionIndexList(std::deque<std::pair<std::str
     return count;
 }
 
-const std::deque<const Packet*>* IpConnectionMap::getPacketList(size_t hash) const {
+const std::deque<const Packet*>* TcpConnectionMap::getPacketList(size_t hash) const {
 	return _connectionMap.at(hash);
 }
 
 // static
-std::size_t IpConnectionMap::hash(std::string& connectionString) {
+std::size_t TcpConnectionMap::hash(std::string& connectionString) {
     std::hash<std::string> hashFn;
     return hashFn(connectionString);
 }

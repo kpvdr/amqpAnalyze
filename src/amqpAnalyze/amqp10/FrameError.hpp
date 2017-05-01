@@ -23,7 +23,8 @@ namespace amqpAnalyze
             FrameError(uint64_t packetNum, std::size_t dataOffset, const amqpAnalyze::Error& error);
             virtual ~FrameError();
 
-            std::ostringstream& appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin, bool colorFlag) const override;
+            std::ostringstream& appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;
+            inline AmqpBlockType_t blockType() const override { return AmqpBlockType_t::FRAME_ERROR; }
             void validate() override;
 
         protected:

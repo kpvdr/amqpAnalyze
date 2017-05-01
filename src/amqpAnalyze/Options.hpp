@@ -25,9 +25,13 @@ namespace amqpAnalyze
         static bool s_colorFlag;
         static std::string s_fileName;
         static bool s_showAmqpDataFlag;
+        static bool s_showStateFlag;
         static bool s_validateFlag;
     };
 
 } /* namespace amqpAnalyze */
+
+// Global Options ptr instance
+extern amqpAnalyze::Options* g_optionsPtr;
 
 #endif /* SRC_AMQPANALYZE_OPTIONS_HPP_ */

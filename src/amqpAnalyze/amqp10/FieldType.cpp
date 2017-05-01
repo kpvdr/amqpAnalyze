@@ -18,7 +18,7 @@ namespace amqpAnalyze
                              bool multipleFlag,
                              std::initializer_list<AmqpRequiresProvides_t> _requiresInitList):
             _fieldName(fieldName),
-            _unionType(type::PRIMITIVE),
+            _unionType(FieldType_t::PRIMITIVE),
             _types(primitiveType),
             _mandatoryFlag(mandatoryFlag),
             _multipleFlag(multipleFlag),
@@ -31,7 +31,7 @@ namespace amqpAnalyze
                              bool multipleFlag,
                              std::initializer_list<AmqpRequiresProvides_t> _requiresInitList):
             _fieldName(fieldName),
-            _unionType(type::WILDCARD),
+            _unionType(FieldType_t::WILDCARD),
             _types(type),
             _mandatoryFlag(mandatoryFlag),
             _multipleFlag(multipleFlag),
