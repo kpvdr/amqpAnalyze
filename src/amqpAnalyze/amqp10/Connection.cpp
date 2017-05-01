@@ -13,7 +13,6 @@
 #include <amqpAnalyze/amqp10/Type.hpp>
 #include <amqpAnalyze/Error.hpp>
 #include <amqpAnalyze/TcpAddressInfo.hpp>
-//#include <iostream>
 
 namespace amqpAnalyze
 {

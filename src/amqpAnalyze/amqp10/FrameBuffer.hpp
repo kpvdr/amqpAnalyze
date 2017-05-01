@@ -9,6 +9,7 @@
 #define SRC_AMQPANALYZE_AMQP10_FRAMEBUFFER_HPP_
 
 #include <amqpAnalyze/amqp10/Type.hpp>
+#include <amqpAnalyze/Color.hpp>
 
 namespace amqpAnalyze
 {
@@ -30,6 +31,10 @@ namespace amqpAnalyze
             uint64_t getPacketNum() const;
             std::size_t popFrameOffsetSnapshot();
             std::size_t pushFrameOffsetSnapshot();
+
+            void addColorDatum(std::size_t offset, std::size_t len, amqpAnalyze::DisplayColorType_t colorType);
+            void addColorDatum(const amqpAnalyze::ColorDatum* colorDatum);
+            std::string getHexDump() const;
 
             void ignore(std::size_t size);
             uint8_t* getStructPtr(std::size_t size);
@@ -62,7 +67,13 @@ namespace amqpAnalyze
             std::size_t _dataLength;
             std::size_t _dataOffset;
             std::vector<std::size_t> _offsetSnapshotStack;
+            ColorList_t _colorList;
+
             void checkSize(std::size_t size, const char* opName);
+            void hexDumpPostChar(std::ostringstream& oss, ColorList_Citr_t& colorListCitr, DisplayColorType_t& currentColor, std::size_t currentIndex) const;
+            void hexDumpPostloop(std::ostringstream& oss, const ColorList_Citr_t& colorListCitr, DisplayColorType_t currentColor) const;
+            void hexDumpPreChar(std::ostringstream& oss, const ColorList_Citr_t& colorListCitr, DisplayColorType_t& currentColor, std::size_t currentIndex) const;
+            void hexDumpPreloop(std::ostringstream& oss, const ColorList_Citr_t& colorListCitr, DisplayColorType_t currentColor) const;
         };
 
     } /* namespace amqp10 */

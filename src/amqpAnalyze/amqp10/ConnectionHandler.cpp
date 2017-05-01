@@ -77,7 +77,6 @@ namespace amqpAnalyze
 
         Connection*  ConnectionHandler::insertIfNotPresent(const struct TcpAddressInfo& tcpAddrInfo) {
             // Efficient check-before-insert:
-            //if (_connectionMap.count(tcpAddrInfo._hash) == 0) {
             // See http://stackoverflow.com/questions/97050/stdmap-insert-or-stdmap-find for the following:
             std::map<uint64_t, Connection*>::iterator itr = _connectionMap.lower_bound(tcpAddrInfo._hash);
             if (itr != _connectionMap.end() && !(_connectionMap.key_comp()(tcpAddrInfo._hash, itr->first))) {

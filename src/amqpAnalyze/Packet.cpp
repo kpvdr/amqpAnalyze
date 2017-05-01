@@ -16,9 +16,6 @@
 #include <netinet/in.h>
 #include <pcap.h>
 
-// debug
-//#include <iostream>
-
 namespace amqpAnalyze
 {
 

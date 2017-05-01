@@ -8,7 +8,6 @@
 #include <amqpAnalyze/Error.hpp>
 
 #include <amqpAnalyze/amqp10/FrameBuffer.hpp>
-#include <std/AnsiTermColors.hpp>
 
 namespace amqpAnalyze
 {
@@ -41,13 +40,13 @@ namespace amqpAnalyze
     std::ostringstream& Error::formattedSeverity(std::ostringstream& oss, bool colorFlag) const {
         switch (_errorSeverity) {
         case ErrorSeverity_t::ERROR:
-            oss << COLOR(FGND_BRED, s_errorSeverityNames[_errorSeverity], colorFlag);
+            oss << Color::color(DisplayColorType_t::MSG_ERROR, s_errorSeverityNames[_errorSeverity]);
             break;
         case ErrorSeverity_t::WARNING:
-            oss << COLOR(FGND_BRED, s_errorSeverityNames[_errorSeverity], colorFlag);
+            oss << Color::color(DisplayColorType_t::MSG_WARNING, s_errorSeverityNames[_errorSeverity]);
             break;
         case ErrorSeverity_t::INFO:
-            oss << COLOR(FGND_BGRN, s_errorSeverityNames[_errorSeverity], colorFlag);
+            oss << Color::color(DisplayColorType_t::MSG_INFO, s_errorSeverityNames[_errorSeverity]);
             break;
         }
         return oss;

@@ -9,9 +9,6 @@
 
 #include <amqpAnalyze/amqp10/IllegalStateError.hpp>
 
-// debug
-//#include <iostream>
-
 namespace amqpAnalyze
 {
     namespace amqp10
@@ -45,11 +42,9 @@ namespace amqpAnalyze
 
         void ConnectionState::receivedClose(bool pipelinedFlag) {
             if (pipelinedFlag) {
-                // std::cout << "*** ConnectionState: " << _name << ": receivedClose: Added CLOSE to pipeline\n";
                 _pipelinedActions.push_back(PipelinedAction_t::CLOSE);
                 return;
             }
-            // std::cout << "*** ConnectionState: " << _name << ": receivedClose: " << s_ConnectionStateNames[_state] << "->";
             switch (_state) {
             case ConnectionState_t::OPENED: _state = ConnectionState_t::CLOSE_RCVD; break;
             case ConnectionState_t::CLOSE_SENT:
@@ -58,11 +53,9 @@ namespace amqpAnalyze
             default:
                 throw new IllegalStateError("ConnectionState", _name, "receivedClose", s_ConnectionStateNames[_state]);
             }
-            // std::cout << s_ConnectionStateNames[_state] << "\n";
         }
 
         void ConnectionState::sentClose(bool errorFlag) {
-            // std::cout << "*** ConnectionState: " << _name << ": sentClose: " << s_ConnectionStateNames[_state] << "->";
             if (errorFlag) {
                 switch (_state) {
                 case ConnectionState_t::OPENED: _state = ConnectionState_t::DISCARDING; break;
@@ -79,16 +72,13 @@ namespace amqpAnalyze
                     throw new IllegalStateError("ConnectionState", _name, "sentClose", s_ConnectionStateNames[_state]);
                 }
             }
-            // std::cout << s_ConnectionStateNames[_state] << "\n";
         }
 
         void ConnectionState::receivedOpen(bool pipelinedFlag) {
             if (pipelinedFlag) {
-                // std::cout << "*** ConnectionState: " << _name << ": receivedOpen: Added OPEN to pipeline\n";
                 _pipelinedActions.push_back(PipelinedAction_t::OPEN);
                 return;
             }
-            // std::cout << "*** ConnectionState: " << _name << ": receivedOpen: " << s_ConnectionStateNames[_state] << "->";
             switch (_state) {
             case ConnectionState_t::HDR_EXCH: _state = ConnectionState_t::OPEN_RCVD; break;
             case ConnectionState_t::OPEN_SENT: _state = ConnectionState_t::OPENED; break;
@@ -96,11 +86,9 @@ namespace amqpAnalyze
             default:
                 throw new IllegalStateError("ConnectionState", _name, "receivedOpen", s_ConnectionStateNames[_state]);
             }
-            // std::cout << s_ConnectionStateNames[_state] << "\n";
         }
 
         void ConnectionState::sentOpen() {
-            // std::cout << "*** ConnectionState: " << _name << ": sentOpen: " << s_ConnectionStateNames[_state] << "->";
             switch (_state) {
             case ConnectionState_t::HDR_EXCH: _state = ConnectionState_t::OPEN_SENT; break;
             case ConnectionState_t::HDR_SENT: _state = ConnectionState_t::OPEN_PIPE; break;
@@ -108,10 +96,8 @@ namespace amqpAnalyze
             default:
                 throw new IllegalStateError("ConnectionState", _name, "sentOpen", s_ConnectionStateNames[_state]);
             }
-            // std::cout << s_ConnectionStateNames[_state] << "\n";
             if (!_pipelinedActions.empty()) {
                 if (_pipelinedActions.front() == PipelinedAction_t::CLOSE) {
-                    // std::cout << "*** ConnectionState: " << _name << ": Pulled CLOSE from pipeline\n";
                     receivedClose(false);
                 } else {
                     throw amqpAnalyze::Error(MSG("ConnectionState::sentOpen(): Unexpected pipelined action: " << (int)_pipelinedActions.front()));
@@ -121,7 +107,6 @@ namespace amqpAnalyze
         }
 
         void ConnectionState::receivedProtocolHeader(const struct AmqpVersion& amqpVersion) {
-            // std::cout << "*** ConnectionState: " << _name << ": receivedProtocolHeader: " << s_ConnectionStateNames[_state] << "->";
             bool equal(isVersionEqual(amqpVersion));
             switch (_state) {
             case ConnectionState_t::START: _state = ConnectionState_t::HDR_RCVD; break;
@@ -131,11 +116,9 @@ namespace amqpAnalyze
             default:
                 throw new IllegalStateError("ConnectionState", _name, "receivedProtocolHeader", s_ConnectionStateNames[_state]);
             }
-            // std::cout << s_ConnectionStateNames[_state] << "\n";
         }
 
         void ConnectionState::sentProtocolHeader(const struct AmqpVersion& amqpVersion) {
-            // std::cout << "*** ConnectionState: " << _name << ": sentProtocolHeader: " << s_ConnectionStateNames[_state] << "->";
             bool equal(isVersionEqual(amqpVersion));
             switch (_state) {
             case ConnectionState_t::START: _state = ConnectionState_t::HDR_SENT; break;
@@ -143,10 +126,8 @@ namespace amqpAnalyze
             default:
                 throw new IllegalStateError("ConnectionState", _name, "sentProtocolHeader", s_ConnectionStateNames[_state]);
             }
-            // std::cout << s_ConnectionStateNames[_state] << "\n";
             if (!_pipelinedActions.empty()) {
                 if (_pipelinedActions.front() == PipelinedAction_t::OPEN) {
-                    // std::cout << "*** ConnectionState: " << _name << ": Pulled OPEN from pipeline\n";
                     receivedOpen(false);
                 } else {
                     throw amqpAnalyze::Error(MSG("ConnectionState::sentProtocolHeader(): Unexpected pipelined action: " << (int)_pipelinedActions.front()));

@@ -9,6 +9,8 @@
 
 #include <amqpAnalyze/amqp10/Decoder.hpp>
 #include <amqpAnalyze/Error.hpp>
+#include <amqpAnalyze/Options.hpp>
+#include <cmath>
 #include <iomanip>
 
 namespace amqpAnalyze
@@ -24,7 +26,12 @@ namespace amqpAnalyze
             _offsetSnapshotStack()
         {}
 
-        FrameBuffer::~FrameBuffer() {}
+        FrameBuffer::~FrameBuffer() {
+            for (std::vector<const amqpAnalyze::ColorDatum*>::iterator i=_colorList.begin(); i!=_colorList.end(); ++i) {
+                delete *i;
+            }
+            _colorList.clear();
+        }
 
         bool FrameBuffer::empty() const {
             return _dataLength == _dataOffset;
@@ -65,6 +72,57 @@ namespace amqpAnalyze
         std::size_t FrameBuffer::pushFrameOffsetSnapshot() {
             _offsetSnapshotStack.push_back(_dataOffset);
             return _dataOffset;
+        }
+
+        void FrameBuffer::addColorDatum(std::size_t offset, std::size_t len, amqpAnalyze::DisplayColorType_t colorType) {
+            _colorList.push_back(new ColorDatum(offset, len, colorType));
+        }
+
+        void FrameBuffer::addColorDatum(const amqpAnalyze::ColorDatum* colorDatum) {
+            _colorList.push_back(colorDatum);
+        }
+
+        std::string FrameBuffer::getHexDump() const {
+            std::ostringstream oss;
+            ColorList_Citr_t colorListCitrHexPanel = _colorList.cbegin();
+            DisplayColorType_t currentColorHexPanel = DisplayColorType_t::RESET;
+            ColorList_Citr_t colorListCitrCharPanel = _colorList.cbegin();
+            DisplayColorType_t currentColorCharPanel = DisplayColorType_t::RESET;
+            for (std::size_t i=0; i<std::ceil(_dataLength/16.0); ++i) {
+                if (i > 0) oss << "\n";
+                std::size_t numChars = _dataLength >= ((i+1)*16) ? 16 : _dataLength - (i*16);
+                oss << "  " << std::hex << std::setw(4) << std::setfill('0') << (i*16) << "  ";
+                hexDumpPreloop(oss, colorListCitrHexPanel, currentColorHexPanel);
+                for (std::size_t c=0; c<16; ++c) {
+                    std::size_t currentIndex = (i*16) + c;
+                    oss << (c==8?"  ":" ");
+                    if (c < numChars) {
+                        hexDumpPreChar(oss, colorListCitrHexPanel, currentColorHexPanel, currentIndex);
+                        oss << std::setw(2) << (int)*(unsigned char*)(_dataPtr + currentIndex);
+                        hexDumpPostChar(oss, colorListCitrHexPanel, currentColorHexPanel, currentIndex);
+                    } else {
+                        oss << "  ";
+                    }
+                }
+                hexDumpPostloop(oss, colorListCitrHexPanel, currentColorHexPanel);
+                oss << " |";
+                hexDumpPreloop(oss, colorListCitrCharPanel, currentColorCharPanel);
+                for (std::size_t c=0; c<16; ++c) {
+                    std::size_t currentIndex = (i*16) + c;
+                    char x = *(unsigned char*)(_dataPtr + currentIndex);
+                    oss << (c==8?" ":"");
+                    if (c < numChars) {
+                        hexDumpPreChar(oss, colorListCitrCharPanel, currentColorCharPanel, currentIndex);
+                        oss << (std::isprint(x) ? x : '.');
+                        hexDumpPostChar(oss, colorListCitrCharPanel, currentColorCharPanel, currentIndex);
+                    } else {
+                        oss << ' ';
+                    }
+                }
+                hexDumpPostloop(oss, colorListCitrCharPanel, currentColorCharPanel);
+                oss << "|";
+            }
+            return oss.str();
         }
 
         void FrameBuffer::ignore(std::size_t size) {
@@ -264,6 +322,33 @@ namespace amqpAnalyze
         void FrameBuffer::checkSize(std::size_t size, const char* opName) {
             if (_dataLength - _dataOffset < size)
                 throw amqpAnalyze::AmqpDecodeError(*this, MSG("FrameBuffer." << opName << "(): Insufficient buffer data to extract 0x" << std::hex << size << " bytes: data_size=0x" << _dataLength << "; curr_offs=" << _dataOffset));
+        }
+
+        void FrameBuffer::hexDumpPostChar(std::ostringstream& oss, ColorList_Citr_t& colorListCitr, DisplayColorType_t& currentColor, std::size_t currentIndex) const {
+            if (colorListCitr!=_colorList.end() && currentColor != DisplayColorType_t::RESET && ((*colorListCitr)->_offset + (*colorListCitr)->_len) == currentIndex+1) {
+                currentColor = DisplayColorType_t::RESET;
+                oss << Color::getColor(currentColor);
+                ++colorListCitr;
+            }
+        }
+
+        void FrameBuffer::hexDumpPostloop(std::ostringstream& oss, const ColorList_Citr_t& colorListCitr, DisplayColorType_t currentColor) const {
+            if (colorListCitr!=_colorList.end() && currentColor != DisplayColorType_t::RESET) {
+                oss << Color::getColor(DisplayColorType_t::RESET);
+            }
+        }
+
+        void FrameBuffer::hexDumpPreChar(std::ostringstream& oss, const ColorList_Citr_t& colorListCitr, DisplayColorType_t& currentColor, std::size_t currentIndex) const {
+            if (colorListCitr!=_colorList.end() && currentColor == DisplayColorType_t::RESET && (*colorListCitr)->_offset == currentIndex) {
+                currentColor = (*colorListCitr)->_colorType;
+                oss << Color::getColor(currentColor);
+            }
+        }
+
+        void FrameBuffer::hexDumpPreloop(std::ostringstream& oss, const ColorList_Citr_t& colorListCitr, DisplayColorType_t currentColor) const {
+            if (colorListCitr!=_colorList.end() && currentColor != DisplayColorType_t::RESET) {
+                oss << Color::getColor(currentColor);
+            }
         }
 
     } /* namespace amqp10 */

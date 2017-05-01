@@ -28,6 +28,7 @@ set(amqpAnalyze_HEADERS
     amqpAnalyze/amqp10/Section.hpp
     amqpAnalyze/amqp10/Type.hpp
     amqpAnalyze/AmqpDissector.hpp
+    amqpAnalyze/Color.hpp
     amqpAnalyze/Dissector.hpp
     amqpAnalyze/Error.hpp
     amqpAnalyze/FileParser.hpp
@@ -39,7 +40,6 @@ set(amqpAnalyze_HEADERS
     amqpAnalyze/Packet.hpp
     amqpAnalyze/TcpAddressInfo.hpp
     amqpAnalyze/TcpDissector.hpp
-    std/AnsiTermColors.hpp
 )
 
 set(amqpAnalyze_SOURCES
@@ -62,6 +62,7 @@ set(amqpAnalyze_SOURCES
     amqpAnalyze/amqp10/Section.cpp
     amqpAnalyze/amqp10/Type.cpp
     amqpAnalyze/AmqpDissector.cpp
+    amqpAnalyze/Color.cpp
     amqpAnalyze/Dissector.cpp
     amqpAnalyze/Error.cpp
     amqpAnalyze/FileParser.cpp

@@ -278,6 +278,7 @@ namespace amqpAnalyze
             }
             Performative* performativePtr = nullptr;
             std::unique_ptr<PrimitiveType> descriptorPtr((PrimitiveType*)Decoder::decode(frameBuffer));
+            frameBuffer.addColorDatum(dataOffset, frameBuffer.getOffset() - dataOffset, DisplayColorType_t::AMQP_PERFORMATIVE);
             switch (descriptorPtr->type()) {
                 case AmqpPrimitiveType_t::ULONG_TYPE: {
                     AmqpUlong* longDescriptorPtr = (AmqpUlong*)descriptorPtr.get();
@@ -337,6 +338,7 @@ namespace amqpAnalyze
             }
             Section* sectionPtr = nullptr;
             std::unique_ptr<PrimitiveType> descriptorPtr((PrimitiveType*)Decoder::decode(frameBuffer));
+            frameBuffer.addColorDatum(dataOffset, frameBuffer.getOffset() - dataOffset, DisplayColorType_t::AMQP_SECTION);
             switch (descriptorPtr->type()) {
                 case AmqpPrimitiveType_t::ULONG_TYPE: {
                     AmqpUlong* longDescriptorPtr = (AmqpUlong*)descriptorPtr.get(); // TODO: This feels ugly, need more elegant solution here

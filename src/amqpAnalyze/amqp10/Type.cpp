@@ -10,9 +10,9 @@
 #include <amqpAnalyze/amqp10/AmqpBlock.hpp>
 #include <amqpAnalyze/amqp10/FieldType.hpp>
 #include <amqpAnalyze/amqp10/ProvidesRequires.hpp>
+#include <amqpAnalyze/Color.hpp>
 #include <cstring>
 #include <iomanip>
-#include <std/AnsiTermColors.hpp>
 
 namespace amqpAnalyze
 {
@@ -151,7 +151,7 @@ namespace amqpAnalyze
             return valueStr(colorFlag);
         }
         std::string AmqpNull::valueStr(bool colorFlag) const {
-            return COLOR(FGND_BWHT, "null", colorFlag);
+            return Color::color(DisplayColorType_t::AMQP_TYPE_NULL, "null");
         }
 
 
@@ -159,7 +159,7 @@ namespace amqpAnalyze
         AmqpBoolean::AmqpBoolean(bool v, const char* name): PrimitiveType(name), _value(v) {}
         AmqpBoolean::~AmqpBoolean() {}
         std::string AmqpBoolean::valueStr(bool colorFlag) const {
-            return COLOR(FGND_BMGT, (_value ? "true" : "false"), colorFlag);
+            return Color::color(DisplayColorType_t::AMQP_TYPE_BOOLEAN, (_value ? "true" : "false"));
         }
 
 
@@ -169,7 +169,7 @@ namespace amqpAnalyze
         std::string AmqpUbyte::valueStr(bool colorFlag) const {
             std::stringstream oss;
             oss << "0x" << std::hex << (int)_value;
-            return COLOR(FGND_RED, oss.str(), colorFlag);
+            return Color::color(DisplayColorType_t::AMQP_TYPE_NUMBER, oss.str());
         }
 
 
@@ -179,7 +179,7 @@ namespace amqpAnalyze
         std::string AmqpUshort::valueStr(bool colorFlag) const {
             std::stringstream oss;
             oss << "0x" << std::hex << _value;
-            return COLOR(FGND_RED, oss.str(), colorFlag);
+            return Color::color(DisplayColorType_t::AMQP_TYPE_NUMBER, oss.str());
         }
 
 
@@ -189,7 +189,7 @@ namespace amqpAnalyze
         std::string AmqpUint::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss<< "0x" << std::hex << _value;
-            return COLOR(FGND_RED, oss.str(), colorFlag);
+            return Color::color(DisplayColorType_t::AMQP_TYPE_NUMBER, oss.str());
         }
 
 
@@ -199,7 +199,7 @@ namespace amqpAnalyze
         std::string AmqpUlong::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss << "0x" << std::hex << _value;
-            return COLOR(FGND_RED, oss.str(), colorFlag);
+            return Color::color(DisplayColorType_t::AMQP_TYPE_NUMBER, oss.str());
         }
 
 
@@ -209,7 +209,7 @@ namespace amqpAnalyze
         std::string AmqpByte::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss <<  "0x" << std::hex << (int)(uint8_t)_value;
-            return COLOR(FGND_RED, oss.str(), colorFlag);
+            return Color::color(DisplayColorType_t::AMQP_TYPE_NUMBER, oss.str());
         }
 
 
@@ -219,7 +219,7 @@ namespace amqpAnalyze
         std::string AmqpShort::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss << "0x" << std::hex << _value;
-            return COLOR(FGND_RED, oss.str(), colorFlag);
+            return Color::color(DisplayColorType_t::AMQP_TYPE_NUMBER, oss.str());
         }
 
 
@@ -229,7 +229,7 @@ namespace amqpAnalyze
         std::string AmqpInt::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss << "0x" << std::hex << _value;
-            return COLOR(FGND_RED, oss.str(), colorFlag);
+            return Color::color(DisplayColorType_t::AMQP_TYPE_NUMBER, oss.str());
         }
 
 
@@ -239,7 +239,7 @@ namespace amqpAnalyze
         std::string AmqpLong::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss << "0x" << std::hex << _value;
-            return COLOR(FGND_RED, oss.str(), colorFlag);
+            return Color::color(DisplayColorType_t::AMQP_TYPE_NUMBER, oss.str());
         }
 
 
@@ -249,7 +249,7 @@ namespace amqpAnalyze
         std::string AmqpFloat::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss << _value;
-            return COLOR(FGND_RED, oss.str(), colorFlag);
+            return Color::color(DisplayColorType_t::AMQP_TYPE_NUMBER, oss.str());
         }
 
 
@@ -259,7 +259,7 @@ namespace amqpAnalyze
         std::string AmqpDouble::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss << _value;
-            return COLOR(FGND_RED, oss.str(), colorFlag);
+            return Color::color(DisplayColorType_t::AMQP_TYPE_NUMBER, oss.str());
         }
 
 
@@ -272,7 +272,7 @@ namespace amqpAnalyze
             for (int i=0; i<4; ++i) {
                 oss << (i>0 ? ", 0x" : "0x") << std::setw(2) << (int)_value[i];
             }
-            return COLOR(FGND_BMGT, oss.str(), colorFlag);
+            return Color::color(DisplayColorType_t::AMQP_TYPE_NUMBER, oss.str());
         }
 
 
@@ -285,7 +285,7 @@ namespace amqpAnalyze
             for (int i=0; i<8; ++i) {
                 oss << (i>0 ? ", 0x" : "0x") << std::setw(2) << (int)_value[i];
             }
-            return COLOR(FGND_BMGT, oss.str(), colorFlag);
+            return Color::color(DisplayColorType_t::AMQP_TYPE_NUMBER, oss.str());
         }
 
 
@@ -298,7 +298,7 @@ namespace amqpAnalyze
             for (int i=0; i<16; ++i) {
                 oss << (i>0 ? ", 0x" : "0x") << std::setw(2) << (int)_value[i];
             }
-            return COLOR(FGND_BMGT, oss.str(), colorFlag);
+            return Color::color(DisplayColorType_t::AMQP_TYPE_NUMBER, oss.str());
         }
 
 
@@ -308,7 +308,7 @@ namespace amqpAnalyze
         std::string AmqpChar::valueStr(bool colorFlag) const {
             std::ostringstream oss;
             oss << "0x" << std::hex << (int)_value << "='" << _value << "'";
-            return COLOR(FGND_BBLU, oss.str(), colorFlag);
+            return Color::color(DisplayColorType_t::AMQP_TYPE_CHAR, oss.str());
         }
 
 
@@ -322,9 +322,11 @@ namespace amqpAnalyze
             std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", std::localtime(&t));
             char tzbuf[6];
             std::strftime(tzbuf, sizeof(tzbuf), "%z", std::localtime(&t));
-            oss << "0x" << std::hex << _value;
-            if (_value > 0) oss << "=" << buf << "." << std::setfill('0') << std::setw(3) << (_value%1000) << " " << tzbuf;
-            return COLOR(FGND_BMGT, oss.str(), colorFlag);
+            oss << Color::color(DisplayColorType_t::AMQP_TYPE_NUMBER, MSG("0x" << std::hex << _value));
+            if (_value > 0) {
+                oss << "=" << Color::color(DisplayColorType_t::AMQP_TYPE_TIMESTAMP, MSG(buf << "." << std::setfill('0') << std::setw(3) << (_value%1000) << " " << tzbuf));
+            }
+            return oss.str();
         }
 
 
@@ -338,7 +340,7 @@ namespace amqpAnalyze
                 if (i==4 || i==6 || i==8 || i==10) oss << '-';
                 oss << std::setw(2) << (int)_value[i];
             }
-            return COLOR(FGND_BMGT, oss.str(), colorFlag);
+            return Color::color(DisplayColorType_t::AMQP_TYPE_UUID, oss.str());
         }
 
 
@@ -352,7 +354,7 @@ namespace amqpAnalyze
                 if (i>0) oss << ' ';
                 oss << std::setw(2) << (int)_value.at(i);
             }
-            return COLOR(FGND_BWHT, oss.str(), colorFlag);
+            return Color::color(DisplayColorType_t::AMQP_TYPE_BINARY, oss.str());
         }
 
 
@@ -362,7 +364,7 @@ namespace amqpAnalyze
         std::string AmqpString::valueStr(bool colorFlag) const {
             std::stringstream oss;
             oss << "\"" << _value << "\"";
-            return COLOR(FGND_BBLU, oss.str(), colorFlag);
+            return Color::color(DisplayColorType_t::AMQP_TYPE_STRING, oss.str());
         }
 
 
@@ -372,7 +374,7 @@ namespace amqpAnalyze
         std::string AmqpSymbol::valueStr(bool colorFlag) const {
             std::stringstream oss;
             oss << "\"" << _value << "\"";
-            return COLOR(FGND_BBLU, oss.str(), colorFlag);
+            return Color::color(DisplayColorType_t::AMQP_TYPE_SYMBOL, oss.str());
         }
 
 
@@ -551,7 +553,7 @@ namespace amqpAnalyze
         AmqpRole::AmqpRole(AmqpRole_t v, const char* name): AmqpBoolean((bool)v, name) {}
         AmqpRole:: ~AmqpRole() {}
         std::string AmqpRole::valueStr(bool colorFlag) const {
-            return COLOR(FGND_BWHT, s_choiceNames.at((AmqpRole_t)_value), colorFlag);
+            return Color::color(DisplayColorType_t::AMQP_RESTRICTED_LIST, s_choiceNames.at((AmqpRole_t)_value));
         }
         // static
         std::map<AmqpRole_t, const char*> AmqpRole::s_choiceNames = {
@@ -564,7 +566,7 @@ namespace amqpAnalyze
         AmqpSenderSettleMode::AmqpSenderSettleMode(AmqpSenderSettleMode_t v, const char* name): AmqpUbyte((uint8_t)v, name) {}
         AmqpSenderSettleMode::~AmqpSenderSettleMode() {}
         std::string AmqpSenderSettleMode::valueStr(bool colorFlag) const {
-            return COLOR(FGND_BWHT, s_choiceNames.at((AmqpSenderSettleMode_t)_value), colorFlag);
+            return Color::color(DisplayColorType_t::AMQP_RESTRICTED_LIST, s_choiceNames.at((AmqpSenderSettleMode_t)_value));
         }
         // static
         std::map<AmqpSenderSettleMode_t, const char*> AmqpSenderSettleMode::s_choiceNames = {
@@ -578,7 +580,7 @@ namespace amqpAnalyze
         AmqpReceiverSettleMode::AmqpReceiverSettleMode(AmqpReceiverSettleMode_t v, const char* name): AmqpUbyte((uint8_t)v, name) {}
         AmqpReceiverSettleMode::~AmqpReceiverSettleMode() {}
         std::string AmqpReceiverSettleMode::valueStr(bool colorFlag) const {
-            return COLOR(FGND_BWHT, s_choiceNames.at((AmqpReceiverSettleMode_t)_value), colorFlag);
+            return Color::color(DisplayColorType_t::AMQP_RESTRICTED_LIST,s_choiceNames.at((AmqpReceiverSettleMode_t)_value));
         }
         // static
         std::map<AmqpReceiverSettleMode_t, const char*> AmqpReceiverSettleMode::s_choiceNames = {
@@ -629,7 +631,7 @@ namespace amqpAnalyze
             std::ostringstream oss;
             oss << typeStr() << "fmt=0x" << std::hex << std::setfill('0') << std::setw(6) << getFormat()
                 << " ver=0x" << std::setw(2) << (int)getVersion() << ")";
-            return COLOR(FGND_BWHT, oss.str(), colorFlag);
+            return Color::color(DisplayColorType_t::AMQP_RESTRICTED_LIST, oss.str());
         }
 
 
@@ -829,7 +831,7 @@ namespace amqpAnalyze
         AmqpTerminusDurability::AmqpTerminusDurability(AmqpTerminusDurability_t v, const char* name): AmqpUint((uint32_t)v, name) {}
         AmqpTerminusDurability::~AmqpTerminusDurability() {}
         std::string AmqpTerminusDurability::valueStr(bool colorFlag) const {
-            return COLOR(FGND_BWHT, s_choiceNames.at((AmqpTerminusDurability_t)_value), colorFlag);
+            return Color::color(DisplayColorType_t::AMQP_RESTRICTED_LIST, s_choiceNames.at((AmqpTerminusDurability_t)_value));
         }
         // static
         std::map<AmqpTerminusDurability_t, const char*> AmqpTerminusDurability::s_choiceNames = {
@@ -984,7 +986,7 @@ namespace amqpAnalyze
         AmqpSaslCode::AmqpSaslCode(AmqpSaslCode_t v, const char* name): AmqpUbyte((uint8_t)v, name) {}
         AmqpSaslCode::~AmqpSaslCode() {}
         std::string AmqpSaslCode::valueStr(bool colorFlag) const {
-            return COLOR(FGND_BWHT, s_choiceNames.at((AmqpSaslCode_t)_value), colorFlag);
+            return Color::color(DisplayColorType_t::AMQP_RESTRICTED_LIST, s_choiceNames.at((AmqpSaslCode_t)_value));
         }
         // static
         std::map<AmqpSaslCode_t, const char*> AmqpSaslCode::s_choiceNames = {

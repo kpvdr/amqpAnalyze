@@ -10,10 +10,10 @@
 #include <amqpAnalyze/amqp10/FieldType.hpp>
 #include <amqpAnalyze/amqp10/ProvidesRequires.hpp>
 #include <amqpAnalyze/amqp10/Type.hpp>
+#include <amqpAnalyze/Color.hpp>
 #include <amqpAnalyze/Options.hpp>
 #include <cstring>
 #include <iomanip>
-#include <std/AnsiTermColors.hpp>
 
 namespace amqpAnalyze
 {
@@ -35,11 +35,11 @@ namespace amqpAnalyze
 
         std::ostringstream& Performative::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
             if (!ignoreFirstMargin) oss << "\n" << std::string(margin, ' ') << "[" << std::hex << std::setfill('0') << std::setw(4) << _dataOffset << "] ";
-            oss  << "p " << COLOR(FGND_BYLW, typeStr(), g_optionsPtr->s_colorFlag);
+            oss  << "p " << Color::color(DisplayColorType_t::AMQP_PERFORMATIVE, typeStr());
             if (_fieldListPtr != nullptr) {
                 _fieldListPtr->appendString(oss, margin + 9 + std::strlen(typeStr()), true, g_optionsPtr->s_colorFlag);
             }
-            if (g_optionsPtr->s_showStateFlag && !_stateStr.empty()) oss << " | " << COLOR(FGND_YLW, _stateStr, g_optionsPtr->s_colorFlag);
+            if (g_optionsPtr->s_showStateFlag && !_stateStr.empty()) oss << " | " << Color::color(DisplayColorType_t::AMQP_STATE_SESSION, _stateStr);
             return appendStringEpilog(oss, margin + 9);
         }
 

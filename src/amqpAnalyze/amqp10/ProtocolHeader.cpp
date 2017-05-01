@@ -8,10 +8,10 @@
 #include <amqpAnalyze/amqp10/ProtocolHeader.hpp>
 
 #include <amqpAnalyze/amqp10/FrameBuffer.hpp>
+#include <amqpAnalyze/Color.hpp>
 #include <amqpAnalyze/Options.hpp>
 #include <iomanip>
 #include <netinet/in.h>
-#include <std/AnsiTermColors.hpp>
 
 namespace amqpAnalyze
 {
@@ -42,6 +42,7 @@ namespace amqpAnalyze
                 AmqpBlock(frameBuffer.getPacketNum(), frameBuffer.pushFrameOffsetSnapshot()),
                 _hdr((hdr*)frameBuffer.getStructPtr(sizeof(hdr)))
         {
+            frameBuffer.addColorDatum(_dataOffset, sizeof(hdr), DisplayColorType_t::AMQP_PROTOCOL_HEADER);
             frameBuffer.popFrameOffsetSnapshot();
         }
 
@@ -50,9 +51,9 @@ namespace amqpAnalyze
         std::ostringstream& ProtocolHeader::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreMargin) const {
             if (margin > 0 && !ignoreMargin) oss << "\n" << std::string(margin, ' ');
             oss << "[" << std::hex << std::setfill('0') << std::setw(4) << _dataOffset << "] h " << std::dec;
-            oss << AC(g_optionsPtr->s_colorFlag, FGND_BCYN) << "AMQP header v" << (int)_hdr._version._major << "." << (int)_hdr._version._minor << "." << (int)_hdr._version._revision;
-            oss << AC(g_optionsPtr->s_colorFlag, RST) << " pid=0x" << std::hex << (int)_hdr._protocolId << " (" << s_protocolIdName[_hdr._protocolId] << ")";
-            if (g_optionsPtr->s_showStateFlag && !_stateStr.empty()) oss << " | " << COLOR(FGND_YLW, _stateStr, g_optionsPtr->s_colorFlag);
+            oss << Color::color(DisplayColorType_t::AMQP_PROTOCOL_HEADER, MSG("AMQP header v" << (int)_hdr._version._major << "." << (int)_hdr._version._minor << "." << (int)_hdr._version._revision));
+            oss << " pid=0x" << std::hex << (int)_hdr._protocolId << " (" << s_protocolIdName[_hdr._protocolId] << ")";
+            if (g_optionsPtr->s_showStateFlag && !_stateStr.empty()) oss << " | " << Color::color(DisplayColorType_t::AMQP_STATE_CONNECTION, _stateStr);
             return appendStringEpilog(oss, margin);
         }
 

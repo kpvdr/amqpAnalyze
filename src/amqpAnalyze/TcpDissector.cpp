@@ -9,15 +9,13 @@
 
 #include <amqpAnalyze/amqp10/ConnectionHandler.hpp>
 #include <amqpAnalyze/AmqpDissector.hpp>
+#include <amqpAnalyze/Color.hpp>
 #include <amqpAnalyze/IpDissector.hpp>
 #include <amqpAnalyze/Ip4Dissector.hpp>
 #include <amqpAnalyze/Ip6Dissector.hpp>
 #include <cstring>
-#include <pcap.h>
-#include <std/AnsiTermColors.hpp>
-
-// debug
 #include <iostream>
+#include <pcap.h>
 
 namespace amqpAnalyze
 {
@@ -34,7 +32,6 @@ namespace amqpAnalyze
         _hdrSizeBytes = _tcpHeader.doff * sizeof(uint32_t);  // doff is tcp header size in 32-bit words
         _remainingDataLength = pcapPacketHeaderPtr->caplen - packetOffs - _hdrSizeBytes;
         _tcpAddressInfo.setAddress(this);
-//std::cout << "[" << _packetNum << "]" << _tcpAddressInfo << "\n";
         try {
             if (_tcpHeader.fin) {
                 // Notify connection state objects of TCP close
@@ -55,26 +52,26 @@ namespace amqpAnalyze
                 }
             }
         } catch (const Error& e) {
-            std::cout << AC_F_BRED(g_optionsPtr->s_colorFlag) << "Error: " << e.what() << AC_RST(g_optionsPtr->s_colorFlag) << std::endl;
+            std::cout << Color::color(DisplayColorType_t::MSG_ERROR, MSG("Error: " << e.what())) << std::endl;
         }
     }
 
     TcpDissector::~TcpDissector() {}
 
     void TcpDissector::appendString(std::ostringstream& oss, size_t margin) const {
-        oss << "\n" << std::string(margin, ' ') << COLOR(FGND_GRN, "TCP", g_optionsPtr->s_colorFlag) << ": "
-            << getSourceAddrStr() << " -> " << getDestinationAddrStr() << " [" << getFlagsAsString() << "]";
+        oss << "\n" << std::string(margin, ' ') << Color::color(DisplayColorType_t::DISSECTOR_NAME, "TCP")
+            << ": " << getSourceAddrStr() << " -> " << getDestinationAddrStr() << " [" << getFlagsAsString() << "]";
     }
 
     std::string TcpDissector::getSourceAddrStr(bool colorFlag) const {
         std::stringstream oss;
-        oss << ((IpDissector*)_parent)->getSourceAddrStr() << ":" << COLOR(FGND_BLU, std::to_string(getSourcePort()), colorFlag);
+        oss << ((IpDissector*)_parent)->getSourceAddrStr() << ":" << Color::color(DisplayColorType_t::TCP_PORT, std::to_string(getSourcePort()));
         return oss.str();
     }
 
     std::string TcpDissector::getDestinationAddrStr(bool colorFlag) const {
         std::stringstream oss;
-        oss << ((IpDissector*)_parent)->getDestinationAddrStr() << ":" << COLOR(FGND_BLU, std::to_string(getDestinationPort()), colorFlag);
+        oss << ((IpDissector*)_parent)->getDestinationAddrStr() << ":" << Color::color(DisplayColorType_t::TCP_PORT, std::to_string(getDestinationPort()));
         return oss.str();
     }
 
@@ -131,7 +128,7 @@ namespace amqpAnalyze
         bool spacer = false;
         if (_tcpHeader.fin) { oss << "FIN"; spacer = true; }
         if (_tcpHeader.syn) { oss << (spacer?" ":"") << "SYN"; spacer = true; }
-        if (_tcpHeader.rst) { oss << (spacer?" ":"") << COLOR(FGND_RED, "RST", g_optionsPtr->s_colorFlag); }
+        if (_tcpHeader.rst) { oss << (spacer?" ":"") << Color::color(DisplayColorType_t::TCP_RST_FLAG, "RST"); }
         if (_tcpHeader.psh) { oss << (spacer?" ":"") << "PSH"; spacer = true; }
         if (_tcpHeader.ack) { oss << (spacer?" ":"") << "ACK"; spacer = true; }
         if (_tcpHeader.urg) { oss << (spacer?" ":"") << "URG"; }

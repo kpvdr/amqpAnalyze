@@ -15,7 +15,9 @@
 #include <amqpAnalyze/Options.hpp>
 #include <iomanip>
 #include <netinet/in.h>
-#include <std/AnsiTermColors.hpp>
+
+// debug
+#include <iostream>
 
 namespace amqpAnalyze
 {
@@ -38,6 +40,7 @@ namespace amqpAnalyze
             _frameError(nullptr),
             _sectionPtrList()
         {
+            frameBuffer.addColorDatum(_dataOffset, sizeof(hdr), DisplayColorType_t::AMQP_FRAME);
             if (!frameBuffer.empty()) {
                 try {
                     _performative = Decoder::decodePerformative(frameBuffer);
@@ -75,7 +78,7 @@ namespace amqpAnalyze
             std::string m(margin, ' ');
             if (margin > 0 && !ignoreFirstMargin) oss << "\n" << m;
             oss << "[" << std::setw(4) << std::setfill('0') << std::hex << _dataOffset  << "] f ";
-            oss << COLOR(FGND_BCYN, "AMQP frame", g_optionsPtr->s_colorFlag) << ": size=0x" << _hdr._frameSize << " doff=0x" << (int)_hdr._doff;
+            oss << Color::color(DisplayColorType_t::AMQP_FRAME, "AMQP frame") << ": size=0x" << _hdr._frameSize << " doff=0x" << (int)_hdr._doff;
             oss << " type=0x" << (int)_hdr._type << " (" << s_frameTypeName[_hdr._type] << ")";
             oss << (_hdr._type == FrameType_t::AMQP_FRAME ? " chnl=0x" : " typeSpecific=0x") << _hdr._typeSpecific;
             if (_extendedHeaderSize > 0) {

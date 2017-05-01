@@ -16,8 +16,8 @@
 #include <amqpAnalyze/Options.hpp>
 #include <amqpAnalyze/TcpAddressInfo.hpp>
 #include <iomanip>
+#include <iostream>
 #include <cmath>
-#include <std/AnsiTermColors.hpp>
 #include <typeinfo>
 
 namespace amqpAnalyze {
@@ -32,36 +32,6 @@ AmqpDissector::AmqpDissector(const Dissector* parent,
 		Dissector(parent, packetNum, packetOffs, protocolList),
 		_amqpBlockList()
 {
-    // TODO: use FrameBuffer for this
-    if (g_optionsPtr->s_showAmqpDataFlag) {
-        std::ostringstream oss;
-        for (std::size_t i=0; i<std::ceil(amqpDataSize/16.0); ++i) {
-            if (i > 0) oss << "\n";
-            std::size_t numChars = amqpDataSize >= ((i+1)*16) ? 16 : amqpDataSize - (i*16);
-            oss << "  " << std::hex << std::setw(4) << std::setfill('0') << (i*16) << "  ";
-            for (size_t c=0; c<16; ++c) {
-                oss << (c==8?"  ":" ");
-                if (c < numChars)
-                    oss << std::setw(2) << (int)*(unsigned char*)(packetPtr + packetOffs + (i*16) + c);
-                else
-                    oss << "  ";
-            }
-            oss << " |";
-            for (std::size_t c=0; c<16; ++c) {
-                char x = *(unsigned char*)(packetPtr + packetOffs + (i*16) + c);
-                oss << (c==8?" ":"");
-                if (c < numChars)
-                    oss << (std::isprint(x) ? x : '.');
-                else
-                    oss << ' ';
-            }
-            oss << "|";
-        }
-        _debugHexFrameData.assign(oss.str());
-    }
-//std::cout << _debugHexFrameData << "\n\n";
-
-
     try {
         amqp10::FrameBuffer frameBuffer(packetNum, packetPtr + packetOffs, amqpDataSize);
         while (!frameBuffer.empty()) {
@@ -79,9 +49,10 @@ AmqpDissector::AmqpDissector(const Dissector* parent,
                 throw amqpAnalyze::Error(MSG("AmqpDissector::AmqpDissector(): Unexpected dissector found: expected \"TcpDissector\", found \"" << _parent->name() << "\""));
             }
             g_amqpConnectionHandlerPtr->handleFrame(tcpDissectorPtr->getTcpAddressInfo(), amqpBlockPtr);
+            if (g_optionsPtr->s_showAmqpDataFlag) _debugHexFrameData.assign(frameBuffer.getHexDump());
         }
     } catch (const Error& e) {
-        std::cout << AC_F_BRED(g_optionsPtr->s_colorFlag) << "Error: " << e.what() << AC_RST(g_optionsPtr->s_colorFlag) << std::endl;
+        std::cout << Color::color(DisplayColorType_t::MSG_ERROR, MSG("Error: " << e.what())) << std::endl;
     }
 }
 
@@ -94,7 +65,7 @@ AmqpDissector::~AmqpDissector() {
 
 void AmqpDissector::appendString(std::ostringstream& oss, size_t margin) const {
     if (g_optionsPtr->s_showAmqpDataFlag) oss << "\n" << _debugHexFrameData;
-    oss << "\n" << std::string(margin, ' ') << COLOR(FGND_GRN, "AMQP", g_optionsPtr->s_colorFlag) << ": ";
+    oss << "\n" << std::string(margin, ' ') << Color::color(DisplayColorType_t::DISSECTOR_NAME, "AMQP") << ": ";
     for (amqp10::AmqpBlockListCitr_t i=_amqpBlockList.begin(); i!=_amqpBlockList.end(); ++i) {
         (*i)->appendString(oss, margin + 6, i == _amqpBlockList.begin());
     }

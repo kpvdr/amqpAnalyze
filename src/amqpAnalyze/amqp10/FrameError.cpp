@@ -7,9 +7,9 @@
 
 #include <amqpAnalyze/amqp10/FrameError.hpp>
 
+#include <amqpAnalyze/Color.hpp>
 #include <amqpAnalyze/Options.hpp>
 #include <iomanip>
-#include <std/AnsiTermColors.hpp>
 
 namespace amqpAnalyze
 {
@@ -26,7 +26,7 @@ namespace amqpAnalyze
         std::ostringstream& FrameError::appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const {
             if (!ignoreFirstMargin) oss << "\n" << std::string(margin, ' ');
             oss << "[" << std::setw(4) << std::setfill('0') << std::hex << _dataOffset  << "] e ";
-            oss << COLOR(FGND_BRED, _errMsg, g_optionsPtr->s_colorFlag);
+            oss << Color::color(DisplayColorType_t::MSG_ERROR, _errMsg);
             return appendStringEpilog(oss, margin);
         }
 
