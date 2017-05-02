@@ -17,18 +17,23 @@ namespace amqpAnalyze
     class Options
     {
     public:
-        Options(int argc, char** argv);
-        virtual ~Options();
-
-        static void printHelp(const char* baseName);
         static struct option s_longOptions[];
 
         static bool s_amqpFlag;
         static bool s_colorFlag;
-        static std::string s_fileName;
         static bool s_showAmqpDataFlag;
+        static uint64_t s_fromPacket;
         static bool s_showStateFlag;
+        static uint64_t s_toPacket;
         static bool s_validateFlag;
+
+        static std::string s_fileName;
+
+        Options(int argc, char** argv);
+        virtual ~Options();
+
+        static void handleException(const char* baseName, const std::string& errMsg);
+        static void printHelp(const char* baseName);
     };
 
 } /* namespace amqpAnalyze */

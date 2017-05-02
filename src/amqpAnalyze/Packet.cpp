@@ -60,16 +60,20 @@ namespace amqpAnalyze
 
     std::string Packet::toString(std::size_t margin) const {
         std::ostringstream oss;
-        if (!g_optionsPtr->s_amqpFlag || (_dissectorList.size() > 0 &&  _dissectorList.back()->dissectorType() == DissectorType_t::DISSECTOR_AMQP)) {
-            std::string m(margin, ' ');
-            oss << m << "[" << _packetNum << "] " << _relativeTimestamp.tv_sec << "." << std::setfill('0') << std::setw(6)
-                << _relativeTimestamp.tv_usec << "s  " << _captureLength;
-            if (_captureLength != _packetLength) oss << "/" << _packetLength;
-            oss << " bytes";
-            for (std::deque<Dissector*>::const_iterator i=_dissectorList.cbegin(); i!=_dissectorList.cend(); ++i) {
-                (*i)->appendString(oss, margin + 2);
+        // Packet number filter
+        if (_packetNum >= g_optionsPtr->s_fromPacket && _packetNum <= g_optionsPtr->s_toPacket) {
+            // AMQP Dissector filter
+            if (!g_optionsPtr->s_amqpFlag || (_dissectorList.size() > 0 &&  _dissectorList.back()->dissectorType() == DissectorType_t::DISSECTOR_AMQP)) {
+                std::string m(margin, ' ');
+                oss << m << "[" << _packetNum << "] " << _relativeTimestamp.tv_sec << "." << std::setfill('0') << std::setw(6)
+                    << _relativeTimestamp.tv_usec << "s  " << _captureLength;
+                if (_captureLength != _packetLength) oss << "/" << _packetLength;
+                oss << " bytes";
+                for (std::deque<Dissector*>::const_iterator i=_dissectorList.cbegin(); i!=_dissectorList.cend(); ++i) {
+                    (*i)->appendString(oss, margin + 2);
+                }
+                oss << "\n";
             }
-            oss << "\n";
         }
     	return oss.str();
     }
