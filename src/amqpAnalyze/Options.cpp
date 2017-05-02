@@ -31,9 +31,12 @@ namespace amqpAnalyze
         while (!done) {
             int option_index = 0;
             opterr = 0; // disable printing of error message from within getopt_long()
-            c = ::getopt_long(argc, argv, "cdhsv", s_longOptions, &option_index);
+            c = ::getopt_long(argc, argv, "acdhsv", s_longOptions, &option_index);
             if (c == -1) break;
             switch(c) {
+            case 'a':
+                s_amqpFlag = true;
+                break;
             case 'c':
                 s_colorFlag = true;
                 break;
@@ -78,6 +81,7 @@ namespace amqpAnalyze
     void Options::printHelp(const char* baseName) {
         std::cout << "Usage: " << baseName << " [options] FILE\n"
                   << "options: -h --help           Print help\n"
+                  << "         -a --amqp           Show only AMQP packets"
                   << "         -c --color          Use ANSI color\n"
                   << "         -d --show-amqp-data Show hex dump of AMQP data for each packet\n"
                   << "         -s --show_state     Show connection, session and link state\n"
@@ -85,12 +89,14 @@ namespace amqpAnalyze
                   << "   FILE: pcapng file to be analyzed" << std::endl;
     }
     // static
+    bool Options::s_amqpFlag = false;
     bool Options::s_colorFlag = false;
     std::string Options::s_fileName;
     bool Options::s_showAmqpDataFlag = false;
     bool Options::s_showStateFlag = false;
     bool Options::s_validateFlag = false;
     struct option Options::s_longOptions[] = {
+        {"amqp",           no_argument, 0, 'a'},
         {"color",          no_argument, 0, 'c'},
         {"show-amqp-data", no_argument, 0, 'd'},
         {"help",           no_argument, 0, 'h'},

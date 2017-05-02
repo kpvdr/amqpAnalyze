@@ -22,6 +22,8 @@ namespace amqpAnalyze
 
         static void printHelp(const char* baseName);
         static struct option s_longOptions[];
+
+        static bool s_amqpFlag;
         static bool s_colorFlag;
         static std::string s_fileName;
         static bool s_showAmqpDataFlag;
