@@ -27,6 +27,12 @@ amqpAnalyze is an AMQP analyzer for pcapng (wireshark) files.
 
 ## Quick start
 
+Dependencies:
+* cmake
+* gcc-c++
+* libpcap
+* git
+
 This is a cmake project. Proceed as follows:
 
 ```
@@ -42,6 +48,11 @@ There is no install for this (yet), so run from build location:
 
 ```
 ./src/amqpAnalyze <pcapng-file>
+```
+For help with options:
+
+```
+./src/amqpAnalyze --help
 ```
 
 Some sample pcapng files are provided in the test_files directory.
