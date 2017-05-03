@@ -65,13 +65,23 @@ namespace amqpAnalyze
 
     std::string TcpDissector::getSourceAddrStr(bool colorFlag) const {
         std::stringstream oss;
-        oss << ((IpDissector*)_parent)->getSourceAddrStr() << ":" << Color::color(DisplayColorType_t::TCP_PORT, std::to_string(getSourcePort()));
+        oss << ((IpDissector*)_parent)->getSourceAddrStr() << ":";
+        if (colorFlag) {
+            oss << Color::color(DisplayColorType_t::TCP_PORT, std::to_string(getSourcePort()));
+        } else {
+            oss << std::to_string(getSourcePort());
+        }
         return oss.str();
     }
 
     std::string TcpDissector::getDestinationAddrStr(bool colorFlag) const {
         std::stringstream oss;
-        oss << ((IpDissector*)_parent)->getDestinationAddrStr() << ":" << Color::color(DisplayColorType_t::TCP_PORT, std::to_string(getDestinationPort()));
+        oss << ((IpDissector*)_parent)->getDestinationAddrStr() << ":";
+        if (colorFlag) {
+            oss << Color::color(DisplayColorType_t::TCP_PORT, std::to_string(getDestinationPort()));
+        } else {
+            oss << std::to_string(getDestinationPort());
+        }
         return oss.str();
     }
 

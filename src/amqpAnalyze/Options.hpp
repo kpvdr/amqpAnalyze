@@ -23,6 +23,7 @@ namespace amqpAnalyze
         static bool s_colorFlag;
         static bool s_showAmqpDataFlag;
         static uint64_t s_fromPacket;
+        static uint32_t s_maxDisplaySize;
         static bool s_showStateFlag;
         static uint64_t s_toPacket;
         static bool s_validateFlag;

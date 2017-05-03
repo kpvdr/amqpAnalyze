@@ -49,13 +49,13 @@ namespace amqpAnalyze
             throw Error(MSG("Parsing pcap file \"" << g_optionsPtr->s_fileName << "\" failed: " << pcap_geterr(descr)));
         }
         ::pcap_close(descr);
+        std::cout << _packetList.size() << " packets found in file \"" << g_optionsPtr->s_fileName << "\"\n\n";
 
         // Print results
         for (std::vector<Packet*>::const_iterator i=_packetList.cbegin(); i!=_packetList.cend(); ++i) {
             std::cout << (*i)->toString();
         }
-        std::cout << "\n";
-        std::cout << "done" << std::endl;
+        std::cout << "\ndone" << std::endl;
     }
 
     void FileParser::packetHandler(u_char *userData, const struct pcap_pkthdr* pkthdr, const u_char* packet) {

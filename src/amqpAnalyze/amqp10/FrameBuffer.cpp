@@ -13,6 +13,9 @@
 #include <cmath>
 #include <iomanip>
 
+// debug
+#include <iostream>
+
 namespace amqpAnalyze
 {
     namespace amqp10
@@ -204,16 +207,16 @@ namespace amqpAnalyze
 
         float FrameBuffer::getFloat() {
             checkSize(sizeof(float), "getFloat");
-            float d(be32toh(*(float*)(_dataPtr + _dataOffset)));
+            uint32_t x(be32toh(*(uint32_t*)(_dataPtr + _dataOffset)));
             _dataOffset += sizeof(float);
-            return d;
+            return *(float*)&x;
        }
 
         double FrameBuffer::getDouble() {
             checkSize(sizeof(double), "getDouble");
-            double d(be64toh(*(double*)(_dataPtr + _dataOffset)));
+            uint64_t x(be64toh(*(uint64_t*)(_dataPtr + _dataOffset)));
             _dataOffset += sizeof(double);
-            return d;
+            return *(double*)&x;
         }
 
         AmqpDecimal32_t& FrameBuffer::getDecimal32(AmqpDecimal32_t& value) {

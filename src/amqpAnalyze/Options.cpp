@@ -101,7 +101,14 @@ namespace amqpAnalyze
                             MSG("Error: -f/--from-packet option invalid: \"" << fromVal << "\""));
         }
         try {
-            if (numPacketsVal != nullptr) s_toPacket = s_fromPacket + std::stoull(numPacketsVal);
+            if (numPacketsVal != nullptr) {
+                const uint32_t numPackets(std::stoull(numPacketsVal));
+                if (numPackets == 0) {
+                    handleException(basename(argv[0]),
+                                    MSG("Error: -n/--num-packets option must have value > 0"));
+                }
+                s_toPacket = s_fromPacket + std::stoull(numPacketsVal) - 1;
+            }
         } catch (const std::invalid_argument& e) {
             handleException(basename(argv[0]),
                             MSG("Error: -n/--num-packets option invalid: \"" << numPacketsVal << "\""));
@@ -147,6 +154,7 @@ namespace amqpAnalyze
     bool Options::s_colorFlag = false;
     std::string Options::s_fileName;
     uint64_t Options::s_fromPacket = 0;
+    uint32_t Options::s_maxDisplaySize = 50;
     bool Options::s_showAmqpDataFlag = false;
     bool Options::s_showStateFlag = false;
     uint64_t Options::s_toPacket = UINT64_MAX;

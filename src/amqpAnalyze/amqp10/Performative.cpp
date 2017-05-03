@@ -37,7 +37,7 @@ namespace amqpAnalyze
             if (!ignoreFirstMargin) oss << "\n" << std::string(margin, ' ') << "[" << std::hex << std::setfill('0') << std::setw(4) << _dataOffset << "] ";
             oss  << "p " << Color::color(DisplayColorType_t::AMQP_PERFORMATIVE, typeStr());
             if (_fieldListPtr != nullptr) {
-                _fieldListPtr->appendString(oss, margin + 9 + std::strlen(typeStr()), true, g_optionsPtr->s_colorFlag);
+                _fieldListPtr->appendString(oss, margin + 9 + std::strlen(typeStr()), false, g_optionsPtr->s_colorFlag);
             }
             if (g_optionsPtr->s_showStateFlag && !_stateStr.empty()) oss << " | " << Color::color(DisplayColorType_t::AMQP_STATE_SESSION, _stateStr);
             return appendStringEpilog(oss, margin + 9);
