@@ -33,7 +33,7 @@ Dependencies:
 * git
 * libpcap-devel
 
-This is a cmake project. Proceed as follows:
+This is a cmake project. **NOTE: This source uses C++11**. Proceed as follows:
 
 ```
 git clone https://github.com/kpvdr/amqpAnalyze.git
