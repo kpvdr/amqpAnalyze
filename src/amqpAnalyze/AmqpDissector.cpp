@@ -48,7 +48,7 @@ AmqpDissector::AmqpDissector(const Dissector* parent,
             if (tcpDissectorPtr == nullptr) {
                 throw amqpAnalyze::Error(MSG("AmqpDissector::AmqpDissector(): Unexpected dissector found: expected \"TcpDissector\", found \"" << _parent->name() << "\""));
             }
-            g_amqpConnectionHandlerPtr->handleFrame(tcpDissectorPtr->getTcpAddressInfo(), amqpBlockPtr);
+            g_amqpConnectionHandler.handleFrame(tcpDissectorPtr->getTcpAddressInfo(), amqpBlockPtr);
             if (g_optionsPtr->s_showAmqpDataFlag) _debugHexFrameData.assign(frameBuffer.getHexDump());
         }
     } catch (const Error& e) {

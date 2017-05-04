@@ -30,8 +30,8 @@ amqpAnalyze is an AMQP analyzer for pcapng (wireshark) files.
 Dependencies:
 * cmake
 * gcc-c++
-* libpcap
 * git
+* libpcap-devel
 
 This is a cmake project. Proceed as follows:
 

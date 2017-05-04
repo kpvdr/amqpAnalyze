@@ -13,6 +13,7 @@
 #include <amqpAnalyze/IpDissector.hpp>
 #include <amqpAnalyze/Ip4Dissector.hpp>
 #include <amqpAnalyze/Ip6Dissector.hpp>
+#include <amqpAnalyze/TcpConnectionMap.hpp>
 #include <cstring>
 #include <iostream>
 #include <pcap.h>
@@ -33,9 +34,13 @@ namespace amqpAnalyze
         _remainingDataLength = pcapPacketHeaderPtr->caplen - packetOffs - _hdrSizeBytes;
         _tcpAddressInfo.setAddress(this);
         try {
+            if (_tcpHeader.syn) {
+                g_tcpConnectionMap.handleTcpSyn(_tcpAddressInfo, _tcpHeader.seq);
+            }
             if (_tcpHeader.fin) {
+                g_tcpConnectionMap.handleTcpFin(_tcpAddressInfo);
                 // Notify connection state objects of TCP close
-                g_amqpConnectionHandlerPtr->tcpClose(_tcpAddressInfo);
+                g_amqpConnectionHandler.tcpClose(_tcpAddressInfo);
             }
             if (_remainingDataLength) {
                 try {

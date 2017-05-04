@@ -620,7 +620,6 @@ namespace amqpAnalyze
                     oss << "\n" << m << ":";
                 } else {
                     // key is primitive type
-                    std::string kStr(i->first->typeValueStr(colorFlag));
                     oss << i->first->typeValueStr(colorFlag) << ": ";
                     keySize = i->first->typeValueStr(false).length() + 3; // exclude ANSI color codes from length
                 }
@@ -1141,10 +1140,9 @@ namespace amqpAnalyze
         std::ostringstream& CompositeType::appendString(std::ostringstream& oss, std::size_t margin, bool colorFlag) const {
             std::string n(name());
             std::string t(typeStr());
-            std::size_t l(margin + n.length() + t.length() + 1);
             oss << n << ":" << t;
             if (_fieldListPtr != nullptr) {
-                _fieldListPtr->appendString(oss, l, false, colorFlag);
+                _fieldListPtr->appendString(oss, margin + n.length() + t.length() + 1, false, colorFlag);
             }
             return oss;
         }

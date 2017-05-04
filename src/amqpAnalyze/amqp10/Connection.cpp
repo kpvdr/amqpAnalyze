@@ -148,7 +148,6 @@ namespace amqpAnalyze
 
         bool Connection::checkError(const AmqpClose* amqpClosePtr) {
             const AmqpList* fieldList = amqpClosePtr->fieldList();
-            bool errorFlag = false;
             if (fieldList != nullptr && fieldList->value().size() > 0) {
                 if (fieldList->value().size() > 1) {
                     throw amqpAnalyze::Error(MSG("Too many fields in AMQP close: expected 1, found " << fieldList->value().size()));
@@ -160,7 +159,6 @@ namespace amqpAnalyze
                         throw amqpAnalyze::Error(MSG("Connection::handleFrame(): Error downcasting class \"Type\" to class \"AmqpString\": found=\""
                                         << typePtr->typeStr() << "\""));
                     }
-                    errorFlag = true;
                     _closeError.assign(errorMsgPtr->value());
                 }
             }

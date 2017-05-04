@@ -29,12 +29,10 @@ namespace amqpAnalyze
         char* fromVal = nullptr;
         char* numPacketsVal = nullptr;
         char* toVal = nullptr;
-        bool done = false;
-        int c;
-        while (!done) {
+        while (true) {
             int option_index = 0;
             opterr = 0; // disable printing of error message from within getopt_long()
-            c = ::getopt_long(argc, argv, "acdf:hn:st:v", s_longOptions, &option_index);
+            int c = ::getopt_long(argc, argv, "acdf:hn:st:v", s_longOptions, &option_index);
             if (c == -1) break;
             switch(c) {
             case 'a':

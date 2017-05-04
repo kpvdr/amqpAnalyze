@@ -11,6 +11,7 @@
 #include <amqpAnalyze/amqp10/ConnectionHandler.hpp>
 #include <amqpAnalyze/FileParser.hpp>
 #include <amqpAnalyze/Options.hpp>
+#include <amqpAnalyze/TcpConnectionMap.hpp>
 #include <iostream>
 #include <libgen.h>
 
@@ -20,12 +21,14 @@ int main(int argc, char** argv) {
         // Create global instances
         g_optionsPtr = new amqpAnalyze::Options(argc, argv);
         g_fileParserPtr = new amqpAnalyze::FileParser();
-        g_amqpConnectionHandlerPtr = new amqpAnalyze::amqp10::ConnectionHandler();
 
-        g_fileParserPtr->parse();
+        g_fileParserPtr->parse(std::cout);
+        g_tcpConnectionMap.print(std::cout);
+        std::cout << "\n\n";
+        g_fileParserPtr->print(std::cout);
+        std::cout << "\ndone" << std::endl;
 
         // Delete global instances
-        delete g_amqpConnectionHandlerPtr;
         delete g_fileParserPtr;
         delete g_optionsPtr;
     } catch (const std::runtime_error& e) {

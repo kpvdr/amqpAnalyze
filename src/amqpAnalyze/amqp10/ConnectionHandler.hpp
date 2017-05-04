@@ -34,6 +34,6 @@ namespace amqpAnalyze
 } /* namespace amqpAnalyze */
 
 // Global AMQP connection handler
-extern amqpAnalyze::amqp10::ConnectionHandler* g_amqpConnectionHandlerPtr;
+extern amqpAnalyze::amqp10::ConnectionHandler g_amqpConnectionHandler;
 
 #endif /* SRC_AMQPANALYZE_AMQP10_CONNECTIONHANDLER_HPP_ */

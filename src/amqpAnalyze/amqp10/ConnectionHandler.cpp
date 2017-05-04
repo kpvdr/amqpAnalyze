@@ -17,7 +17,7 @@
 #include <typeinfo>
 
 // Global AMQP connection handler
-amqpAnalyze::amqp10::ConnectionHandler* g_amqpConnectionHandlerPtr;
+amqpAnalyze::amqp10::ConnectionHandler g_amqpConnectionHandler;
 
 namespace amqpAnalyze
 {
