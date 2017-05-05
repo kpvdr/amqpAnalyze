@@ -487,6 +487,7 @@ namespace amqpAnalyze
 
         protected:
             AmqpList_t _value;
+            std::string listSizeStr() const;
         };
 
 

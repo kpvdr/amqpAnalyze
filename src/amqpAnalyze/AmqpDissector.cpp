@@ -23,7 +23,7 @@
 
 namespace amqpAnalyze {
 
-    AmqpDissector::AmqpDissector(Packet* packetPtr, uint32_t dataOffs, const Dissector* parent, std::size_t amqpDataSize):
+    AmqpDissector::AmqpDissector(Packet* packetPtr, uint32_t dataOffs, Dissector* parent, std::size_t amqpDataSize):
             Dissector(packetPtr, dataOffs, parent),
             _amqpBlockList()
     {
@@ -39,11 +39,11 @@ namespace amqpAnalyze {
                     if (g_optionsPtr->s_validateFlag) amqpBlockPtr->validate();
                 }
                 _amqpBlockList.push_back(amqpBlockPtr);
-                const TcpDissector* tcpDissectorPtr(dynamic_cast<const TcpDissector*>(_parent));
+                TcpDissector* tcpDissectorPtr(dynamic_cast<TcpDissector*>(_parent));
                 if (tcpDissectorPtr == nullptr) {
                     throw amqpAnalyze::Error(MSG("AmqpDissector::AmqpDissector(): Unexpected dissector found: expected \"TcpDissector\", found \"" << _parent->name() << "\""));
                 }
-                g_amqpConnectionHandler.handleFrame(tcpDissectorPtr->getTcpAddressInfo(), amqpBlockPtr);
+                g_amqpConnectionHandler.handleFrame(tcpDissectorPtr, amqpBlockPtr);
                 if (g_optionsPtr->s_showAmqpDataFlag) _debugHexFrameData.assign(frameBuffer.getHexDump());
             }
         } catch (const Error& e) {

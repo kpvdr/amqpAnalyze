@@ -20,7 +20,7 @@ namespace amqpAnalyze
 
     class TcpDissector: public Dissector {
     public:
-        TcpDissector(Packet* packetPtr, uint32_t dataOffs, const Dissector* parent);
+        TcpDissector(Packet* packetPtr, uint32_t dataOffs, Dissector* parent);
         virtual ~TcpDissector();
 
         void appendString(std::ostringstream& oss, size_t margin) const override;

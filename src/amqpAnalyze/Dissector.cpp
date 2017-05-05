@@ -14,7 +14,7 @@
 namespace amqpAnalyze
 {
 
-    Dissector::Dissector(Packet* packetPtr, uint32_t dataOffs, const Dissector* parent):
+    Dissector::Dissector(Packet* packetPtr, uint32_t dataOffs, Dissector* parent):
            _packetPtr(packetPtr),
            _dataOffs(dataOffs),
            _parent(parent),

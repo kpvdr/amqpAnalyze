@@ -22,7 +22,7 @@
 namespace amqpAnalyze
 {
 
-    TcpDissector::TcpDissector(Packet* packetPtr, uint32_t dataOffs, const Dissector* parent):
+    TcpDissector::TcpDissector(Packet* packetPtr, uint32_t dataOffs, Dissector* parent):
             Dissector(packetPtr, dataOffs, parent),
             _connectionIndex(0)
     {
@@ -34,7 +34,7 @@ namespace amqpAnalyze
             _connectionIndex = g_tcpConnectionMap.handleTcpHeader(this, _packetPtr->packetNum());
             if (_tcpHeader.fin) {
                 // Notify connection state objects of TCP close
-                g_amqpConnectionHandler.tcpClose(_tcpAddressInfo);
+                g_amqpConnectionHandler.tcpClose(this);
             }
             if (_remainingDataLength) {
                 try {

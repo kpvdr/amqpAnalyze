@@ -32,7 +32,7 @@ namespace amqpAnalyze
         while (true) {
             int option_index = 0;
             opterr = 0; // disable printing of error message from within getopt_long()
-            int c = ::getopt_long(argc, argv, "acC:df:hn:st:v", s_longOptions, &option_index);
+            int c = ::getopt_long(argc, argv, "acC:df:hn:Nst:v", s_longOptions, &option_index);
             if (c == -1) break;
             switch(c) {
             case 'a':
@@ -57,6 +57,9 @@ namespace amqpAnalyze
                 handleException(basename(argv[0]), "");
             case 'n':
                 numPacketsVal = optarg;
+                break;
+            case 'N':
+                s_showNullArgs = true;
                 break;
             case 's':
                 s_showStateFlag = true;
@@ -152,6 +155,7 @@ namespace amqpAnalyze
                   << "         -f --from-packet N      Show packets starting at N\n"
                   << "         -n --num-packets N      Show N packets. Can be used with option -f/--from-packet.\n"
                   << "                                 Cannot be used together with option -t/--to-packet.\n"
+                  << "         -N --show-null-args     Show null parameters and headers"
                   << "         -s --show_state         Show connection, session and link state\n"
                   << "         -t --to-packet N        Show up to packet N. Can be used with option\n"
                   << "                                 -f/--from-packet. Cannot be used with option -n/--num-packets\n"
@@ -169,6 +173,7 @@ namespace amqpAnalyze
     uint32_t Options::s_maxDisplaySize = 50;
     bool Options::s_showAmqpDataFlag = false;
     bool Options::s_showStateFlag = false;
+    bool Options::s_showNullArgs = false;
     uint64_t Options::s_toPacket = UINT64_MAX;
     bool Options::s_validateFlag = false;
 
@@ -180,7 +185,8 @@ namespace amqpAnalyze
         {"show-amqp-data",   no_argument,       0, 'd'},
         {"from-packet",      required_argument, 0, 'f'},
         {"num-packets",      required_argument, 0, 'n'},
-        {"show_state",       no_argument,       0, 's'},
+        {"show-state",       no_argument,       0, 's'},
+        {"suppress-nulls",   no_argument,       0, 'N'},
         {"to-packet",        required_argument, 0, 't'},
         {"validate",         no_argument,       0, 'v'},
         {0, 0, 0, 0}

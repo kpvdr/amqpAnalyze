@@ -495,7 +495,7 @@ namespace amqpAnalyze
             return oss.str();
         }
         void AmqpList::appendString(std::ostringstream& oss, std::size_t margin, bool nameFlag, bool colorFlag) const {
-            std::string s(std::to_string(_value.size()));
+            std::string s = listSizeStr();
             std::size_t subMargin(margin + s.size() + 4);
             if (nameFlag) {
                 if (_name != nullptr) {
@@ -508,19 +508,29 @@ namespace amqpAnalyze
             oss << SIZE_DESIGNATION_CHAR << std::dec << s << ": [";
             std::string m(subMargin, ' ');
             if (_value.size() <= g_optionsPtr->s_maxDisplaySize) {
+                bool firstFlag = true;
                 for (AmqpListCitr_t i=_value.cbegin(); i<_value.cend(); ++i) {
-                    if (i!=_value.cbegin()) oss << "\n" << m;
-                    stringAppendHandler(oss, *i, margin + 4 + s.size(), true, colorFlag);
+                    if (!(*i)->isNull() || g_optionsPtr->s_showNullArgs) {
+                        if (!firstFlag) oss << "\n" << m;
+                        firstFlag = false;
+                        stringAppendHandler(oss, *i, margin + 4 + s.size(), true, colorFlag);
+                    }
                 }
             } else {
+                bool firstFlag = true;
                 for (std::size_t i=0; i<g_optionsPtr->s_maxDisplaySize/2; ++i) {
-                    if (i > 0) oss << "\n" << m;
-                    stringAppendHandler(oss, _value.at(i), margin + 4 + s.size(), true, colorFlag);
+                    if (!_value.at(i)->isNull() || g_optionsPtr->s_showNullArgs) {
+                        if (!firstFlag) oss << "\n" << m;
+                        firstFlag = false;
+                        stringAppendHandler(oss, _value.at(i), margin + 4 + s.size(), true, colorFlag);
+                    }
                 }
                 oss << "\n" << m << "...";
                 for (std::size_t i=_value.size()-(g_optionsPtr->s_maxDisplaySize/2); i<_value.size(); ++i) {
-                    oss << "\n" << m;
-                    stringAppendHandler(oss, _value.at(i), margin + 4 + s.size(), true, colorFlag);
+                    if (!_value.at(i)->isNull() || g_optionsPtr->s_showNullArgs) {
+                        oss << "\n" << m;
+                        stringAppendHandler(oss, _value.at(i), margin + 4 + s.size(), true, colorFlag);
+                    }
                 }
             }
             oss << "]";
@@ -571,6 +581,20 @@ namespace amqpAnalyze
                 (*i)->validate(errorHandler, errorHandlerInstance);
 
             }
+        }
+        std::string AmqpList::listSizeStr() const {
+            if (!g_optionsPtr->s_showNullArgs) {
+                uint32_t cnt = 0;
+                for (AmqpListCitr_t i=_value.cbegin(); i!=_value.cend(); ++i) {
+                    if (!(*i)->isNull()) ++cnt;
+                }
+                if (cnt < _value.size()) {
+                    std::ostringstream oss;
+                    oss << cnt << "/" << _value.size();
+                    return oss.str();
+                }
+            }
+            return std::to_string(_value.size());
         }
 
 

@@ -24,7 +24,7 @@ namespace amqpAnalyze
 
     class Dissector {
     public:
-        Dissector(Packet* packetPtr, uint32_t dataOffs, const Dissector* parent);
+        Dissector(Packet* packetPtr, uint32_t dataOffs, Dissector* parent);
         virtual ~Dissector();
 
         void addError(const Error* errorPtr);
@@ -36,7 +36,7 @@ namespace amqpAnalyze
     protected:
         Packet* _packetPtr;
         const uint32_t _dataOffs;
-        const Dissector* _parent;
+        Dissector* _parent;
         static std::map<DissectorType_t, const char*> s_DissectorTypeNames;
         ErrorPtrList_t _errorList;
     };

@@ -13,6 +13,7 @@
 #include <amqpAnalyze/amqp10/Performative.hpp>
 #include <amqpAnalyze/amqp10/ProtocolHeader.hpp>
 #include <amqpAnalyze/TcpAddressInfo.hpp>
+#include <amqpAnalyze/TcpDissector.hpp>
 #include <cstring>
 #include <typeinfo>
 
@@ -33,9 +34,9 @@ namespace amqpAnalyze
             _connectionMap.clear();
         }
 
-        void ConnectionHandler::handleFrame(const struct TcpAddressInfo& tcpAddrInfo, AmqpBlock* blockPtr) {
+        void ConnectionHandler::handleFrame(TcpDissector* tcpDissectorPtr, AmqpBlock* blockPtr) {
+            const TcpAddressInfo& tcpAddrInfo = tcpDissectorPtr->getTcpAddressInfo();
             if (std::strcmp(blockPtr->name(), "ProtocolHeader") == 0) {
-                // TODO: Create a helper fn or #define for this downcast and check
                 ProtocolHeader* protocolHeaderPtr = dynamic_cast<ProtocolHeader*>(blockPtr);
                 if (protocolHeaderPtr == nullptr)  {
                     throw amqpAnalyze::Error(MSG("ConnectionHandler::handleFrame(): Error in class ProtocolHeader downcast"));
@@ -48,7 +49,7 @@ namespace amqpAnalyze
                 }
                 try { _connectionMap.at(tcpAddrInfo._hash)->handleFrame(tcpAddrInfo, framePtr); }
                 catch (const std::out_of_range& e) {
-                    framePtr->addError(new amqpAnalyze::Error(MSG("ConnectionHandler::handleFrame(): Address " << tcpAddrInfo << " not in _connectionMap")));
+                    framePtr->addError(new amqpAnalyze::Error(MSG("AMQP connection map: address not seen, possible missing previous AMQP frames. (" << tcpAddrInfo << ")")));
                 }
                 catch (const IllegalStateError* ePtr) {
                     framePtr->addError(ePtr);
@@ -58,19 +59,21 @@ namespace amqpAnalyze
             }
         }
 
-        void ConnectionHandler::tcpClose(const struct TcpAddressInfo& tcpAddrInfo) {
-            Connection* connectioPtr = nullptr;
-            try { connectioPtr = _connectionMap.at(tcpAddrInfo._hash); }
+        void ConnectionHandler::tcpClose(TcpDissector* tcpDissectorPtr) {
+            const TcpAddressInfo& tcpAddrInfo = tcpDissectorPtr->getTcpAddressInfo();
+            Connection* connectionPtr = nullptr;
+            try { connectionPtr = _connectionMap.at(tcpAddrInfo._hash); }
             catch (const std::out_of_range& e) {
-                throw amqpAnalyze::Error(MSG("ConnectionHandler::tcpClose(): Address " << tcpAddrInfo << " not in _connectionMap"));
+                tcpDissectorPtr->addError(new amqpAnalyze::Error(MSG("AMQP connection map: TCP close for address not seen, possible missing previous frames. ("
+                                         << tcpAddrInfo << ")")));
+                return;
             }
-            if (connectioPtr->handleTcpClose(tcpAddrInfo)) {
-                delete connectioPtr;
+            if (connectionPtr->handleTcpClose(tcpAddrInfo)) {
+                delete connectionPtr;
                 const std::size_t numErased = _connectionMap.erase(tcpAddrInfo._hash);
                 if (numErased != 1) {
-                    throw amqpAnalyze::Error(MSG("ConnectionHandler::tcpClose(): map error: _connectionMap.erase() returned "
-                                             << numErased << " (src=" << tcpAddrInfo._srcAddrStr << " dest=" << tcpAddrInfo._destAddrStr
-                                             << ")"));
+                    tcpDissectorPtr->addError(new amqpAnalyze::Error(MSG("AMQP connection map: address not seen, possible missing previous AMQP frames. ("
+                                             << tcpAddrInfo << ")")));
                 }
             }
         }
