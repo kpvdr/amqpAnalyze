@@ -30,7 +30,7 @@ namespace amqpAnalyze
         TcpConnectionMap();
         virtual ~TcpConnectionMap();
 
-        uint32_t handleTcpHeader(const TcpAddressInfo& tcpAddressInfo, const struct tcphdr& tcpHeader, uint64_t packetNum);
+        uint32_t handleTcpHeader(TcpDissector* tcpDissector, uint64_t packetNum);
         bool hasConnection(std::size_t hash) const;
         void print(std::ostream& os, bool showHashFlag) const;
 
@@ -38,7 +38,7 @@ namespace amqpAnalyze
         ConnectionMap_t _connectionMap;
         ConnectionHashList_t _connectionList;
 
-        TcpConnection* getTcpConnection(const TcpAddressInfo& tcpAddressInfo, const struct tcphdr& tcpHeader, uint64_t packetNum);
+        TcpConnection* getTcpConnection(TcpDissector* tcpDissector, uint64_t packetNum);
     };
 
 } /* namespace amqpAnalyze */

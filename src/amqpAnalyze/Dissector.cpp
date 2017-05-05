@@ -7,16 +7,36 @@
 
 #include <amqpAnalyze/Dissector.hpp>
 
+#include <amqpAnalyze/Color.hpp>
+#include <amqpAnalyze/Error.hpp>
+#include <amqpAnalyze/Options.hpp>
+
 namespace amqpAnalyze
 {
 
     Dissector::Dissector(Packet* packetPtr, uint32_t dataOffs, const Dissector* parent):
            _packetPtr(packetPtr),
            _dataOffs(dataOffs),
-           _parent(parent)
+           _parent(parent),
+           _errorList()
     {}
 
-    Dissector::~Dissector() {}
+    Dissector::~Dissector() {
+        for (ErrorPtrListItr_t i=_errorList.begin(); i!=_errorList.end(); ++i) {
+            delete (*i);
+        }
+        _errorList.clear();
+    }
+
+    void Dissector::addError(const Error* errorPtr) {
+        _errorList.push_back(errorPtr);
+    }
+
+    void Dissector::appendErrors(std::ostringstream& oss, size_t margin) const {
+        for (ErrorPtrListCitr_t i=_errorList.cbegin(); i!=_errorList.cend(); ++i) {
+            oss << "\n" << std::string(margin, ' ') << Color::color(DisplayColorType_t::MSG_ERROR, (*i)->what());
+        }
+    }
 
     const char* Dissector::name() const {
         return s_DissectorTypeNames[dissectorType()];

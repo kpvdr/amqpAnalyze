@@ -32,6 +32,9 @@ namespace amqpAnalyze
         uint16_t getSourcePort() const;
         uint16_t getDestinationPort() const;
         std::string getFlagsAsString() const;
+        bool ack() const;
+        bool fin() const;
+        bool syn() const;
         uint32_t getSequence() const;
         uint32_t getAckSequence() const;
         std::size_t getConnectionHash() const;

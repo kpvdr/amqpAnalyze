@@ -64,6 +64,7 @@ namespace amqpAnalyze {
         for (amqp10::AmqpBlockListCitr_t i=_amqpBlockList.begin(); i!=_amqpBlockList.end(); ++i) {
             (*i)->appendString(oss, margin + 6, i == _amqpBlockList.begin());
         }
+        appendErrors(oss, margin);
     }
 
 } /* namespace amqpAnalyze */

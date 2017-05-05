@@ -31,7 +31,7 @@ namespace amqpAnalyze
         _remainingDataLength = _packetPtr->pcapPacketHeaderPtr()->caplen - _dataOffs - _hdrSizeBytes;
         _tcpAddressInfo.setAddress(this);
         try {
-            _connectionIndex = g_tcpConnectionMap.handleTcpHeader(_tcpAddressInfo, _tcpHeader, _packetPtr->packetNum());
+            _connectionIndex = g_tcpConnectionMap.handleTcpHeader(this, _packetPtr->packetNum());
             if (_tcpHeader.fin) {
                 // Notify connection state objects of TCP close
                 g_amqpConnectionHandler.tcpClose(_tcpAddressInfo);
@@ -55,6 +55,7 @@ namespace amqpAnalyze
         oss << "\n" << std::string(margin, ' ') << Color::color(DisplayColorType_t::DISSECTOR_NAME, "TCP")
             << ": " << getSourceAddrStr() << " -> " << getDestinationAddrStr() << " [" << getFlagsAsString()
             << "] ci=" << _connectionIndex;
+        appendErrors(oss, margin);
     }
 
     std::string TcpDissector::getSourceAddrStr(bool colorFlag) const {
@@ -134,13 +135,25 @@ namespace amqpAnalyze
     std::string TcpDissector::getFlagsAsString() const {
         std::ostringstream oss;
         bool spacer = false;
-        if (_tcpHeader.fin) { oss << "FIN"; spacer = true; }
-        if (_tcpHeader.syn) { oss << (spacer?" ":"") << "SYN"; spacer = true; }
-        if (_tcpHeader.rst) { oss << (spacer?" ":"") << Color::color(DisplayColorType_t::TCP_RST_FLAG, "RST"); }
-        if (_tcpHeader.psh) { oss << (spacer?" ":"") << "PSH"; spacer = true; }
-        if (_tcpHeader.ack) { oss << (spacer?" ":"") << "ACK"; spacer = true; }
-        if (_tcpHeader.urg) { oss << (spacer?" ":"") << "URG"; }
+        if (_tcpHeader.fin != 0) { oss << "FIN"; spacer = true; }
+        if (_tcpHeader.syn != 0) { oss << (spacer?" ":"") << "SYN"; spacer = true; }
+        if (_tcpHeader.rst != 0) { oss << (spacer?" ":"") << Color::color(DisplayColorType_t::TCP_RST_FLAG, "RST"); }
+        if (_tcpHeader.psh != 0) { oss << (spacer?" ":"") << "PSH"; spacer = true; }
+        if (_tcpHeader.ack != 0) { oss << (spacer?" ":"") << "ACK"; spacer = true; }
+        if (_tcpHeader.urg != 0) { oss << (spacer?" ":"") << "URG"; }
         return oss.str();
+    }
+
+    bool TcpDissector::ack() const {
+        return _tcpHeader.ack != 0;
+    }
+
+    bool TcpDissector::fin() const {
+        return _tcpHeader.fin != 0;
+    }
+
+    bool TcpDissector::syn() const {
+        return _tcpHeader.syn != 0;
     }
 
     uint32_t TcpDissector::getSequence() const {

@@ -29,8 +29,7 @@ namespace amqpAnalyze
         _relativeTimestamp({relativeTimestamp.tv_sec, relativeTimestamp.tv_usec}),
         _captureLength(pcapPacketHeaderPtr->caplen),
         _packetLength(pcapPacketHeaderPtr->len),
-		_dissectorList(),
-		_errorList()
+		_dissectorList()
     {
     	// Ethernet header
         const struct ether_header* ethernetHeader = (struct ether_header*)dataPtr;
@@ -51,18 +50,10 @@ namespace amqpAnalyze
     		delete (*i);
     	}
     	_dissectorList.clear();
-    	for (ErrorPtrListItr_t i=_errorList.begin(); i!=_errorList.end(); ++i) {
-    	    delete (*i);
-    	}
-    	_errorList.clear();
     }
 
     void Packet::addDissector(const Dissector* dissectorPtr) {
         _dissectorList.push_front(dissectorPtr);
-    }
-
-    void Packet::addPacketError(const Error* packetErrorPtr) {
-        _errorList.push_back(packetErrorPtr);
     }
 
     std::string Packet::toString(std::size_t margin) const {
@@ -75,9 +66,6 @@ namespace amqpAnalyze
                 if (!g_optionsPtr->s_amqpFlag || (_dissectorList.size() > 0 &&  _dissectorList.back()->dissectorType() == DissectorType_t::DISSECTOR_AMQP)) {
                     // Finally, ok to print this packet
                     std::string m(margin, ' ');
-                    for (ErrorPtrListCitr_t i=_errorList.cbegin(); i!=_errorList.cend(); ++i) {
-                        oss << m << (*i)->what() << "\n";
-                    }
                     oss << m << "[" << _packetNum << "] " << _relativeTimestamp.tv_sec << "." << std::setfill('0') << std::setw(6)
                         << _relativeTimestamp.tv_usec << "s  " << _captureLength;
                     if (_captureLength != _packetLength) oss << "/" << _packetLength;

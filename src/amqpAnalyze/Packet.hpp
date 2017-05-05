@@ -24,7 +24,6 @@ namespace amqpAnalyze
                const struct timeval& relativeTimestamp);
         virtual ~Packet();
         void addDissector(const Dissector* dissectorPtr);
-        void addPacketError(const Error* packetErrorPtr);
         inline const uint8_t* dataPtr() const { return _dataPtr; }
         inline uint64_t packetNum() const { return _packetNum; }
         inline const struct pcap_pkthdr* pcapPacketHeaderPtr() const { return _pcapPacketHeaderPtr; }
@@ -40,7 +39,6 @@ namespace amqpAnalyze
         const uint32_t _captureLength;
         const uint32_t _packetLength;
         DissectorList_t _dissectorList;
-        ErrorPtrList_t _errorList;
     };
 
 } /* namespace amqpAnalyze */

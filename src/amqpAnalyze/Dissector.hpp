@@ -27,6 +27,8 @@ namespace amqpAnalyze
         Dissector(Packet* packetPtr, uint32_t dataOffs, const Dissector* parent);
         virtual ~Dissector();
 
+        void addError(const Error* errorPtr);
+        void appendErrors(std::ostringstream& oss, size_t margin) const;
         virtual void appendString(std::ostringstream& oss, size_t margin) const = 0;
         const char* name() const;
         virtual DissectorType_t dissectorType() const = 0;
@@ -36,6 +38,7 @@ namespace amqpAnalyze
         const uint32_t _dataOffs;
         const Dissector* _parent;
         static std::map<DissectorType_t, const char*> s_DissectorTypeNames;
+        ErrorPtrList_t _errorList;
     };
 
 } /* namespace amqp_analyze */

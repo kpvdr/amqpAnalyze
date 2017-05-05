@@ -9,6 +9,7 @@
 
 #include <amqpAnalyze/Error.hpp>
 #include <amqpAnalyze/TcpAddressInfo.hpp>
+#include <amqpAnalyze/TcpDissector.hpp>
 #include <iomanip>
 #include <netinet/tcp.h>
 #include <sstream>
@@ -32,8 +33,8 @@ namespace amqpAnalyze
         _connectionList.clear();
     }
 
-    uint32_t TcpConnectionMap::handleTcpHeader(const TcpAddressInfo& tcpAddressInfo, const struct tcphdr& tcpHeader, uint64_t packetNum) {
-        return getTcpConnection(tcpAddressInfo, tcpHeader, packetNum)->_connectionIndex;
+    uint32_t TcpConnectionMap::handleTcpHeader(TcpDissector* tcpDissector, uint64_t packetNum) {
+        return getTcpConnection(tcpDissector, packetNum)->_connectionIndex;
     }
 
     bool TcpConnectionMap::hasConnection(std::size_t hash) const {
@@ -52,39 +53,40 @@ namespace amqpAnalyze
         }
     }
 
-    TcpConnection* TcpConnectionMap::getTcpConnection(const TcpAddressInfo& tcpAddressInfo, const struct tcphdr& tcpHeader, uint64_t packetNum) {
+    TcpConnection* TcpConnectionMap::getTcpConnection(TcpDissector* tcpDissector, uint64_t packetNum) {
         TcpConnection* tcpConnectionPtr = nullptr;
+        const TcpAddressInfo& tcpAddressInfo = tcpDissector->getTcpAddressInfo();
         if (hasConnection(tcpAddressInfo._hash)) {
             tcpConnectionPtr = _connectionMap.at(tcpAddressInfo._hash);
             tcpConnectionPtr->setLastPacketNumber(packetNum);
-            if (tcpHeader.syn) {
+            if (tcpDissector->syn()) {
                 if (tcpConnectionPtr->_initDestSequence == 0) {
-                    tcpConnectionPtr->_initDestSequence = tcpHeader.seq;
+                    tcpConnectionPtr->_initDestSequence = tcpDissector->getSequence();
                 } else {
-                    throw amqpAnalyze::Error(MSG("[" << packetNum << "] TcpConnectionMap::getTcpConnection: Destination SYN already set: " << tcpAddressInfo));
+                    tcpDissector->addError(new amqpAnalyze::Error(MSG("TcpConnectionMap::getTcpConnection: Destination SYN already set: " << tcpAddressInfo)));
                 }
             }
-            if (tcpHeader.ack) {
+            if (tcpDissector->ack()) {
                 // TODO: add ack handling here
             }
-            if (tcpHeader.fin) {
+            if (tcpDissector->fin()) {
                 if (tcpAddressInfo._srcAddrStr.compare(tcpConnectionPtr->_srcAddrStr) == 0) {
                     tcpConnectionPtr->_srcFinFlag = true;
                 } else if (tcpAddressInfo._srcAddrStr.compare(tcpConnectionPtr->_destAddrStr) == 0) {
                     tcpConnectionPtr->_destFinFlag = true;
                 } else {
-                    throw amqpAnalyze::Error(MSG("[" << packetNum << "] TcpConnectionMap::getTcpConnection: Address does not match connection source or destination: addr="
-                                                 << tcpAddressInfo << "; connection=" << tcpConnectionPtr));
+                    tcpDissector->addError(new amqpAnalyze::Error(MSG("TcpConnectionMap::getTcpConnection: Address does not match connection source or destination: addr="
+                                                 << tcpAddressInfo << "; connection=" << tcpConnectionPtr)));
                 }
             }
         } else {
-            if (tcpHeader.syn) {
-                tcpConnectionPtr = new TcpConnection(tcpAddressInfo, tcpHeader.seq, _connectionList.size()+1, packetNum);
-                _connectionMap.emplace(tcpAddressInfo._hash, tcpConnectionPtr);
-                _connectionList.push_back(tcpAddressInfo._hash);
-            } else {
-                throw amqpAnalyze::Error(MSG("[" << packetNum << "] TcpConnectionMap::getTcpConnection: Address not found, no SYN flag: " << tcpAddressInfo));
+            if (!tcpDissector->syn()) {
+                tcpDissector->addError(new amqpAnalyze::Error(MSG("ERROR: No previous TCP SYN flag seen for addresss "
+                                << tcpAddressInfo._srcAddrStr << " or " << tcpAddressInfo._destAddrStr << ": Possible previous packet(s) missing")));
             }
+            tcpConnectionPtr = new TcpConnection(tcpAddressInfo, tcpDissector->getSequence(), _connectionList.size()+1, packetNum);
+            _connectionMap.emplace(tcpAddressInfo._hash, tcpConnectionPtr);
+            _connectionList.push_back(tcpAddressInfo._hash);
         }
         return tcpConnectionPtr;
     }
