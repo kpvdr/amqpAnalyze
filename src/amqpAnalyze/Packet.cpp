@@ -34,7 +34,7 @@ namespace amqpAnalyze
     {
     	// Ethernet header
         const struct ether_header* ethernetHeader = (struct ether_header*)dataPtr;
-        switch (::ntohs(ethernetHeader->ether_type)) {
+        switch (ntohs(ethernetHeader->ether_type)) {
         case ETHERTYPE_IP:
             addDissector(new Ip4Dissector(this, sizeof(struct ether_header)));
         	break;

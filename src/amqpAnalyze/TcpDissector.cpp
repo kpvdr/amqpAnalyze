@@ -124,11 +124,11 @@ namespace amqpAnalyze
     }
 
     uint16_t TcpDissector::getSourcePort() const {
-        return ::ntohs(_tcpHeader.source);
+        return ntohs(_tcpHeader.source);
     }
 
     uint16_t TcpDissector::getDestinationPort() const {
-        return ::ntohs(_tcpHeader.dest);
+        return ntohs(_tcpHeader.dest);
     }
 
     std::string TcpDissector::getFlagsAsString() const {

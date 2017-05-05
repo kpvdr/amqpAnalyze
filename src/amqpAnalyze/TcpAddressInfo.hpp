@@ -35,10 +35,13 @@ namespace amqpAnalyze
         bool _srcFinFlag;
         bool _destFinFlag;
         uint32_t _connectionIndex;
-        TcpConnection(const TcpAddressInfo& tcpAddressInfo, uint32_t initSrcSequence, uint32_t connectionIndex);
-        void setInitDestSequence(uint32_t initDestSequence);
+        uint64_t _firstPacketNumber;
+        uint64_t _lastPacketNumber;
+        TcpConnection(const TcpAddressInfo& tcpAddressInfo, uint32_t initSrcSequence, uint32_t connectionIndex, uint64_t packetNumber);
         inline uint32_t getRelSrcSequence(uint32_t currSrcSequence) { return currSrcSequence - _initSrcSequence; }
         inline uint32_t getRelDestSequence(uint32_t currDestSequence) { return currDestSequence - _initDestSequence; }
+        void setInitDestSequence(uint32_t initDestSequence);
+        inline void setLastPacketNumber(uint64_t lastPacketNumber) { _lastPacketNumber = lastPacketNumber; }
     };
 
     std::ostream& operator<<(std::ostream& o, const TcpConnection& t);

@@ -41,15 +41,14 @@ namespace amqpAnalyze
     }
 
     void TcpConnectionMap::print(std::ostream& os, bool showHashFlag) const {
-        os << "TCP connections found:\n";
-        os << "index" << std::setw(16) << "initiator" << std::setw(19) << "responder";
-        if (showHashFlag) os << std::setw(18) << "hash";
-        os << "\n";
+        os << "TCP connections found:\nindex       initiator          responder";
+        if (showHashFlag) os << "  hash            ";
+        os << "  packet range" << "\n";
         for (uint32_t i=0; i<_connectionList.size(); ++i) {
             TcpConnection* tcPtr = _connectionMap.at(_connectionList.at(i));
             os << std::setfill(' ') << std::setw(4) << (i+1) << ". " << std::setw(15) << tcPtr->_srcAddrStr << " -> " << std::setw(15) << tcPtr->_destAddrStr;
-            if (showHashFlag) os << "  " << std::hex << std::setfill('0') << std::setw(16) << tcPtr->_hash;
-            os << "\n";
+            if (showHashFlag) os << "  " << std::hex << std::setfill('0') << std::setw(16) << tcPtr->_hash << std::dec;
+            os << "  [" << tcPtr->_firstPacketNumber << " - " << tcPtr->_lastPacketNumber << "]" << "\n";
         }
     }
 
@@ -57,6 +56,7 @@ namespace amqpAnalyze
         TcpConnection* tcpConnectionPtr = nullptr;
         if (hasConnection(tcpAddressInfo._hash)) {
             tcpConnectionPtr = _connectionMap.at(tcpAddressInfo._hash);
+            tcpConnectionPtr->setLastPacketNumber(packetNum);
             if (tcpHeader.syn) {
                 if (tcpConnectionPtr->_initDestSequence == 0) {
                     tcpConnectionPtr->_initDestSequence = tcpHeader.seq;
@@ -79,7 +79,7 @@ namespace amqpAnalyze
             }
         } else {
             if (tcpHeader.syn) {
-                tcpConnectionPtr = new TcpConnection(tcpAddressInfo, tcpHeader.seq, _connectionList.size()+1);
+                tcpConnectionPtr = new TcpConnection(tcpAddressInfo, tcpHeader.seq, _connectionList.size()+1, packetNum);
                 _connectionMap.emplace(tcpAddressInfo._hash, tcpConnectionPtr);
                 _connectionList.push_back(tcpAddressInfo._hash);
             } else {
