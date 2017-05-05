@@ -34,7 +34,8 @@ namespace amqpAnalyze
         uint32_t _initDestSequence;
         bool _srcFinFlag;
         bool _destFinFlag;
-        TcpConnection(const TcpAddressInfo& tcpAddressInfo, uint32_t initSrcSequence);
+        uint32_t _connectionIndex;
+        TcpConnection(const TcpAddressInfo& tcpAddressInfo, uint32_t initSrcSequence, uint32_t connectionIndex);
         void setInitDestSequence(uint32_t initDestSequence);
         inline uint32_t getRelSrcSequence(uint32_t currSrcSequence) { return currSrcSequence - _initSrcSequence; }
         inline uint32_t getRelDestSequence(uint32_t currDestSequence) { return currDestSequence - _initDestSequence; }

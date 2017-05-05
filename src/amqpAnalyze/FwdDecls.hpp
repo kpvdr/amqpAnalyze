@@ -17,7 +17,9 @@ namespace amqpAnalyze
 {
 
     class Dissector;
-    typedef std::deque<Dissector*> DissectorList_t;
+    typedef std::deque<const Dissector*> DissectorList_t;
+    typedef DissectorList_t::iterator DissectorList_itr_t;
+    typedef DissectorList_t::const_iterator DissectorList_citr_t;
 
     class Error;
     typedef std::vector<const Error*> ErrorPtrList_t;

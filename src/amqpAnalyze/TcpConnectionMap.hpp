@@ -12,6 +12,8 @@
 #include <map>
 #include <vector>
 
+struct tcphdr;
+
 namespace amqpAnalyze
 {
     struct TcpConnection;
@@ -28,14 +30,15 @@ namespace amqpAnalyze
         TcpConnectionMap();
         virtual ~TcpConnectionMap();
 
-        void handleTcpSyn(const TcpAddressInfo& tcpAddressInfo, uint32_t sequence);
-        void handleTcpFin(const TcpAddressInfo& tcpAddressInfo);
+        uint32_t handleTcpHeader(const TcpAddressInfo& tcpAddressInfo, const struct tcphdr& tcpHeader, uint64_t packetNum);
         bool hasConnection(std::size_t hash) const;
-        void print(std::ostream& os) const;
+        void print(std::ostream& os, bool showHashFlag) const;
 
     protected:
         ConnectionMap_t _connectionMap;
         ConnectionHashList_t _connectionList;
+
+        TcpConnection* getTcpConnection(const TcpAddressInfo& tcpAddressInfo, const struct tcphdr& tcpHeader, uint64_t packetNum);
     };
 
 } /* namespace amqpAnalyze */

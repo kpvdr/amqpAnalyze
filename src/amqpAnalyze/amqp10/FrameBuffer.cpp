@@ -13,9 +13,6 @@
 #include <cmath>
 #include <iomanip>
 
-// debug
-#include <iostream>
-
 namespace amqpAnalyze
 {
     namespace amqp10

@@ -32,7 +32,7 @@ namespace amqpAnalyze
         while (true) {
             int option_index = 0;
             opterr = 0; // disable printing of error message from within getopt_long()
-            int c = ::getopt_long(argc, argv, "acdf:hn:st:v", s_longOptions, &option_index);
+            int c = ::getopt_long(argc, argv, "acC:df:hn:st:v", s_longOptions, &option_index);
             if (c == -1) break;
             switch(c) {
             case 'a':
@@ -40,6 +40,12 @@ namespace amqpAnalyze
                 break;
             case 'c':
                 s_colorFlag = true;
+                break;
+            case 'C':
+                try { handleConnectionIndex(optarg); }
+                catch (const std::invalid_argument& e) {
+                    handleException(basename(argv[0]), MSG("Error: invalid -C/--connection-index option value: \"" << optarg << "\""));
+                }
                 break;
             case 'd':
                 s_showAmqpDataFlag = true;
@@ -125,20 +131,9 @@ namespace amqpAnalyze
 
     Options::~Options() {}
 
-    void Options::printHelp(const char* baseName) {
-        std::cout << "Usage: " << baseName << " [options] FILE\n"
-                  << "options: -h --help            Print help\n"
-                  << "         -a --amqp            Show only AMQP packets\n"
-                  << "         -c --color           Use ANSI color\n"
-                  << "         -d --show-amqp-data  Show hex dump of AMQP data for each packet\n"
-                  << "         -f --from-packet NUM Show packets starting at NUM\n"
-                  << "         -n --num-packets NUM Show NUM packets. Can be used with option -f/--from-packet.\n"
-                  << "                              Cannot be used together with option -t/--to-packet.\n"
-                  << "         -s --show_state      Show connection, session and link state\n"
-                  << "         -t --to-packet NUM   Show up to packet NUM. Can be used with option\n"
-                  << "                              -f/--from-packet. Cannot be used with option -n/--num-packets\n"
-                  << "         -v --validate        Validate AMQP data to AMQP 1.0 specification\n"
-                  << "   FILE: pcapng file to be analyzed" << std::endl;
+    void Options::handleConnectionIndex(const char* optarg) {
+        uint32_t n(std::stoul(optarg));
+        s_connectionIndexSet.emplace(n);
     }
 
     void Options::handleException(const char* baseName, const std::string& errMsg) {
@@ -146,10 +141,29 @@ namespace amqpAnalyze
         throw amqpAnalyze::Error(errMsg);
     }
 
+    void Options::printHelp(const char* baseName) {
+        std::cout << "Usage: " << baseName << " [options] FILE\n"
+                  << "options: -h --help               Print help\n"
+                  << "         -a --amqp               Show only AMQP packets\n"
+                  << "         -c --color              Use ANSI color\n"
+                  << "         -C --connection-index N Show packets from connection index N. May be used multiple\n"
+                  << "                                 times to select multiple connections\n"
+                  << "         -d --show-amqp-data     Show hex dump of AMQP data for each packet\n"
+                  << "         -f --from-packet N      Show packets starting at N\n"
+                  << "         -n --num-packets N      Show N packets. Can be used with option -f/--from-packet.\n"
+                  << "                                 Cannot be used together with option -t/--to-packet.\n"
+                  << "         -s --show_state         Show connection, session and link state\n"
+                  << "         -t --to-packet N        Show up to packet N. Can be used with option\n"
+                  << "                                 -f/--from-packet. Cannot be used with option -n/--num-packets\n"
+                  << "         -v --validate           Validate AMQP data to AMQP 1.0 specification\n"
+                  << "   FILE: pcapng file to be analyzed" << std::endl;
+    }
+
 
     // static
     bool Options::s_amqpFlag = false;
     bool Options::s_colorFlag = false;
+    std::set<uint32_t> Options::s_connectionIndexSet;
     std::string Options::s_fileName;
     uint64_t Options::s_fromPacket = 0;
     uint32_t Options::s_maxDisplaySize = 50;
@@ -157,16 +171,18 @@ namespace amqpAnalyze
     bool Options::s_showStateFlag = false;
     uint64_t Options::s_toPacket = UINT64_MAX;
     bool Options::s_validateFlag = false;
+
     struct option Options::s_longOptions[] = {
-        {"help",           no_argument,       0, 'h'},
-        {"amqp",           no_argument,       0, 'a'},
-        {"color",          no_argument,       0, 'c'},
-        {"show-amqp-data", no_argument,       0, 'd'},
-        {"from-packet",    required_argument, 0, 'f'},
-        {"num-packets",    required_argument, 0, 'n'},
-        {"show_state",     no_argument,       0, 's'},
-        {"to-packet",      required_argument, 0, 't'},
-        {"validate",       no_argument,       0, 'v'},
+        {"help",             no_argument,       0, 'h'},
+        {"amqp",             no_argument,       0, 'a'},
+        {"color",            no_argument,       0, 'c'},
+        {"connection-index", required_argument, 0, 'C'},
+        {"show-amqp-data",   no_argument,       0, 'd'},
+        {"from-packet",      required_argument, 0, 'f'},
+        {"num-packets",      required_argument, 0, 'n'},
+        {"show_state",       no_argument,       0, 's'},
+        {"to-packet",        required_argument, 0, 't'},
+        {"validate",         no_argument,       0, 'v'},
         {0, 0, 0, 0}
     };
 

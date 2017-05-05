@@ -16,9 +16,7 @@ namespace amqpAnalyze
     class IpDissector: public Dissector
     {
     public:
-        IpDissector(uint64_t packetNum,
-                    const uint32_t packetOffs,
-                    DissectorList_t& protocolList);
+        IpDissector(Packet* packetPtr, uint32_t packetOffs);
         virtual ~IpDissector();
 
         virtual std::string getSourceAddrStr() const = 0;

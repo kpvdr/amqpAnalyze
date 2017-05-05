@@ -10,14 +10,10 @@
 namespace amqpAnalyze
 {
 
-    Dissector::Dissector(const Dissector* parent,
-                         uint64_t packetNum,
-                         uint32_t packetOffs,
-                         DissectorList_t& protocolList):
-           _parent(parent),
-           _packetNum(packetNum),
-           _packetOffs(packetOffs),
-           _protocolList(protocolList)
+    Dissector::Dissector(Packet* packetPtr, uint32_t dataOffs, const Dissector* parent):
+           _packetPtr(packetPtr),
+           _dataOffs(dataOffs),
+           _parent(parent)
     {}
 
     Dissector::~Dissector() {}

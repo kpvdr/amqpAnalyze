@@ -16,9 +16,6 @@
 #include <iomanip>
 #include <netinet/in.h>
 
-// debug
-#include <iostream>
-
 namespace amqpAnalyze
 {
     namespace amqp10

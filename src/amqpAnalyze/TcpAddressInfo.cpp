@@ -43,12 +43,13 @@ namespace amqpAnalyze
 
 
 
-    TcpConnection::TcpConnection(const TcpAddressInfo& tcpAddressInfo, uint32_t initSrcSequence):
+    TcpConnection::TcpConnection(const TcpAddressInfo& tcpAddressInfo, uint32_t initSrcSequence, uint32_t connectionIndex):
         TcpAddressInfo(tcpAddressInfo),
         _initSrcSequence(initSrcSequence),
         _initDestSequence(0),
         _srcFinFlag(false),
-        _destFinFlag(false)
+        _destFinFlag(false),
+        _connectionIndex(connectionIndex)
     {}
 
     void TcpConnection::setInitDestSequence(uint32_t initDestSequence) {

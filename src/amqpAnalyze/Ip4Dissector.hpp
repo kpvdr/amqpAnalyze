@@ -19,11 +19,7 @@ namespace amqpAnalyze
     class Ip4Dissector: public IpDissector
     {
     public:
-        Ip4Dissector(uint64_t packetNum,
-                     const struct pcap_pkthdr* pcapPacketHeaderPtr,
-                     const uint8_t* packetPtr,
-                     const uint32_t packetOffs,
-                     DissectorList_t& protocolList);
+        Ip4Dissector(Packet* packetPtr, uint32_t dataOffs);
         virtual ~Ip4Dissector();
 
         void appendString(std::ostringstream& oss, size_t margin) const override;

@@ -20,11 +20,7 @@ class Ip6Dissector: public IpDissector {
 protected:
 	struct ip6_hdr _ip6Header;
 public:
-	Ip6Dissector(uint64_t packetNum,
-	             const struct pcap_pkthdr* pcapPacketHeaderPtr,
-	             const uint8_t* packetPtr,
-                 const uint32_t packetOffs,
-                 DissectorList_t& protocolList);
+	Ip6Dissector(Packet* packetPtr, const uint32_t dataOffs);
 	virtual ~Ip6Dissector();
 
 	void appendString(std::ostringstream& oss, size_t margin) const override;

@@ -20,19 +20,15 @@ namespace amqpAnalyze
 
     class TcpDissector: public Dissector {
     public:
-        TcpDissector(const Dissector* parent,
-                     uint64_t packetNum,
-                     const struct pcap_pkthdr* pcapPacketHeaderPtr,
-                     const uint8_t* packetPtr,
-                     const uint32_t packetOffs,
-                     DissectorList_t& protocolList);
+        TcpDissector(Packet* packetPtr, uint32_t dataOffs, const Dissector* parent);
         virtual ~TcpDissector();
 
         void appendString(std::ostringstream& oss, size_t margin) const override;
         inline DissectorType_t dissectorType() const override { return DissectorType_t::DISSECTOR_TCP; }
         std::string getSourceAddrStr(bool colorFlag = g_optionsPtr->s_colorFlag) const;
         std::string getDestinationAddrStr(bool colorFlag = g_optionsPtr->s_colorFlag) const;
-        std::string getConnectionIndex() const;
+        std::string getConnectionHashStr() const;
+        uint32_t getConnectionIndex() const;
         uint16_t getSourcePort() const;
         uint16_t getDestinationPort() const;
         std::string getFlagsAsString() const;
@@ -45,6 +41,7 @@ namespace amqpAnalyze
         struct tcphdr _tcpHeader;
         uint32_t _hdrSizeBytes;
         uint32_t _remainingDataLength;
+        uint32_t _connectionIndex;
         TcpAddressInfo _tcpAddressInfo;
     };
 

@@ -23,9 +23,10 @@ int main(int argc, char** argv) {
         g_fileParserPtr = new amqpAnalyze::FileParser();
 
         g_fileParserPtr->parse(std::cout);
-        g_tcpConnectionMap.print(std::cout);
+        g_tcpConnectionMap.print(std::cout, false);
         std::cout << "\n\n";
         g_fileParserPtr->print(std::cout);
+
         std::cout << "\ndone" << std::endl;
 
         // Delete global instances

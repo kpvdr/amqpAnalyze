@@ -58,7 +58,7 @@ namespace amqpAnalyze
         }
         struct timeval relativeTimestamp;
         timersub(&pkthdr->ts, &_firstPakcetTimestamp, &relativeTimestamp);
-        Packet* packetPtr = new Packet(pkthdr, packet, ++_packetNumber, relativeTimestamp);
+        Packet* packetPtr = new Packet(++_packetNumber, pkthdr, (const uint8_t*)packet, relativeTimestamp);
         _packetList.push_back(packetPtr);
     }
 
