@@ -9,6 +9,7 @@
 
 #include <amqpAnalyze/Error.hpp>
 #include <amqpAnalyze/TcpAddressInfo.hpp>
+#include <amqpAnalyze/TcpConnection.hpp>
 #include <amqpAnalyze/TcpDissector.hpp>
 #include <iomanip>
 #include <netinet/tcp.h>
@@ -34,7 +35,7 @@ namespace amqpAnalyze
     }
 
     uint32_t TcpConnectionMap::handleTcpHeader(TcpDissector* tcpDissector, uint64_t packetNum) {
-        return getTcpConnection(tcpDissector, packetNum)->_connectionIndex;
+        return getTcpConnection(tcpDissector, packetNum)->connectionIndex();
     }
 
     bool TcpConnectionMap::hasConnection(std::size_t hash) const {
@@ -47,21 +48,21 @@ namespace amqpAnalyze
         os << "  packet range" << "\n";
         for (uint32_t i=0; i<_connectionList.size(); ++i) {
             TcpConnection* tcPtr = _connectionMap.at(_connectionList.at(i));
-            os << std::setfill(' ') << std::setw(4) << (i+1) << ". " << std::setw(15) << tcPtr->_srcAddrStr << " -> " << std::setw(15) << tcPtr->_destAddrStr;
-            if (showHashFlag) os << "  " << std::hex << std::setfill('0') << std::setw(16) << tcPtr->_hash << std::dec;
-            os << "  [" << tcPtr->_firstPacketNumber << " - " << tcPtr->_lastPacketNumber << "]" << "\n";
+            os << std::setfill(' ') << std::setw(4) << (i+1) << ". " << std::setw(15) << tcPtr->srcAddress() << " -> " << std::setw(15) << tcPtr->destAddress();
+            if (showHashFlag) os << "  " << std::hex << std::setfill('0') << std::setw(16) << tcPtr->hash() << std::dec;
+            os << "  [" << tcPtr->firstPacketNumber() << " - " << tcPtr->lastPacketNumber() << "]" << "\n";
         }
     }
 
     TcpConnection* TcpConnectionMap::getTcpConnection(TcpDissector* tcpDissector, uint64_t packetNum) {
         TcpConnection* tcpConnectionPtr = nullptr;
         const TcpAddressInfo& tcpAddressInfo = tcpDissector->getTcpAddressInfo();
-        if (hasConnection(tcpAddressInfo._hash)) {
-            tcpConnectionPtr = _connectionMap.at(tcpAddressInfo._hash);
+        if (hasConnection(tcpAddressInfo.hash())) {
+            tcpConnectionPtr = _connectionMap.at(tcpAddressInfo.hash());
             tcpConnectionPtr->setLastPacketNumber(packetNum);
             if (tcpDissector->syn()) {
-                if (tcpConnectionPtr->_initDestSequence == 0) {
-                    tcpConnectionPtr->_initDestSequence = tcpDissector->getSequence();
+                if (tcpConnectionPtr->initDestSequence() == 0) {
+                    tcpConnectionPtr->setInitDestSequence(tcpDissector->getSequence());
                 } else {
                     tcpDissector->addError(new amqpAnalyze::Error(MSG("TcpConnectionMap::getTcpConnection: Destination SYN already set: " << tcpAddressInfo)));
                 }
@@ -70,10 +71,10 @@ namespace amqpAnalyze
                 // TODO: add ack handling here
             }
             if (tcpDissector->fin()) {
-                if (tcpAddressInfo._srcAddrStr.compare(tcpConnectionPtr->_srcAddrStr) == 0) {
-                    tcpConnectionPtr->_srcFinFlag = true;
-                } else if (tcpAddressInfo._srcAddrStr.compare(tcpConnectionPtr->_destAddrStr) == 0) {
-                    tcpConnectionPtr->_destFinFlag = true;
+                if (tcpAddressInfo.srcAddress().compare(tcpConnectionPtr->srcAddress()) == 0) {
+                    tcpConnectionPtr->setSrcFinFlag();
+                } else if (tcpAddressInfo.srcAddress().compare(tcpConnectionPtr->destAddress()) == 0) {
+                    tcpConnectionPtr->setDestFinFlag();
                 } else {
                     tcpDissector->addError(new amqpAnalyze::Error(MSG("TcpConnectionMap::getTcpConnection: Address does not match connection source or destination: addr="
                                                  << tcpAddressInfo << "; connection=" << tcpConnectionPtr)));
@@ -82,11 +83,12 @@ namespace amqpAnalyze
         } else {
             if (!tcpDissector->syn()) {
                 tcpDissector->addError(new amqpAnalyze::Error(MSG("ERROR: No previous TCP SYN flag seen for addresss "
-                                << tcpAddressInfo._srcAddrStr << " or " << tcpAddressInfo._destAddrStr << ": Possible previous packet(s) missing")));
+                                                                  << tcpAddressInfo.srcAddress() << " or " << tcpAddressInfo.destAddress()
+                                                                  << ": Possible previous packet(s) missing")));
             }
             tcpConnectionPtr = new TcpConnection(tcpAddressInfo, tcpDissector->getSequence(), _connectionList.size()+1, packetNum);
-            _connectionMap.emplace(tcpAddressInfo._hash, tcpConnectionPtr);
-            _connectionList.push_back(tcpAddressInfo._hash);
+            _connectionMap.emplace(tcpAddressInfo.hash(), tcpConnectionPtr);
+            _connectionList.push_back(tcpAddressInfo.hash());
         }
         return tcpConnectionPtr;
     }

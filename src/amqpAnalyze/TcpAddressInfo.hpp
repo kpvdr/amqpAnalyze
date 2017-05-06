@@ -13,40 +13,26 @@
 namespace amqpAnalyze
 {
 
-    struct TcpAddressInfo
+    class TcpAddressInfo
     {
-        std::string _srcAddrStr;
-        std::string _destAddrStr;
-        std::size_t _hash;
+    public:
         TcpAddressInfo();
         TcpAddressInfo(const TcpAddressInfo& other);
+        virtual ~TcpAddressInfo();
+
+        inline const std::string& destAddress() const { return _destAddrStr; }
+        inline const std::size_t hash() const { return _hash; }
+        inline const std::string& srcAddress() const { return _srcAddrStr; }
         void setAddress(const TcpDissector* tcpDissectorPtr);
-    };
-
-    std::ostream& operator<<(std::ostream& o, const TcpAddressInfo& t);
-    std::ostream& operator<<(std::ostream& o, const TcpAddressInfo* t);
-
-
-
-    struct TcpConnection: public TcpAddressInfo
-    {
-        uint32_t _initSrcSequence;
-        uint32_t _initDestSequence;
-        bool _srcFinFlag;
-        bool _destFinFlag;
-        uint32_t _connectionIndex;
-        uint64_t _firstPacketNumber;
-        uint64_t _lastPacketNumber;
-        TcpConnection(const TcpAddressInfo& tcpAddressInfo, uint32_t initSrcSequence, uint32_t connectionIndex, uint64_t packetNumber);
-        inline uint32_t getRelSrcSequence(uint32_t currSrcSequence) { return currSrcSequence - _initSrcSequence; }
-        inline uint32_t getRelDestSequence(uint32_t currDestSequence) { return currDestSequence - _initDestSequence; }
-        void setInitDestSequence(uint32_t initDestSequence);
-        inline void setLastPacketNumber(uint64_t lastPacketNumber) { _lastPacketNumber = lastPacketNumber; }
-    };
-
-    std::ostream& operator<<(std::ostream& o, const TcpConnection& t);
-    std::ostream& operator<<(std::ostream& o, const TcpConnection* t);
+    protected:
+        std::string _destAddrStr;
+        std::size_t _hash;
+        std::string _srcAddrStr;
+   };
 
 } /* namespace amqpAnalyze */
+
+std::ostream& operator<<(std::ostream& o, const amqpAnalyze::TcpAddressInfo& t);
+std::ostream& operator<<(std::ostream& o, const amqpAnalyze::TcpAddressInfo* t);
 
 #endif /* SRC_AMQPANALYZE_TCPADDRESSINFO_HPP_ */

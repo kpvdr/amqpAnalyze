@@ -9,6 +9,7 @@
 
 #include <amqpAnalyze/TcpDissector.hpp>
 #include <iomanip>
+#include <iostream>
 
 namespace amqpAnalyze
 {
@@ -25,47 +26,22 @@ namespace amqpAnalyze
         _hash(other._hash)
     {}
 
+    TcpAddressInfo::~TcpAddressInfo() {}
+
     void TcpAddressInfo::setAddress(const TcpDissector* tcpDissectorPtr) {
         _srcAddrStr.assign(tcpDissectorPtr->getSourceAddrStr(false));
         _destAddrStr.assign(tcpDissectorPtr->getDestinationAddrStr(false));
         _hash = tcpDissectorPtr->getConnectionHash();
     }
 
-    std::ostream& operator<<(std::ostream& o, const TcpAddressInfo& t) {
-        o << t._srcAddrStr << " -> " << t._destAddrStr << " hash=0x" << std::hex << t._hash << std::dec;
-        return o;
-    }
-
-    std::ostream& operator<<(std::ostream& o, const TcpAddressInfo* t) {
-        o << t->_srcAddrStr << " -> " << t->_destAddrStr << " hash=0x" << std::hex << t->_hash << std::dec;
-        return o;
-    }
-
-
-
-    TcpConnection::TcpConnection(const TcpAddressInfo& tcpAddressInfo, uint32_t initSrcSequence, uint32_t connectionIndex, uint64_t packetNumber):
-        TcpAddressInfo(tcpAddressInfo),
-        _initSrcSequence(initSrcSequence),
-        _initDestSequence(0),
-        _srcFinFlag(false),
-        _destFinFlag(false),
-        _connectionIndex(connectionIndex),
-        _firstPacketNumber(packetNumber),
-        _lastPacketNumber(packetNumber)
-    {}
-
-    void TcpConnection::setInitDestSequence(uint32_t initDestSequence) {
-        _initDestSequence = initDestSequence;
-    }
-
-    std::ostream& operator<<(std::ostream& o, const TcpConnection& t) {
-        o<< t._srcAddrStr << " -> " << t._destAddrStr << " hash=0x" << std::setfill('0') << std::setw(16) << std::hex << t._hash << std::dec;
-        return o;
-    }
-
-    std::ostream& operator<<(std::ostream& o, const TcpConnection* t) {
-        o<< t->_srcAddrStr << " -> " << t->_destAddrStr << " hash=0x" << std::setfill('0') << std::setw(16) << std::hex << t->_hash << std::dec;
-        return o;
-    }
-
 } /* namespace amqpAnalyze */
+
+std::ostream& operator<<(std::ostream& o, const amqpAnalyze::TcpAddressInfo& t) {
+    o << t.srcAddress() << " -> " << t.destAddress() << " hash=0x" << std::hex << t.hash() << std::dec;
+    return o;
+}
+
+std::ostream& operator<<(std::ostream& o, const amqpAnalyze::TcpAddressInfo* t) {
+    o << t->srcAddress() << " -> " << t->destAddress() << " hash=0x" << std::hex << t->hash() << std::dec;
+    return o;
+}

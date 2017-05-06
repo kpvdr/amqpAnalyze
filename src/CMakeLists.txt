@@ -39,6 +39,7 @@ set(amqpAnalyze_HEADERS
     amqpAnalyze/Options.hpp
     amqpAnalyze/Packet.hpp
     amqpAnalyze/TcpAddressInfo.hpp
+    amqpAnalyze/TcpConnection.hpp
     amqpAnalyze/TcpConnectionMap.hpp
     amqpAnalyze/TcpDissector.hpp
 )
@@ -73,6 +74,7 @@ set(amqpAnalyze_SOURCES
     amqpAnalyze/Options.cpp
     amqpAnalyze/Packet.cpp
     amqpAnalyze/TcpAddressInfo.cpp
+    amqpAnalyze/TcpConnection.cpp
     amqpAnalyze/TcpConnectionMap.cpp
     amqpAnalyze/TcpDissector.cpp
 )

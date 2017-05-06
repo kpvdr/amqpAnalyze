@@ -23,14 +23,14 @@ namespace amqpAnalyze
             _errorList(),
             _closeError(),
             _frameErrorFlag(false),
-            _initiatorAddrStr(tcpAddrInfo._srcAddrStr),
+            _initiatorAddrStr(tcpAddrInfo.srcAddress()),
             _initiatorCloseError(),
             _initiatorEndpoints(),
             _initiatorHeaderSent(false),
             _initiatorOpen(nullptr),
             _initiatorState("initiator"),
             _initiatorTcpClosedFlag(false),
-            _responderAddrStr(tcpAddrInfo._destAddrStr),
+            _responderAddrStr(tcpAddrInfo.destAddress()),
             _responderCloseError(),
             _responderEndpoints(),
             _responderHeaderSent(false),
@@ -165,7 +165,7 @@ namespace amqpAnalyze
         }
 
         bool Connection::isInitiator(const TcpAddressInfo& tcpAddrInfo) const {
-            return tcpAddrInfo._srcAddrStr.compare(_initiatorAddrStr) == 0; // TODO: this could be an inefficient way to determine initiator
+            return tcpAddrInfo.srcAddress().compare(_initiatorAddrStr) == 0; // TODO: this could be an inefficient way to determine initiator
         }
 
     } /* namespace amqp10 */

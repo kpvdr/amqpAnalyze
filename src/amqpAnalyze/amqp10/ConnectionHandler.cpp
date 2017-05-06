@@ -47,7 +47,7 @@ namespace amqpAnalyze
                 if (framePtr == nullptr) {
                     throw amqpAnalyze::Error(MSG("ConnectionHandler::handleFrame(): Error in class Frame downcast"));
                 }
-                try { _connectionMap.at(tcpAddrInfo._hash)->handleFrame(tcpAddrInfo, framePtr); }
+                try { _connectionMap.at(tcpAddrInfo.hash())->handleFrame(tcpAddrInfo, framePtr); }
                 catch (const std::out_of_range& e) {
                     framePtr->addError(new amqpAnalyze::Error(MSG("AMQP connection map: address not seen, possible missing previous AMQP frames. (" << tcpAddrInfo << ")")));
                 }
@@ -62,7 +62,7 @@ namespace amqpAnalyze
         void ConnectionHandler::tcpClose(TcpDissector* tcpDissectorPtr) {
             const TcpAddressInfo& tcpAddrInfo = tcpDissectorPtr->getTcpAddressInfo();
             Connection* connectionPtr = nullptr;
-            try { connectionPtr = _connectionMap.at(tcpAddrInfo._hash); }
+            try { connectionPtr = _connectionMap.at(tcpAddrInfo.hash()); }
             catch (const std::out_of_range& e) {
                 tcpDissectorPtr->addError(new amqpAnalyze::Error(MSG("AMQP connection map: TCP close for address not seen, possible missing previous frames. ("
                                          << tcpAddrInfo << ")")));
@@ -70,7 +70,7 @@ namespace amqpAnalyze
             }
             if (connectionPtr->handleTcpClose(tcpAddrInfo)) {
                 delete connectionPtr;
-                const std::size_t numErased = _connectionMap.erase(tcpAddrInfo._hash);
+                const std::size_t numErased = _connectionMap.erase(tcpAddrInfo.hash());
                 if (numErased != 1) {
                     tcpDissectorPtr->addError(new amqpAnalyze::Error(MSG("AMQP connection map: address not seen, possible missing previous AMQP frames. ("
                                              << tcpAddrInfo << ")")));
@@ -81,12 +81,12 @@ namespace amqpAnalyze
         Connection*  ConnectionHandler::insertIfNotPresent(const struct TcpAddressInfo& tcpAddrInfo) {
             // Efficient check-before-insert:
             // See http://stackoverflow.com/questions/97050/stdmap-insert-or-stdmap-find for the following:
-            std::map<uint64_t, Connection*>::iterator itr = _connectionMap.lower_bound(tcpAddrInfo._hash);
-            if (itr != _connectionMap.end() && !(_connectionMap.key_comp()(tcpAddrInfo._hash, itr->first))) {
+            std::map<uint64_t, Connection*>::iterator itr = _connectionMap.lower_bound(tcpAddrInfo.hash());
+            if (itr != _connectionMap.end() && !(_connectionMap.key_comp()(tcpAddrInfo.hash(), itr->first))) {
                 return itr->second;
             } else {
                 Connection* cPtr = new Connection(tcpAddrInfo);
-                _connectionMap.emplace(tcpAddrInfo._hash, cPtr);
+                _connectionMap.emplace(tcpAddrInfo.hash(), cPtr);
                 return cPtr;
             }
         }
