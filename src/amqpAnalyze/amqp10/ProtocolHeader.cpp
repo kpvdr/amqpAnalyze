@@ -12,6 +12,7 @@
 #include <amqpAnalyze/Options.hpp>
 #include <iomanip>
 #include <netinet/in.h>
+#include "ValidationError.hpp"
 
 namespace amqpAnalyze
 {
@@ -65,9 +66,9 @@ namespace amqpAnalyze
             if (_hdr._protocolId != ProtocolId_t(0) &&
                 _hdr._protocolId != ProtocolId_t(2) &&
                 _hdr._protocolId != ProtocolId_t(3)) {
-                addError(new amqpAnalyze::AmqpValidationError(_packetNum, _dataOffset,
-                         MSG("ProtocolHeader::ProtocolHeader(): Invalid AMQP protocol id: 0x" << std::hex
-                             << (int)_hdr._protocolId)));
+                addError(new ValidationError(_packetNum, _dataOffset,
+                                                 MSG("ProtocolHeader::ProtocolHeader(): Invalid AMQP protocol id: 0x"
+                                                     << std::hex << (int)_hdr._protocolId)));
             }
         }
 

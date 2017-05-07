@@ -14,6 +14,7 @@ namespace amqpAnalyze
 {
     namespace amqp10
     {
+        class AmqpList;
 
         enum class PerformativeType_t:uint64_t {
             OPEN=0x10,

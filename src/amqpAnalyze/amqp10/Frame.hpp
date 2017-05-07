@@ -14,6 +14,8 @@ namespace amqpAnalyze
 {
     namespace amqp10
     {
+        class FramePlaceholder;
+        class Performative;
 
         enum class FrameType_t:uint8_t {
             AMQP_FRAME = 0,
@@ -39,12 +41,12 @@ namespace amqpAnalyze
             uint32_t doffBytes() const;
             const std::string& extendedHeader() const;
             std::size_t extendedHeaderSize() const;
-            inline const FrameError* frameError() const { return _frameError; }
+            inline const FramePlaceholder* framePlaceholder() const { return _framePlaceholder; }
             uint32_t frameSize() const;
             FrameType_t frameType() const;
             inline Performative* performative() { return _performative; }
             inline const Performative* performative() const { return _performative; }
-            inline const bool isEmpty() const { return _performative == nullptr && _frameError == nullptr; }
+            inline const bool isEmpty() const { return _performative == nullptr && _framePlaceholder == nullptr; }
             const AmqpBlockList_t& sectionPtrList() const;
             uint16_t typeSpecific() const;
             void validate() override;
@@ -54,7 +56,7 @@ namespace amqpAnalyze
             const std::size_t _extendedHeaderSize;
             std::string _extendedHeader;
             Performative* _performative;
-            FrameError* _frameError;
+            FramePlaceholder* _framePlaceholder;
             AmqpBlockList_t _sectionPtrList;
             static std::map<FrameType_t, const char*> s_frameTypeName;
         };

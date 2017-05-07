@@ -14,6 +14,10 @@ namespace amqpAnalyze
 {
     namespace amqp10
     {
+        class AmqpAnnotations;
+        class AmqpBinary;
+        class AmqpList;
+        class AmqpMap;
 
         enum class SectionType_t:uint64_t {
             HEADER=0x70,

@@ -12,6 +12,7 @@
 
 namespace amqpAnalyze
 {
+    class TcpDissector;
 
     class TcpAddressInfo
     {

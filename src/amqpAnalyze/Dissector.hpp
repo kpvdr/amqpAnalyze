@@ -14,6 +14,7 @@
 
 namespace amqpAnalyze
 {
+    class Packet;
 
     enum class DissectorType_t:uint8_t {
         DISSECTOR_IP4,

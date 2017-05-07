@@ -14,6 +14,7 @@
 #include <cstring>
 #include <iomanip>
 #include <string>
+#include "ValidationError.hpp"
 
 #define SIZE_DESIGNATION_CHAR ':'
 
@@ -538,7 +539,7 @@ namespace amqpAnalyze
         void AmqpList::validate(const FieldTypeList_t& fieldTypeList, addErrorFp errorHandler, AmqpBlock* errorHandlerInstance) {
             // 1. Check field list not larger than fieldTypeList
             if (_value.size() > fieldTypeList.size()) {
-                (errorHandlerInstance->*errorHandler)(new AmqpValidationError(ErrorSeverity_t::ERROR,
+                (errorHandlerInstance->*errorHandler)(new ValidationError(ErrorSeverity_t::ERROR,
                                 errorHandlerInstance->packetNum(),
                                 errorHandlerInstance->dataOffset(),
                                 MSG("FieldTypeList size mismatch: FieldTypeList size=" << fieldTypeList.size() << ", fieldList size=" << _value.size())));
@@ -551,7 +552,7 @@ namespace amqpAnalyze
 
                 // 3. Check that null not present for required field
                 if (fieldType._mandatoryFlag && (*i)->isNull()) {
-                    (errorHandlerInstance->*errorHandler)(new AmqpValidationError(errorHandlerInstance->packetNum(),
+                    (errorHandlerInstance->*errorHandler)(new ValidationError(errorHandlerInstance->packetNum(),
                                     errorHandlerInstance->dataOffset(),
                                     MSG("Mandatory field \"" << (*i)->name() << "\" is null")));
                 }
@@ -560,7 +561,7 @@ namespace amqpAnalyze
                 if (!(*i)->isNull()) {
                     for (AmqpProvidesRequiresListCitr_t j=fieldType._requiresList.cbegin(); j!=fieldType._requiresList.cend(); ++j) {
                         if (!(*i)->provides(*j, (*i)->providesList())) {
-                            (errorHandlerInstance->*errorHandler)(new AmqpValidationError(errorHandlerInstance->packetNum(),
+                            (errorHandlerInstance->*errorHandler)(new ValidationError(errorHandlerInstance->packetNum(),
                                             errorHandlerInstance->dataOffset(),
                                             MSG("Field \"" << fieldType._fieldName << "\" requires \"" << providesRequiresNames[*j]
                                                 << "\", but is not provided by value type \"" << (*i)->typeStr() << "\"")));
@@ -571,7 +572,7 @@ namespace amqpAnalyze
                 // 5. Check that fieldTypeList multiple has array type
                 if (!(*i)->isNull() && fieldType._multipleFlag) {
                     if (std::strncmp((*i)->typeStr(), "array", 5) != 0) {
-                        (errorHandlerInstance->*errorHandler)(new AmqpValidationError(errorHandlerInstance->packetNum(),
+                        (errorHandlerInstance->*errorHandler)(new ValidationError(errorHandlerInstance->packetNum(),
                                         errorHandlerInstance->dataOffset(),
                                         MSG("Field \"" << fieldType._fieldName << "\" allows multiple values, but is not of type \"array\"")));
                     }

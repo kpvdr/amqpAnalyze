@@ -1,12 +1,12 @@
 /*
- * FrameError.hpp
+ * FramePlaceholder.hpp
  *
  *  Created on: Apr 19, 2017
  *      Author: kpvdr
  */
 
-#ifndef SRC_AMQPANALYZE_AMQP10_FRAMEERROR_HPP_
-#define SRC_AMQPANALYZE_AMQP10_FRAMEERROR_HPP_
+#ifndef SRC_AMQPANALYZE_AMQP10_FRAMEPLACEHOLDER_HPP_
+#define SRC_AMQPANALYZE_AMQP10_FRAMEPLACEHOLDER_HPP_
 
 #include <amqpAnalyze/amqp10/AmqpBlock.hpp>
 
@@ -17,11 +17,11 @@ namespace amqpAnalyze
     namespace amqp10
     {
 
-        class FrameError: public AmqpBlock
+        class FramePlaceholder: public AmqpBlock
         {
         public:
-            FrameError(uint64_t packetNum, std::size_t dataOffset, const amqpAnalyze::Error& error);
-            virtual ~FrameError();
+            FramePlaceholder(uint64_t packetNum, std::size_t dataOffset, const amqpAnalyze::Error& error);
+            virtual ~FramePlaceholder();
 
             std::ostringstream& appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;
             inline AmqpBlockType_t blockType() const override { return AmqpBlockType_t::FRAME_ERROR; }
@@ -34,4 +34,4 @@ namespace amqpAnalyze
     } /* namespace amqp10 */
 } /* namespace amqpAnalyze */
 
-#endif /* SRC_AMQPANALYZE_AMQP10_FRAMEERROR_HPP_ */
+#endif /* SRC_AMQPANALYZE_AMQP10_FRAMEPLACEHOLDER_HPP_ */

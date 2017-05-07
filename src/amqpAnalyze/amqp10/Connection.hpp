@@ -13,8 +13,14 @@
 
 namespace amqpAnalyze
 {
+    class TcpAddressInfo;
+
     namespace amqp10
     {
+        class AmqpClose;
+        class AmqpOpen;
+        class Endpoint;
+        class Frame;
 
         enum class LastActorType_t {
             NONE,

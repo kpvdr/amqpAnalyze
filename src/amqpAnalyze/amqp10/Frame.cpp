@@ -9,12 +9,14 @@
 
 #include <amqpAnalyze/amqp10/Decoder.hpp>
 #include <amqpAnalyze/amqp10/FrameBuffer.hpp>
-#include <amqpAnalyze/amqp10/FrameError.hpp>
 #include <amqpAnalyze/amqp10/Performative.hpp>
 #include <amqpAnalyze/amqp10/Section.hpp>
 #include <amqpAnalyze/Options.hpp>
 #include <iomanip>
 #include <netinet/in.h>
+
+#include "FramePlaceholder.hpp"
+#include "ValidationError.hpp"
 
 namespace amqpAnalyze
 {
@@ -34,7 +36,7 @@ namespace amqpAnalyze
             _extendedHeaderSize((_hdr._doff * 4) - 8),
             _extendedHeader((char*)frameBuffer.getStructPtr(_extendedHeaderSize)),
             _performative(nullptr),
-            _frameError(nullptr),
+            _framePlaceholder(nullptr),
             _sectionPtrList()
         {
             frameBuffer.addColorDatum(_dataOffset, sizeof(hdr), DisplayColorType_t::AMQP_FRAME);
@@ -45,14 +47,14 @@ namespace amqpAnalyze
                         try {
                             _sectionPtrList.push_back(Decoder::decodeSection(frameBuffer));
                         } catch (const amqpAnalyze::Error& e) {
-                            _sectionPtrList.push_back(new FrameError(frameBuffer.getPacketNum(), frameBuffer.getFrameOffsetSnapshot(), e));
+                            _sectionPtrList.push_back(new FramePlaceholder(frameBuffer.getPacketNum(), frameBuffer.getFrameOffsetSnapshot(), e));
                             frameBuffer.popFrameOffsetSnapshot();
                             frameBuffer.ignore(_hdr._frameSize - (frameBuffer.getOffset() - _dataOffset)); // ignore rest of frame
                             break;
                         }
                     }
                 } catch (const amqpAnalyze::Error& e) {
-                    _frameError = new FrameError(frameBuffer.getPacketNum(), frameBuffer.getFrameOffsetSnapshot(), e);
+                    _framePlaceholder = new FramePlaceholder(frameBuffer.getPacketNum(), frameBuffer.getFrameOffsetSnapshot(), e);
                     frameBuffer.popFrameOffsetSnapshot();
                     frameBuffer.ignore(_hdr._frameSize - (frameBuffer.getOffset() - _dataOffset)); // ignore rest of frame
                 }
@@ -127,8 +129,8 @@ namespace amqpAnalyze
 
         void Frame::validate() {
             if (_extendedHeaderSize > 0) {
-                addError(new amqpAnalyze::AmqpValidationError(_packetNum, _dataOffset, MSG("Extended header of size 0x"
-                                << std::hex << _extendedHeaderSize << " found: reserved for future use, should be size 0")));
+                addError(new ValidationError(_packetNum, _dataOffset, MSG("Extended header of size 0x" << std::hex
+                                                                              << _extendedHeaderSize << " found: reserved for future use, should be size 0")));
             }
             if (_performative != nullptr) {
                 _performative->validate();

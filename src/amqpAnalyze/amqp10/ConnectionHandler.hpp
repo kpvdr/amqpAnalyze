@@ -12,8 +12,12 @@
 
 namespace amqpAnalyze
 {
+    class TcpAddressInfo;
+    class TcpDissector;
+
     namespace amqp10
     {
+        class Connection;
 
         class ConnectionHandler
         {
@@ -27,7 +31,7 @@ namespace amqpAnalyze
         protected:
             std::map<uint64_t, Connection*> _connectionMap;
 
-            Connection* insertIfNotPresent(const struct TcpAddressInfo& tcpAddrInfo);
+            Connection* insertIfNotPresent(const amqpAnalyze::TcpAddressInfo& tcpAddrInfo);
         };
 
     } /* namespace amqp10 */

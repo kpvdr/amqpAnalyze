@@ -35,7 +35,7 @@ namespace amqpAnalyze
         }
 
         void ConnectionHandler::handleFrame(TcpDissector* tcpDissectorPtr, AmqpBlock* blockPtr) {
-            const TcpAddressInfo& tcpAddrInfo = tcpDissectorPtr->getTcpAddressInfo();
+            const amqpAnalyze::TcpAddressInfo& tcpAddrInfo = tcpDissectorPtr->getTcpAddressInfo();
             if (std::strcmp(blockPtr->name(), "ProtocolHeader") == 0) {
                 ProtocolHeader* protocolHeaderPtr = dynamic_cast<ProtocolHeader*>(blockPtr);
                 if (protocolHeaderPtr == nullptr)  {
@@ -78,7 +78,7 @@ namespace amqpAnalyze
             }
         }
 
-        Connection*  ConnectionHandler::insertIfNotPresent(const struct TcpAddressInfo& tcpAddrInfo) {
+        Connection*  ConnectionHandler::insertIfNotPresent(const amqpAnalyze::TcpAddressInfo& tcpAddrInfo) {
             // Efficient check-before-insert:
             // See http://stackoverflow.com/questions/97050/stdmap-insert-or-stdmap-find for the following:
             std::map<uint64_t, Connection*>::iterator itr = _connectionMap.lower_bound(tcpAddrInfo.hash());

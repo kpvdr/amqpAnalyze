@@ -53,38 +53,6 @@ namespace amqpAnalyze
         ErrorSeverity_t _errorSeverity;
     };
 
-
-
-    class AmqpDecodeError: public Error
-    {
-    public:
-        explicit AmqpDecodeError(const amqp10::FrameBuffer& frameBuffer, const std::string& errorMessage);
-        explicit AmqpDecodeError(uint64_t packetNum, std::size_t amqpDataOffset, const std::string& errorMessage);
-        explicit AmqpDecodeError(ErrorSeverity_t errorSeverity, const amqp10::FrameBuffer& frameBuffer, const std::string& errorMessage);
-        explicit AmqpDecodeError(ErrorSeverity_t errorSeverity, uint64_t packetNum, std::size_t amqpDataOffset, const std::string& errorMessage);
-        virtual ~AmqpDecodeError();
-        std::size_t amqpDataOffset() const;
-        uint64_t packetNum() const;
-        virtual const char* typeStr() const override;
-    protected:
-        const uint64_t _packetNum;
-        const std::size_t _amqpDataOffset;
-        const std::string _msg;
-    };
-
-
-
-    class AmqpValidationError: public AmqpDecodeError
-    {
-    public:
-        explicit AmqpValidationError(const amqp10::FrameBuffer& frameBuffer, const std::string& errorMessage);
-        explicit AmqpValidationError(uint64_t packetNum, std::size_t amqpDataOffset, const std::string& errorMessage);
-        explicit AmqpValidationError(ErrorSeverity_t errorSeverity, const amqp10::FrameBuffer& frameBuffer, const std::string& errorMessage);
-        explicit AmqpValidationError(ErrorSeverity_t errorSeverity, uint64_t packetNum, std::size_t amqpDataOffset, const std::string& errorMessage);
-        virtual ~AmqpValidationError();
-        virtual const char* typeStr() const override;
-    };
-
 } /* namespace amqpAnalyze */
 
 #endif /* SRC_AMQPANALYZE_ERROR_HPP_ */

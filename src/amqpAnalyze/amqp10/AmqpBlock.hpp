@@ -9,6 +9,7 @@
 #define SRC_AMQPANALYZE_AMQP10_AMQPBLOCK_HPP_
 
 #include <amqpAnalyze/amqp10/FwdDecls.hpp>
+#include <amqpAnalyze/FwdDecls.hpp>
 #include <amqpAnalyze/Error.hpp>
 #include <sstream>
 

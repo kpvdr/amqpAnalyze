@@ -14,6 +14,11 @@ namespace amqpAnalyze
 {
     namespace amqp10
     {
+        class AmqpList;
+        class CompositeType;
+        class FrameBuffer;
+        class Performative;
+        class Section;
 
         class Decoder
         {

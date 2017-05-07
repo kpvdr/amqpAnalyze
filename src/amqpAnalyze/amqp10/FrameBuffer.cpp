@@ -8,10 +8,10 @@
 #include <amqpAnalyze/amqp10/FrameBuffer.hpp>
 
 #include <amqpAnalyze/amqp10/Decoder.hpp>
-#include <amqpAnalyze/Error.hpp>
 #include <amqpAnalyze/Options.hpp>
 #include <cmath>
 #include <iomanip>
+#include "DecodeError.hpp"
 
 namespace amqpAnalyze
 {
@@ -288,7 +288,7 @@ namespace amqpAnalyze
                 value.push_back((PrimitiveType*)Decoder::decode(*this));
             }
             if (_dataOffset - startOffs != size) {
-                throw amqpAnalyze::AmqpDecodeError(*this, MSG("FrameBuffer::getList(): List size mismatch: expected 0x" << std::hex << size << ", found 0x" << (_dataOffset - startOffs)));
+                throw DecodeError(*this, MSG("FrameBuffer::getList(): List size mismatch: expected 0x" << std::hex << size << ", found 0x" << (_dataOffset - startOffs)));
             }
             return value;
         }
@@ -301,7 +301,7 @@ namespace amqpAnalyze
                 value[key] = mapVal;
             }
             if (_dataOffset - startOffs != size) {
-                throw amqpAnalyze::AmqpDecodeError(*this, MSG("FrameBuffer::getMap(): Map size mismatch: expected 0x" << std::hex << size << ", found 0x" << (_dataOffset - startOffs)));
+                throw DecodeError(*this, MSG("FrameBuffer::getMap(): Map size mismatch: expected 0x" << std::hex << size << ", found 0x" << (_dataOffset - startOffs)));
             }
             return value;
         }
@@ -313,7 +313,7 @@ namespace amqpAnalyze
                 value.push_back((PrimitiveType*)Decoder::decodePrimitive(ctor, *this));
             }
             if (_dataOffset - startOffs != size) {
-                throw amqpAnalyze::AmqpDecodeError(*this, MSG("FrameBuffer::getArray(): Array size mismatch: expected 0x" << std::hex << size << ", found 0x" << (_dataOffset - startOffs)));
+                throw DecodeError(*this, MSG("FrameBuffer::getArray(): Array size mismatch: expected 0x" << std::hex << size << ", found 0x" << (_dataOffset - startOffs)));
             }
            return value;
         }
@@ -321,7 +321,7 @@ namespace amqpAnalyze
         // protected
         void FrameBuffer::checkSize(std::size_t size, const char* opName) {
             if (_dataLength - _dataOffset < size)
-                throw amqpAnalyze::AmqpDecodeError(*this, MSG("FrameBuffer." << opName << "(): Insufficient buffer data to extract 0x" << std::hex << size << " bytes: data_size=0x" << _dataLength << "; curr_offs=" << _dataOffset));
+                throw DecodeError(*this, MSG("FrameBuffer." << opName << "(): Insufficient buffer data to extract 0x" << std::hex << size << " bytes: data_size=0x" << _dataLength << "; curr_offs=" << _dataOffset));
         }
 
         void FrameBuffer::hexDumpPostChar(std::ostringstream& oss, ColorList_Citr_t& colorListCitr, DisplayColorType_t& currentColor, std::size_t currentIndex) const {

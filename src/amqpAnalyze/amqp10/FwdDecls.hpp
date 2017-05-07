@@ -8,13 +8,15 @@
 #ifndef SRC_AMQPANALYZE_AMQP10_FWDDECLS_HPP_
 #define SRC_AMQPANALYZE_AMQP10_FWDDECLS_HPP_
 
-#include <amqpAnalyze/FwdDecls.hpp>
+//#include <amqpAnalyze/FwdDecls.hpp>
 #include <array>
 #include <map>
+#include <vector>
 
 namespace amqpAnalyze
 {
-    struct TcpConnectionInfo;
+    class Error;
+    class TcpConnectionInfo;
 
     namespace amqp10
     {
@@ -23,48 +25,23 @@ namespace amqpAnalyze
         typedef std::vector<AmqpBlock*> AmqpBlockList_t;
         typedef AmqpBlockList_t::iterator AmqpBlockListItr_t;
         typedef AmqpBlockList_t::const_iterator AmqpBlockListCitr_t;
+
         // Function pointer to error handler AmqpBlock::addError
         typedef void (AmqpBlock::*addErrorFp)(const amqpAnalyze::Error*);
-
-        class AmqpClose;
-        class AmqpOpen;
 
         enum class AmqpRequiresProvides_t;
         typedef std::vector<AmqpRequiresProvides_t> AmqpProvidesRequiresList_t;
         typedef AmqpProvidesRequiresList_t::const_iterator AmqpProvidesRequiresListCitr_t;
 
-        class Connection;
-
         class ConnectionHandler;
-        typedef void (ConnectionHandler::*tcpCloseCallbackFp)(const struct TcpConnectionInfo*);
-
-        class Endpoint;
+        typedef void (ConnectionHandler::*tcpCloseCallbackFp)(const TcpConnectionInfo*);
 
         class FieldType;
         typedef std::vector<FieldType> FieldTypeList_t;
 
-        class Frame;
-
-        class FrameBuffer;
-
-        class FrameError;
-
-        class Performative;
-
-        class ProtocolHeader;
-
-        class Section;
-
-        class Type;
-
-
         //--- AMQP primitive types ---
 
-        class PrimitiveType;
-
         typedef std::vector<uint8_t> AmqpBinary_t;
-        class AmqpBinary;
-
         typedef std::array<uint8_t, 4> AmqpDecimal32_t;
         typedef std::array<uint8_t, 8> AmqpDecimal64_t;
         typedef std::array<uint8_t, 16> AmqpDecimal128_t;
@@ -73,15 +50,15 @@ namespace amqpAnalyze
 
         //--- AMQP compound types ---
 
+        class Type;
         typedef std::vector<Type*> AmqpList_t;
         typedef AmqpList_t::iterator AmqpListItr_t;
         typedef AmqpList_t::const_iterator AmqpListCitr_t;
-        class AmqpList;
 
+        class PrimitiveType;
         typedef std::map<PrimitiveType*, PrimitiveType*> AmqpMap_t;
         typedef AmqpMap_t::iterator AmqpMapItr_t;
         typedef AmqpMap_t::const_iterator AmqpMapCitr_t;
-        class AmqpMap;
 
         typedef std::vector<PrimitiveType*> AmqpArray_t;
         typedef AmqpArray_t::iterator AmqpArrayItr_t;
@@ -89,8 +66,6 @@ namespace amqpAnalyze
 
 
         //--- AMQP restricted types ---
-
-        class AmqpAnnotations;
 
         typedef std::vector<std::string> AmqpConnectionErrorList_t;
         typedef AmqpConnectionErrorList_t::const_iterator AmqpConnectionErrorListCitr_t;
@@ -115,12 +90,6 @@ namespace amqpAnalyze
 
         typedef std::vector<std::string> AmqpTransactionErrorList_t;
         typedef AmqpTransactionErrorList_t::const_iterator AmqpTransactionErrorListCitr_t;
-
-
-        //--- AMQP composite types ---
-
-        class CompositeType;
-
 
     } /* namespace amqp10 */
 } /* namespace amqpAnalyze */

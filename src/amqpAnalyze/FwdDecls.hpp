@@ -26,14 +26,6 @@ namespace amqpAnalyze
     typedef ErrorPtrList_t::iterator ErrorPtrListItr_t;
     typedef ErrorPtrList_t::const_iterator ErrorPtrListCitr_t;
 
-    class Options;
-
-    class Packet;
-
-    struct TcpAddressInfo;
-
-    class TcpDissector;
-
 } /* namespace amqpAnalyze */
 
 #endif /* SRC_AMQPANALYZE_FWDDECLS_HPP_ */
