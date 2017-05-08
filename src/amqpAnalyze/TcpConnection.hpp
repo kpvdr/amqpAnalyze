@@ -20,7 +20,7 @@ namespace amqpAnalyze
 
         inline uint32_t connectionIndex() const { return _connectionIndex; }
         inline uint64_t firstPacketNumber() const { return _firstPacketNumber; }
-        inline uint32_t initDestSequence() const { return _initSrcSequence; }
+        inline uint32_t initDestSequence() const { return _initDestSequence; }
         inline uint32_t initSrcSequence() const { return _initSrcSequence; }
         inline uint64_t lastPacketNumber() const { return _lastPacketNumber; }
         inline void setDestFinFlag() { _destFinFlag = true; }

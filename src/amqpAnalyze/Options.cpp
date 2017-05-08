@@ -156,7 +156,7 @@ namespace amqpAnalyze
                   << "         -n --num-packets N      Show N packets. Can be used with option -f/--from-packet.\n"
                   << "                                 Cannot be used together with option -t/--to-packet.\n"
                   << "         -N --show-null-args     Show null parameters and headers"
-                  << "         -s --show_state         Show connection, session and link state\n"
+                  << "         -s --show-state         Show connection, session and link state\n"
                   << "         -t --to-packet N        Show up to packet N. Can be used with option\n"
                   << "                                 -f/--from-packet. Cannot be used with option -n/--num-packets\n"
                   << "         -v --validate           Validate AMQP data to AMQP 1.0 specification\n"

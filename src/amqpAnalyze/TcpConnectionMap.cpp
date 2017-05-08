@@ -48,7 +48,8 @@ namespace amqpAnalyze
         os << "  packet range" << "\n";
         for (uint32_t i=0; i<_connectionList.size(); ++i) {
             TcpConnection* tcPtr = _connectionMap.at(_connectionList.at(i));
-            os << std::setfill(' ') << std::setw(4) << (i+1) << ". " << std::setw(15) << tcPtr->srcAddress() << " -> " << std::setw(15) << tcPtr->destAddress();
+            os << std::setfill(' ') << std::setw(4) << (i+1) << ". " << std::setw(15) << tcPtr->srcAddress() << " -> "
+                            << std::setw(15) << tcPtr->destAddress();
             if (showHashFlag) os << "  " << std::hex << std::setfill('0') << std::setw(16) << tcPtr->hash() << std::dec;
             os << "  [" << tcPtr->firstPacketNumber() << " - " << tcPtr->lastPacketNumber() << "]" << "\n";
         }
@@ -64,7 +65,8 @@ namespace amqpAnalyze
                 if (tcpConnectionPtr->initDestSequence() == 0) {
                     tcpConnectionPtr->setInitDestSequence(tcpDissector->getSequence());
                 } else {
-                    tcpDissector->addError(new amqpAnalyze::Error(MSG("TcpConnectionMap::getTcpConnection: Destination SYN already set: " << tcpAddressInfo)));
+                    tcpDissector->addError(new amqpAnalyze::Error(MSG("ERROR: TcpConnectionMap::getTcpConnection: "
+                                    << "Destination sequence number already set: " << tcpAddressInfo)));
                 }
             }
             if (tcpDissector->ack()) {
@@ -76,15 +78,16 @@ namespace amqpAnalyze
                 } else if (tcpAddressInfo.srcAddress().compare(tcpConnectionPtr->destAddress()) == 0) {
                     tcpConnectionPtr->setDestFinFlag();
                 } else {
-                    tcpDissector->addError(new amqpAnalyze::Error(MSG("TcpConnectionMap::getTcpConnection: Address does not match connection source or destination: addr="
-                                                 << tcpAddressInfo << "; connection=" << tcpConnectionPtr)));
+                    tcpDissector->addError(new amqpAnalyze::Error(MSG("ERROR: TcpConnectionMap::getTcpConnection: "
+                                    << "Address does not match connection source or destination: addr="
+                                    << tcpAddressInfo << "; connection=" << tcpConnectionPtr)));
                 }
             }
         } else {
             if (!tcpDissector->syn()) {
                 tcpDissector->addError(new amqpAnalyze::Error(MSG("ERROR: No previous TCP SYN flag seen for addresss "
-                                                                  << tcpAddressInfo.srcAddress() << " or " << tcpAddressInfo.destAddress()
-                                                                  << ": Possible previous packet(s) missing")));
+                                << tcpAddressInfo.srcAddress() << " or " << tcpAddressInfo.destAddress()
+                                << ": Possible previous packet(s) missing")));
             }
             tcpConnectionPtr = new TcpConnection(tcpAddressInfo, tcpDissector->getSequence(), _connectionList.size()+1, packetNum);
             _connectionMap.emplace(tcpAddressInfo.hash(), tcpConnectionPtr);
