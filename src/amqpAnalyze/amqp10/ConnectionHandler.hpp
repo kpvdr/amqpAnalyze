@@ -25,7 +25,7 @@ namespace amqpAnalyze
             ConnectionHandler();
             virtual ~ConnectionHandler();
 
-            void handleFrame(TcpDissector* tcpDissectorPtr, AmqpBlock* blockPtr);
+            void handleFrame(const TcpAddressInfo& tcpAddrInfo, AmqpBlock* blockPtr);
             void tcpClose(TcpDissector* tcpDissectorPtr);
 
         protected:

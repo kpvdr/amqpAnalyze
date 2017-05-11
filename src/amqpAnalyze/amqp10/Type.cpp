@@ -394,6 +394,8 @@ namespace amqpAnalyze
             }
             return colorFlag ? Color::color(DisplayColorType_t::AMQP_TYPE_BINARY, oss.str()) : oss.str();
         }
+        // static
+        AmqpBinary_t AmqpBinary::s_emptyBinary;
 
 
         AmqpString::AmqpString(): PrimitiveType(), _value() {}
@@ -426,6 +428,8 @@ namespace amqpAnalyze
             }
             return colorFlag ? Color::color(DisplayColorType_t::AMQP_TYPE_STRING, oss.str()) : oss.str();
         }
+        // static
+        std::string AmqpString::s_emptyString;
 
 
         AmqpSymbol::AmqpSymbol(): PrimitiveType(), _value() {}
@@ -458,6 +462,8 @@ namespace amqpAnalyze
             }
              return colorFlag ? Color::color(DisplayColorType_t::AMQP_TYPE_SYMBOL, oss.str()) : oss.str();
         }
+        // static
+        std::string AmqpSymbol::s_emptySymbol;
 
 
         CompoundType::CompoundType(): PrimitiveType() {}
@@ -598,6 +604,43 @@ namespace amqpAnalyze
             return std::to_string(_value.size());
         }
 
+        // convenience functions
+
+        const Type* AmqpList::getItem(std::size_t index) const {
+            return _value.at(index);
+        }
+
+        const Type* AmqpList::getNamedItem(const char* name) const {
+            for (std::vector<Type*>::const_iterator i=_value.cbegin(); i!=_value.cend(); ++i) {
+                if (::strcmp(name, (*i)->name()) == 0) return *i;
+            }
+            return nullptr;
+        }
+
+        bool AmqpList::hasNamedEntry(const char* name) const {
+            for (std::vector<Type*>::const_iterator i=_value.cbegin(); i!=_value.cend(); ++i) {
+                if (std::strcmp(name, (*i)->name()) == 0) return true;
+            }
+            return false;
+        }
+
+        bool AmqpList::hasNamedEntryNotNull(const char* name) const {
+            for (std::vector<Type*>::const_iterator i=_value.cbegin(); i!=_value.cend(); ++i) {
+                if (std::strcmp(name, (*i)->name()) == 0) {
+                    if ((*i)->isNull()) return false;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        std::size_t AmqpList::size() const {
+            return _value.size();
+        }
+
+        // static
+        AmqpList_t AmqpList::s_emptyList;
+
 
         AmqpMap::AmqpMap(): CompoundType(), _value() {}
         AmqpMap::AmqpMap(const char* name): CompoundType(name), _value() {}
@@ -653,6 +696,8 @@ namespace amqpAnalyze
             }
             oss << "}";
         }
+        // static
+        AmqpMap_t AmqpMap::s_emptyMap;
 
 
         AmqpArray::AmqpArray(): CompoundType(), _value() {}
@@ -702,6 +747,8 @@ namespace amqpAnalyze
             }
             oss << "]";
         }
+        // static
+        AmqpArray_t AmqpArray::s_emptyArray;
 
 
         AmqpRole::AmqpRole(AmqpRole_t v): AmqpBoolean((bool)v) {}
@@ -1179,6 +1226,19 @@ namespace amqpAnalyze
         std::string CompositeType::valueStr(bool colorFlag) const {
             return _fieldListPtr->valueStr(colorFlag);
         }
+        const Type* CompositeType::getItem(std::size_t index) const {
+            return _fieldListPtr == nullptr ? nullptr : _fieldListPtr->getItem(index);
+        }
+        const Type* CompositeType::getNamedItem(const char* name) const {
+            return _fieldListPtr == nullptr ? nullptr : _fieldListPtr->getNamedItem(name);
+        }
+        bool CompositeType::hasNamedEntry(const char* name) const {
+            return _fieldListPtr == nullptr ? false : _fieldListPtr->hasNamedEntry(name);
+        }
+        bool CompositeType::hasNamedEntryNotNull(const char* name) const {
+            return _fieldListPtr == nullptr ? false : _fieldListPtr->hasNamedEntryNotNull(name);
+        }
+        std::size_t CompositeType::size() const { return _fieldListPtr == nullptr ? 0 : _fieldListPtr->size(); }
         // static
         std::map<AmqpCompositeType_t, const char*> CompositeType::s_amqpCompositeTypeNames = {
                         {AmqpCompositeType_t::ERROR, "error"},
@@ -1211,12 +1271,31 @@ namespace amqpAnalyze
         AmqpErrorRecord::AmqpErrorRecord(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpErrorRecord::AmqpErrorRecord(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpErrorRecord::~AmqpErrorRecord() {}
+        const std::string& AmqpErrorRecord::condition(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPERRORRECORD_FN_CONDITION)) {
+                return _fieldListPtr->getNamedType<AmqpSymbol>(AMQPERRORRECORD_FN_CONDITION)->value();
+            }
+            return AmqpString::s_emptyString;
+        }
+        const std::string& AmqpErrorRecord::description(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPERRORRECORD_FN_DESCRIPTION)) {
+                return _fieldListPtr->getNamedType<AmqpString>(AMQPERRORRECORD_FN_DESCRIPTION)->value();
+            }
+            return AmqpString::s_emptyString;
+        }
+        const AmqpMap_t& AmqpErrorRecord::info(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPERRORRECORD_FN_INFO)) {
+                return _fieldListPtr->getNamedType<AmqpFields>(AMQPERRORRECORD_FN_INFO)->value();
+            }
+            return AmqpMap::s_emptyMap;
+        }
         // static
         const FieldTypeList_t AmqpErrorRecord::s_fieldTypeList = {
-            FieldType("condition", AmqpPrimitiveType_t::SYMBOL_TYPE, true, false, {AmqpRequiresProvides_t::ERROR_CONDITION}),
-            FieldType("description", AmqpPrimitiveType_t::STRING_TYPE, false, false),
-            FieldType("info", AmqpPrimitiveType_t::FIELDS_TYPE, false, false)
+            FieldType(AMQPERRORRECORD_FN_CONDITION, AmqpPrimitiveType_t::SYMBOL_TYPE, true, false, {AmqpRequiresProvides_t::ERROR_CONDITION}),
+            FieldType(AMQPERRORRECORD_FN_DESCRIPTION, AmqpPrimitiveType_t::STRING_TYPE, false, false),
+            FieldType(AMQPERRORRECORD_FN_INFO, AmqpPrimitiveType_t::FIELDS_TYPE, false, false)
         };
+
 
 
         AmqpReceived::AmqpReceived(AmqpList* fieldList): CompositeType(fieldList) {}
@@ -1224,9 +1303,21 @@ namespace amqpAnalyze
         AmqpReceived::~AmqpReceived() {}
         // static
         const FieldTypeList_t AmqpReceived::s_fieldTypeList = {
-            FieldType("section-number", AmqpPrimitiveType_t::UINT_TYPE, true, false),
-            FieldType("section-offset", AmqpPrimitiveType_t::ULONG_TYPE, true, false)
+            FieldType(AMQPRECIEVED_FN_SECTION_NUMBER, AmqpPrimitiveType_t::UINT_TYPE, true, false),
+            FieldType(AMQPRECEIVED_FN_SECTION_OFFSET, AmqpPrimitiveType_t::ULONG_TYPE, true, false)
         };
+        uint32_t AmqpReceived::sectionNumber(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPRECIEVED_FN_SECTION_NUMBER)) {
+                return _fieldListPtr->getNamedType<AmqpUint>(AMQPRECIEVED_FN_SECTION_NUMBER)->value();
+            }
+            return 0;
+        }
+        uint64_t AmqpReceived::sectionOffest(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPRECEIVED_FN_SECTION_OFFSET)) {
+                return _fieldListPtr->getNamedType<AmqpUlong>(AMQPRECEIVED_FN_SECTION_OFFSET)->value();
+            }
+            return 0LL;
+        }
         // static
         AmqpProvidesRequiresList_t AmqpReceived::s_providesList = {
         	AmqpRequiresProvides_t::DELIVERY_STATE
@@ -1249,8 +1340,14 @@ namespace amqpAnalyze
         AmqpRejected::~AmqpRejected() {}
         // static
         const FieldTypeList_t AmqpRejected::s_fieldTypeList = {
-            FieldType("error", AmqpPrimitiveType_t::AMQP_ERROR_TYPE, false, false)
+            FieldType(AMQPREJECTED_FN_ERROR, AmqpPrimitiveType_t::AMQP_ERROR_TYPE, false, false)
         };
+        const AmqpErrorRecord* AmqpRejected::error(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPREJECTED_FN_ERROR)) {
+                return _fieldListPtr->getNamedType<AmqpErrorRecord>(AMQPREJECTED_FN_ERROR);
+            }
+            return nullptr;
+        }
         // static
         AmqpProvidesRequiresList_t AmqpRejected::s_providesList = {
         	AmqpRequiresProvides_t::DELIVERY_STATE,
@@ -1275,10 +1372,28 @@ namespace amqpAnalyze
         AmqpModified::~AmqpModified() {}
         // static
         const FieldTypeList_t AmqpModified::s_fieldTypeList = {
-            FieldType("delivery-failed", AmqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
-            FieldType("undeliverable-here", AmqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
-            FieldType("message-annotations", AmqpPrimitiveType_t::FIELDS_TYPE, false, false)
+            FieldType(AMQPMODIFIED_FN_DELIVERY_FAILED, AmqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
+            FieldType(AMQPMODIFIED_FN_UNDELIVERABLE_HERE, AmqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
+            FieldType(AMQPMODIFIED_FN_MESSAGE_ANNOTATIONS, AmqpPrimitiveType_t::FIELDS_TYPE, false, false)
         };
+        bool AmqpModified::deliveryFailed(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPMODIFIED_FN_DELIVERY_FAILED)) {
+                return _fieldListPtr->getNamedType<AmqpBoolean>(AMQPMODIFIED_FN_DELIVERY_FAILED)->value();
+            }
+            return false;
+        }
+        bool AmqpModified::undeliverableHere(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPMODIFIED_FN_UNDELIVERABLE_HERE)) {
+                return _fieldListPtr->getNamedType<AmqpBoolean>(AMQPMODIFIED_FN_UNDELIVERABLE_HERE)->value();
+            }
+            return false;
+        }
+        const AmqpMap_t& AmqpModified::messageAnnotations(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPMODIFIED_FN_MESSAGE_ANNOTATIONS)) {
+                return _fieldListPtr->getNamedType<AmqpFields>(AMQPMODIFIED_FN_MESSAGE_ANNOTATIONS)->value();
+            }
+            return AmqpMap::s_emptyMap;
+        }
         // static
         AmqpProvidesRequiresList_t AmqpModified::s_providesList = {
         	AmqpRequiresProvides_t::DELIVERY_STATE,
@@ -1291,18 +1406,84 @@ namespace amqpAnalyze
         AmqpSource::~AmqpSource() {}
         // static
         const FieldTypeList_t AmqpSource::s_fieldTypeList = {
-            FieldType("address", "*", false, false, {AmqpRequiresProvides_t::ADDRESS}),
-            FieldType("durable", AmqpPrimitiveType_t::TERMINUS_DURABILITY_TYPE, false, false),
-            FieldType("expiry-policy", AmqpPrimitiveType_t::TERMINUS_EXPIRY_POLICY_TYPE, false, false),
-            FieldType("timeout", AmqpPrimitiveType_t::SECONDS_TYPE, false, false),
-            FieldType("dynamic", AmqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
-            FieldType("dynamic-node-properties", AmqpPrimitiveType_t::NODE_PROPERTIES_TYPE, false, false),
-            FieldType("distribution-mode", AmqpPrimitiveType_t::SYMBOL_TYPE, false, false, {AmqpRequiresProvides_t::DISTRIBUTION_MODE}),
-            FieldType("filter", AmqpPrimitiveType_t::FILTER_SET_TYPE, false, false),
-            FieldType("default-outcome", "*", false, false, {AmqpRequiresProvides_t::OUTCOME}),
-            FieldType("outcomes", AmqpPrimitiveType_t::SYMBOL_TYPE, false, true),
-            FieldType("capabilities", AmqpPrimitiveType_t::SYMBOL_TYPE, false, true)
+            FieldType(AMQPSOURCE_FN_ADDRESS, "*", false, false, {AmqpRequiresProvides_t::ADDRESS}),
+            FieldType(AMQPSOURCE_FN_DURABLE, AmqpPrimitiveType_t::TERMINUS_DURABILITY_TYPE, false, false),
+            FieldType(AMQPSOURCE_FN_EXPIRY_POLICY, AmqpPrimitiveType_t::TERMINUS_EXPIRY_POLICY_TYPE, false, false),
+            FieldType(AMQPSOURCE_FN_TIMEOUT, AmqpPrimitiveType_t::SECONDS_TYPE, false, false),
+            FieldType(AMQPSOURCE_FN_DYNAMIC, AmqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
+            FieldType(AMQPSOURCE_FN_DYNAMIC_NODE_PROPERTIES, AmqpPrimitiveType_t::NODE_PROPERTIES_TYPE, false, false),
+            FieldType(AMQPSOURCE_FN_DISTRIBUTION_MODE, AmqpPrimitiveType_t::SYMBOL_TYPE, false, false, {AmqpRequiresProvides_t::DISTRIBUTION_MODE}),
+            FieldType(AMQPSOURCE_FN_FILTER, AmqpPrimitiveType_t::FILTER_SET_TYPE, false, false),
+            FieldType(AMQPSOURCE_FN_DEFAULT_OUTCOME, "*", false, false, {AmqpRequiresProvides_t::OUTCOME}),
+            FieldType(AMQPSOURCE_FN_OUTCOMES, AmqpPrimitiveType_t::SYMBOL_TYPE, false, true),
+            FieldType(AMQPSOURCE_FN_CAPABILITIES, AmqpPrimitiveType_t::SYMBOL_TYPE, false, true)
         };
+        const AmqpAddress* AmqpSource::address(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPSOURCE_FN_ADDRESS)) {
+                return _fieldListPtr->getNamedType<AmqpAddress>(AMQPSOURCE_FN_ADDRESS);
+            }
+            return nullptr;
+        }
+        AmqpTerminusDurability_t AmqpSource::durable(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPSOURCE_FN_DURABLE)) {
+                return _fieldListPtr->getNamedType<AmqpTerminusDurability>(AMQPSOURCE_FN_DURABLE)->value();
+            }
+            return AmqpTerminusDurability_t::NONE;
+        }
+        const std::string& AmqpSource::expiryPolicy(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPSOURCE_FN_EXPIRY_POLICY)) {
+                return _fieldListPtr->getNamedType<AmqpTerminusExpiryPolicy>(AMQPSOURCE_FN_EXPIRY_POLICY)->value();
+            }
+            return AmqpString::s_emptyString;
+        }
+        uint32_t AmqpSource::timeout(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPSOURCE_FN_TIMEOUT)) {
+                return _fieldListPtr->getNamedType<AmqpSeconds>(AMQPSOURCE_FN_TIMEOUT)->value();
+            }
+            return 0;
+        }
+        bool AmqpSource::dynamic(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPSOURCE_FN_DYNAMIC)) {
+                return _fieldListPtr->getNamedType<AmqpBoolean>(AMQPSOURCE_FN_DYNAMIC)->value();
+            }
+            return false;
+        }
+        const AmqpMap_t& AmqpSource::dynamicNodeProperties(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPSOURCE_FN_DYNAMIC_NODE_PROPERTIES)) {
+                return _fieldListPtr->getNamedType<AmqpNodeProperties>(AMQPSOURCE_FN_DYNAMIC_NODE_PROPERTIES)->value();
+            }
+            return AmqpMap::s_emptyMap;
+        }
+        const std::string& AmqpSource::distributionMode(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPSOURCE_FN_DISTRIBUTION_MODE)) {
+                return _fieldListPtr->getNamedType<AmqpSymbol>(AMQPSOURCE_FN_DISTRIBUTION_MODE)->value();
+            }
+            return AmqpString::s_emptyString;
+        }
+        const AmqpMap_t& AmqpSource::filter(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPSOURCE_FN_FILTER)) {
+                return _fieldListPtr->getNamedType<AmqpFilterSet>(AMQPSOURCE_FN_FILTER)->value();
+            }
+            return AmqpMap::s_emptyMap;
+        }
+        const CompositeType* AmqpSource::defaultOutcome(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPSOURCE_FN_DEFAULT_OUTCOME)) {
+                return _fieldListPtr->getNamedType<CompositeType>(AMQPSOURCE_FN_DEFAULT_OUTCOME);
+            }
+            return nullptr;
+        }
+        const AmqpArray_t& AmqpSource::outcomes(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPSOURCE_FN_OUTCOMES)) {
+                return _fieldListPtr->getNamedType<AmqpArray>(AMQPSOURCE_FN_OUTCOMES)->value();
+            }
+            return AmqpArray::s_emptyArray;
+        }
+        const AmqpArray_t& AmqpSource::capabilities(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPSOURCE_FN_CAPABILITIES)) {
+                return _fieldListPtr->getNamedType<AmqpArray>(AMQPSOURCE_FN_CAPABILITIES)->value();
+            }
+            return AmqpArray::s_emptyArray;
+        }
         // static
         AmqpProvidesRequiresList_t AmqpSource::s_providesList = {
         	AmqpRequiresProvides_t::SOURCE
@@ -1314,14 +1495,56 @@ namespace amqpAnalyze
         AmqpTarget::~AmqpTarget() {}
         // static
         const FieldTypeList_t AmqpTarget::s_fieldTypeList = {
-            FieldType("address", "*", false, false, {AmqpRequiresProvides_t::ADDRESS}),
-            FieldType("durable", AmqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
-            FieldType("expiry-policy", AmqpPrimitiveType_t::TERMINUS_EXPIRY_POLICY_TYPE, false, false),
-            FieldType("timeout", AmqpPrimitiveType_t::SECONDS_TYPE, false, false),
-            FieldType("dynamic", AmqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
-            FieldType("dynamic-node-properties", AmqpPrimitiveType_t::NODE_PROPERTIES_TYPE, false, false),
-            FieldType("capabilities", AmqpPrimitiveType_t::SYMBOL_TYPE, false, true)
+            FieldType(AMQPTARGET_FN_ADDRESS, "*", false, false, {AmqpRequiresProvides_t::ADDRESS}),
+            FieldType(AMQPTARGET_FN_DURABLE, AmqpPrimitiveType_t::TERMINUS_DURABILITY_TYPE, false, false),
+            FieldType(AMQPTARGET_FN_EXPIRY_POLICY, AmqpPrimitiveType_t::TERMINUS_EXPIRY_POLICY_TYPE, false, false),
+            FieldType(AMQPTARGET_FN_TIMEOUT, AmqpPrimitiveType_t::SECONDS_TYPE, false, false),
+            FieldType(AMQPTARGET_FN_DYNAMIC, AmqpPrimitiveType_t::BOOLEAN_TYPE, false, false),
+            FieldType(AMQPTARGET_FN_DYNAMIC_NODE_PROPERTIES, AmqpPrimitiveType_t::NODE_PROPERTIES_TYPE, false, false),
+            FieldType(AMQPTARGET_FN_CAPABILITIES, AmqpPrimitiveType_t::SYMBOL_TYPE, false, true)
         };
+        const AmqpAddress* AmqpTarget::address(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPTARGET_FN_ADDRESS)) {
+                return _fieldListPtr->getNamedType<AmqpAddress>(AMQPTARGET_FN_ADDRESS);
+            }
+            return nullptr;
+        }
+        AmqpTerminusDurability_t AmqpTarget::durable(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPTARGET_FN_DURABLE)) {
+                return _fieldListPtr->getNamedType<AmqpTerminusDurability>(AMQPTARGET_FN_DURABLE)->value();
+            }
+            return AmqpTerminusDurability_t::NONE;
+        }
+        const std::string& AmqpTarget::expiryPolicy(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPTARGET_FN_EXPIRY_POLICY)) {
+                return _fieldListPtr->getNamedType<AmqpTerminusExpiryPolicy>(AMQPTARGET_FN_EXPIRY_POLICY)->value();
+            }
+            return AmqpString::s_emptyString;
+        }
+        uint32_t AmqpTarget::timeout(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPTARGET_FN_TIMEOUT)) {
+                return _fieldListPtr->getNamedType<AmqpSeconds>(AMQPTARGET_FN_TIMEOUT)->value();
+            }
+            return 0;
+        }
+        bool AmqpTarget::dynamic(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPTARGET_FN_DYNAMIC)) {
+                return _fieldListPtr->getNamedType<AmqpBoolean>(AMQPTARGET_FN_DYNAMIC)->value();
+            }
+            return false;
+        }
+        const AmqpMap_t& AmqpTarget::dynamicNodeProperties(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPTARGET_FN_DYNAMIC_NODE_PROPERTIES)) {
+                return _fieldListPtr->getNamedType<AmqpNodeProperties>(AMQPTARGET_FN_DYNAMIC_NODE_PROPERTIES)->value();
+            }
+            return AmqpMap::s_emptyMap;
+        }
+        const AmqpArray_t& AmqpTarget::capabilities(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPTARGET_FN_CAPABILITIES)) {
+                return _fieldListPtr->getNamedType<AmqpArray>(AMQPTARGET_FN_CAPABILITIES)->value();
+            }
+            return AmqpArray::s_emptyArray;
+        }
         // static
         AmqpProvidesRequiresList_t AmqpTarget::s_providesList = {
         	AmqpRequiresProvides_t::TARGET
@@ -1358,9 +1581,15 @@ namespace amqpAnalyze
         AmqpCoordinator::AmqpCoordinator(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpCoordinator::AmqpCoordinator(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpCoordinator::~AmqpCoordinator() {}
+        const AmqpArray_t& AmqpCoordinator::capabilities(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPCOORDINATOR_FN_CAPABILITIES)) {
+                return _fieldListPtr->getNamedType<AmqpArray>(AMQPCOORDINATOR_FN_CAPABILITIES)->value();
+            }
+            return AmqpArray::s_emptyArray;
+        }
         // static
         const FieldTypeList_t AmqpCoordinator::s_fieldTypeList = {
-            FieldType("capabilities", AmqpPrimitiveType_t::SYMBOL_TYPE, false, true, {AmqpRequiresProvides_t::TXN_CAPABILITY})
+            FieldType(AMQPCOORDINATOR_FN_CAPABILITIES, AmqpPrimitiveType_t::SYMBOL_TYPE, false, true, {AmqpRequiresProvides_t::TXN_CAPABILITY})
         };
         // static
         AmqpProvidesRequiresList_t AmqpCoordinator::s_providesList = {
@@ -1371,28 +1600,52 @@ namespace amqpAnalyze
         AmqpDeclare::AmqpDeclare(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpDeclare::AmqpDeclare(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpDeclare::~AmqpDeclare() {}
+        const Type* AmqpDeclare::globalId(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPDECLARE_FN_GLOBAL_ID)) {
+                return _fieldListPtr->getNamedType<Type>(AMQPDECLARE_FN_GLOBAL_ID);
+            }
+            return nullptr;
+        }
         // static
         const FieldTypeList_t AmqpDeclare::s_fieldTypeList = {
-            FieldType("global-id", "*", false, false, {AmqpRequiresProvides_t::GLOBAL_TX_ID}) // NOTE: GLOBAL_TX_ID is not yet defined by AMQP 1.0 spec
+            FieldType(AMQPDECLARE_FN_GLOBAL_ID, "*", false, false, {AmqpRequiresProvides_t::GLOBAL_TX_ID}) // NOTE: GLOBAL_TX_ID is not yet defined by AMQP 1.0 spec
         };
 
 
         AmqpDischarge::AmqpDischarge(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpDischarge::AmqpDischarge(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpDischarge::~AmqpDischarge() {}
+        const AmqpTransactionId* AmqpDischarge::txnId(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPDISCHARGE_FN_TXN_ID)) {
+                return _fieldListPtr->getNamedType<AmqpTransactionId>(AMQPDISCHARGE_FN_TXN_ID);
+            }
+            return nullptr;
+        }
+        bool AmqpDischarge::fail(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPDISCHARGE_FN_FAIL)) {
+                return _fieldListPtr->getNamedType<AmqpBoolean>(AMQPDISCHARGE_FN_FAIL)->value();
+            }
+            return false;
+        }
         // static
         const FieldTypeList_t AmqpDischarge::s_fieldTypeList = {
-            FieldType("txn-id", "*", true, false, {AmqpRequiresProvides_t::TXN_ID}),
-            FieldType("fail", AmqpPrimitiveType_t::BOOLEAN_TYPE, false, false)
+            FieldType(AMQPDISCHARGE_FN_TXN_ID, "*", true, false, {AmqpRequiresProvides_t::TXN_ID}),
+            FieldType(AMQPDISCHARGE_FN_FAIL, AmqpPrimitiveType_t::BOOLEAN_TYPE, false, false)
         };
 
 
         AmqpDeclared::AmqpDeclared(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpDeclared::AmqpDeclared(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpDeclared::~AmqpDeclared() {}
+        const AmqpTransactionId* AmqpDeclared::txnId(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPDECLARED_FN_TXN_ID)) {
+                return _fieldListPtr->getNamedType<AmqpTransactionId>(AMQPDECLARED_FN_TXN_ID);
+            }
+            return nullptr;
+        }
         // static
         const FieldTypeList_t AmqpDeclared::s_fieldTypeList = {
-            FieldType("txn-id", "*", true, false, {AmqpRequiresProvides_t::TXN_ID})
+            FieldType(AMQPDECLARED_FN_TXN_ID, "*", true, false, {AmqpRequiresProvides_t::TXN_ID})
         };
         // static
         AmqpProvidesRequiresList_t AmqpDeclared::s_providesList = {
@@ -1404,10 +1657,22 @@ namespace amqpAnalyze
         AmqpTransactionalState::AmqpTransactionalState(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpTransactionalState::AmqpTransactionalState(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpTransactionalState::~AmqpTransactionalState() {}
+        const AmqpTransactionId* AmqpTransactionalState::txnId(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPTRANSACTIONALSTATE_FN_TXN_ID)) {
+                return _fieldListPtr->getNamedType<AmqpTransactionId>(AMQPTRANSACTIONALSTATE_FN_TXN_ID);
+            }
+            return nullptr;
+        }
+        const CompositeType* AmqpTransactionalState::outcome(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPTRANSACTIONALSTATE_FN_OUTCOME)) {
+                return _fieldListPtr->getNamedType<CompositeType>(AMQPTRANSACTIONALSTATE_FN_OUTCOME);
+            }
+            return nullptr;
+        }
         // static
         const FieldTypeList_t AmqpTransactionalState::s_fieldTypeList = {
-            FieldType("txn-id", "*", true, false, {AmqpRequiresProvides_t::TXN_ID}),
-            FieldType("outcome", "*", false, false, {AmqpRequiresProvides_t::OUTCOME})
+            FieldType(AMQPTRANSACTIONALSTATE_FN_TXN_ID, "*", true, false, {AmqpRequiresProvides_t::TXN_ID}),
+            FieldType(AMQPTRANSACTIONALSTATE_FN_OUTCOME, "*", false, false, {AmqpRequiresProvides_t::OUTCOME})
         };
         // static
         AmqpProvidesRequiresList_t AmqpTransactionalState::s_providesList = {
@@ -1418,48 +1683,96 @@ namespace amqpAnalyze
         AmqpSaslMechanisms::AmqpSaslMechanisms(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpSaslMechanisms::AmqpSaslMechanisms(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpSaslMechanisms::~AmqpSaslMechanisms() {}
+        const AmqpArray_t& AmqpSaslMechanisms::saslServerMechanisms(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPSASLMECHANISMS_FL_SASL_SERVER_MECHANISMS)) {
+                return _fieldListPtr->getNamedType<AmqpArray>(AMQPSASLMECHANISMS_FL_SASL_SERVER_MECHANISMS)->value();
+            }
+            return AmqpArray::s_emptyArray;
+        }
         // static
         const FieldTypeList_t AmqpSaslMechanisms::s_fieldTypeList = {
-            FieldType("sasl-server-mechanisms", AmqpPrimitiveType_t::SYMBOL_TYPE, true, true)
+            FieldType(AMQPSASLMECHANISMS_FL_SASL_SERVER_MECHANISMS, AmqpPrimitiveType_t::SYMBOL_TYPE, true, true)
         };
 
 
         AmqpSaslInit::AmqpSaslInit(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpSaslInit::AmqpSaslInit(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpSaslInit::~AmqpSaslInit() {}
+        const std::string& AmqpSaslInit::mechanism(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPSASLINIT_FN_MECHANISM)) {
+                return _fieldListPtr->getNamedType<AmqpSymbol>(AMQPSASLINIT_FN_MECHANISM)->value();
+            }
+            return AmqpString::s_emptyString;
+        }
+        const AmqpBinary_t& AmqpSaslInit::initialRespose(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPSASLINIT_FN_INITIAL_RESPONSE)) {
+                return _fieldListPtr->getNamedType<AmqpBinary>(AMQPSASLINIT_FN_INITIAL_RESPONSE)->value();
+            }
+            return AmqpBinary::s_emptyBinary;
+        }
+        const std::string& AmqpSaslInit::hostname(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPSASLINIT_FN_HOSTNAME)) {
+                return _fieldListPtr->getNamedType<AmqpString>(AMQPSASLINIT_FN_HOSTNAME)->value();
+            }
+            return AmqpString::s_emptyString;
+        }
         // static
         const FieldTypeList_t AmqpSaslInit::s_fieldTypeList = {
-            FieldType("mechanism", AmqpPrimitiveType_t::SYMBOL_TYPE, true, false),
-            FieldType("initial-response", AmqpPrimitiveType_t::BINARY_TYPE, false, false),
-            FieldType("hostname", AmqpPrimitiveType_t::STRING_TYPE, false, false)
+            FieldType(AMQPSASLINIT_FN_MECHANISM, AmqpPrimitiveType_t::SYMBOL_TYPE, true, false),
+            FieldType(AMQPSASLINIT_FN_INITIAL_RESPONSE, AmqpPrimitiveType_t::BINARY_TYPE, false, false),
+            FieldType(AMQPSASLINIT_FN_HOSTNAME, AmqpPrimitiveType_t::STRING_TYPE, false, false)
         };
 
 
         AmqpSaslChallenge::AmqpSaslChallenge(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpSaslChallenge::AmqpSaslChallenge(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpSaslChallenge::~AmqpSaslChallenge() {}
+        const AmqpBinary_t& AmqpSaslChallenge::challenge(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPSASLCHALLENGE_FN_CHALLENGE)) {
+                return _fieldListPtr->getNamedType<AmqpBinary>(AMQPSASLCHALLENGE_FN_CHALLENGE)->value();
+            }
+            return AmqpBinary::s_emptyBinary;
+        }
         // static
         const FieldTypeList_t AmqpSaslChallenge::s_fieldTypeList = {
-            FieldType("challenge", AmqpPrimitiveType_t::BINARY_TYPE, true, false)
+            FieldType(AMQPSASLCHALLENGE_FN_CHALLENGE, AmqpPrimitiveType_t::BINARY_TYPE, true, false)
         };
 
 
         AmqpSaslResponse::AmqpSaslResponse(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpSaslResponse::AmqpSaslResponse(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpSaslResponse::~AmqpSaslResponse() {}
+        const AmqpBinary_t& AmqpSaslResponse::response(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPSASLRESPONSE_FN_RESPONSE)) {
+                return _fieldListPtr->getNamedType<AmqpBinary>(AMQPSASLRESPONSE_FN_RESPONSE)->value();
+            }
+            return AmqpBinary::s_emptyBinary;
+        }
         // static
         const FieldTypeList_t AmqpSaslResponse::s_fieldTypeList = {
-            FieldType("response", AmqpPrimitiveType_t::BINARY_TYPE, true, false)
+            FieldType(AMQPSASLRESPONSE_FN_RESPONSE, AmqpPrimitiveType_t::BINARY_TYPE, true, false)
         };
 
 
         AmqpSaslOutcome::AmqpSaslOutcome(AmqpList* fieldList): CompositeType(fieldList) {}
         AmqpSaslOutcome::AmqpSaslOutcome(AmqpList* fieldList, const char* name): CompositeType(fieldList, name) {}
         AmqpSaslOutcome::~AmqpSaslOutcome() {}
+        AmqpSaslCode_t AmqpSaslOutcome::code(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPSASLOUTCOME_FN_CODE)) {
+                return _fieldListPtr->getNamedType<AmqpSaslCode>(AMQPSASLOUTCOME_FN_CODE)->value();
+            }
+            return AmqpSaslCode_t::OK;
+       }
+        const AmqpBinary_t& AmqpSaslOutcome::additionalData(bool throwFlag) const {
+            if (throwFlag || _fieldListPtr->hasNamedEntryNotNull(AMQPSASLOUTCOME_FN_ADDITIONAL_DATA)) {
+                return _fieldListPtr->getNamedType<AmqpBinary>(AMQPSASLOUTCOME_FN_ADDITIONAL_DATA)->value();
+            }
+            return AmqpBinary::s_emptyBinary;
+       }
         // static
         const FieldTypeList_t AmqpSaslOutcome::s_fieldTypeList = {
-            FieldType("code", AmqpPrimitiveType_t::SASL_CODE_TYPE, true, false),
-            FieldType("additional-data", AmqpPrimitiveType_t::BINARY_TYPE, false, false)
+            FieldType(AMQPSASLOUTCOME_FN_CODE, AmqpPrimitiveType_t::SASL_CODE_TYPE, true, false),
+            FieldType(AMQPSASLOUTCOME_FN_ADDITIONAL_DATA, AmqpPrimitiveType_t::BINARY_TYPE, false, false)
         };
 
 

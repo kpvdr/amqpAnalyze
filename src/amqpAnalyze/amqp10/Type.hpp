@@ -9,6 +9,7 @@
 #define SRC_AMQPANALYZE_AMQP10_TYPE_HPP_
 
 #include <amqpAnalyze/amqp10/FwdDecls.hpp>
+#include <amqpAnalyze/Error.hpp>
 
 namespace amqpAnalyze
 {
@@ -411,6 +412,8 @@ namespace amqpAnalyze
             inline const AmqpBinary_t& value() const { return _value; }
             std::string valueStr(bool colorFlag) const override;
 
+            static AmqpBinary_t s_emptyBinary;
+
         protected:
             AmqpBinary_t _value;
         };
@@ -430,6 +433,8 @@ namespace amqpAnalyze
             inline const std::string& value() const { return _value; }
             std::string valueStr(bool colorFlag) const override;
 
+            static std::string s_emptyString;
+
         protected:
             std::string _value;
         };
@@ -448,6 +453,8 @@ namespace amqpAnalyze
             inline std::string& value() { return _value; }
             inline const std::string& value() const { return _value; }
             std::string valueStr(bool colorFlag) const override;
+
+            static std::string s_emptySymbol;
 
         protected:
             std::string _value;
@@ -471,6 +478,7 @@ namespace amqpAnalyze
         };
 
 
+        class AmqpMap;
         class AmqpList: public CompoundType {
         public:
             AmqpList();
@@ -485,10 +493,40 @@ namespace amqpAnalyze
             inline const AmqpList_t& value() const { return _value; }
             std::string valueStr(bool colorFlag) const override;
 
+            // convenience functions
+            const Type* getItem(std::size_t index) const;
+            const Type* getNamedItem(const char* name) const;
+            bool hasNamedEntry(const char* name) const;
+            bool hasNamedEntryNotNull(const char* name) const;
+            std::size_t size() const;
+
+            // convenience function to get named item of AMQP type T and underlying type V in list
+            template<class T>
+            const T* getNamedType(const char* name) const;
+
+            static AmqpList_t s_emptyList;
+
         protected:
             AmqpList_t _value;
             std::string listSizeStr() const;
         };
+
+        template<class T>
+        const T* AmqpList::getNamedType(const char* name) const {
+            const Type* tPtr = getNamedItem(name);
+            if (tPtr == nullptr) {
+                throw amqpAnalyze::Error(MSG("AmqpList::getNamedType(): Unable to find name \"" << name << "\""));
+            }
+            if (tPtr->isNull()) {
+                throw amqpAnalyze::Error(MSG("AmqpList::getNamedType(): Name \"" << name << "\" has null value"));
+            }
+            const T* ptr(dynamic_cast<const T*>(tPtr));
+            if (ptr == nullptr) {
+                throw amqpAnalyze::Error(MSG("AmqpList::getNamedType(): Unable to cast name \"" << name << "\" to type " << tPtr->typeStr()));
+            }
+            return ptr;
+
+        }
 
 
         class AmqpMap: public CompoundType {
@@ -503,6 +541,8 @@ namespace amqpAnalyze
             inline AmqpMap_t& value() { return _value; }
             inline const AmqpMap_t& value() const { return _value; }
             std::string valueStr(bool colorFlag) const override;
+
+            static AmqpMap_t s_emptyMap;
 
         protected:
             AmqpMap_t _value;
@@ -522,6 +562,8 @@ namespace amqpAnalyze
             inline const AmqpArray_t& value() const { return _value; }
             std::string valueStr(bool colorFlag) const override;
 
+            static AmqpArray_t s_emptyArray;
+
         protected:
             AmqpArray_t _value;
         };
@@ -532,7 +574,7 @@ namespace amqpAnalyze
         //=============================
 
 
-        enum class AmqpRole_t: bool {
+        enum class AmqpRole_t:bool {
             SENDER=false,
             RECEIVER=true
         };
@@ -1071,6 +1113,14 @@ namespace amqpAnalyze
             inline const char* typeStr() const override { return s_amqpCompositeTypeNames.at(type()); }
             virtual void validate(addErrorFp errorHandler, AmqpBlock* errorHandlerInstance) override;
             std::string valueStr(bool colorFlag) const override;
+
+            // convenience field methods
+            const Type* getItem(std::size_t index) const;
+            const Type* getNamedItem(const char* name) const;
+            bool hasNamedEntry(const char* name) const;
+            bool hasNamedEntryNotNull(const char* name) const;
+            std::size_t size() const;
+
             static std::map<AmqpCompositeType_t, const char*> s_amqpCompositeTypeNames;
 
         protected:
@@ -1079,6 +1129,9 @@ namespace amqpAnalyze
        };
 
 
+#define AMQPERRORRECORD_FN_CONDITION "condition"
+#define AMQPERRORRECORD_FN_DESCRIPTION "description"
+#define AMQPERRORRECORD_FN_INFO "info"
         class AmqpErrorRecord: public CompositeType {
         public:
             AmqpErrorRecord(AmqpList* fieldList);
@@ -1087,10 +1140,17 @@ namespace amqpAnalyze
 
             inline const FieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; }
             inline AmqpCompositeType_t type() const override { return AmqpCompositeType_t::ERROR; }
+
+            // convenience field getter methods
+            const std::string& condition(bool throwFlag) const; // req'd
+            const std::string& description(bool throwFlag) const;
+            const AmqpMap_t& info(bool throwFlag) const;
+
             static const FieldTypeList_t s_fieldTypeList;
         };
 
-
+#define AMQPRECIEVED_FN_SECTION_NUMBER "section-number"
+#define AMQPRECEIVED_FN_SECTION_OFFSET "section-offset"
         class AmqpReceived: public CompositeType {
         public:
             AmqpReceived(AmqpList* fieldList);
@@ -1100,6 +1160,11 @@ namespace amqpAnalyze
             inline const FieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; }
             inline AmqpCompositeType_t type() const override { return AmqpCompositeType_t::RECEIVED; }
             const inline AmqpProvidesRequiresList_t& providesList() const override { return s_providesList; }
+
+            // convenience field getter methods
+            uint32_t sectionNumber(bool throwFlag) const; // req'd
+            uint64_t sectionOffest(bool throwFlag) const; // req'd
+
             static const FieldTypeList_t s_fieldTypeList;
 
         protected:
@@ -1116,6 +1181,7 @@ namespace amqpAnalyze
             inline const FieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; }
             inline AmqpCompositeType_t type() const override { return AmqpCompositeType_t::ACCEPTED; }
             const inline AmqpProvidesRequiresList_t& providesList() const override { return s_providesList; }
+
             static const FieldTypeList_t s_fieldTypeList;
 
         protected:
@@ -1123,6 +1189,7 @@ namespace amqpAnalyze
         };
 
 
+#define AMQPREJECTED_FN_ERROR "error"
         class AmqpRejected: public CompositeType {
         public:
             AmqpRejected(AmqpList* fieldList);
@@ -1132,6 +1199,10 @@ namespace amqpAnalyze
             inline const FieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; }
             inline AmqpCompositeType_t type() const override { return AmqpCompositeType_t::REJECTED; }
             const inline AmqpProvidesRequiresList_t& providesList() const override { return s_providesList; }
+
+            // convenience field getter methods
+            const AmqpErrorRecord* error(bool throwFlag) const;
+
             static const FieldTypeList_t s_fieldTypeList;
 
         protected:
@@ -1148,6 +1219,7 @@ namespace amqpAnalyze
             inline const FieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; }
             inline AmqpCompositeType_t type() const override { return AmqpCompositeType_t::RELEASED; }
             const inline AmqpProvidesRequiresList_t& providesList() const override { return s_providesList; }
+
             static const FieldTypeList_t s_fieldTypeList;
 
         protected:
@@ -1155,6 +1227,9 @@ namespace amqpAnalyze
         };
 
 
+#define AMQPMODIFIED_FN_DELIVERY_FAILED "delivery-failed"
+#define AMQPMODIFIED_FN_UNDELIVERABLE_HERE "undeliverable-here"
+#define AMQPMODIFIED_FN_MESSAGE_ANNOTATIONS "message-annotations"
         class AmqpModified: public CompositeType {
         public:
             AmqpModified(AmqpList* fieldList);
@@ -1164,6 +1239,12 @@ namespace amqpAnalyze
             inline const FieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; }
             inline AmqpCompositeType_t type() const override { return AmqpCompositeType_t::MODIFIED; }
             const inline AmqpProvidesRequiresList_t& providesList() const override { return s_providesList; }
+
+            // convenience field getter methods
+            bool deliveryFailed(bool throwFlag) const;
+            bool undeliverableHere(bool throwFlag) const;
+            const AmqpMap_t& messageAnnotations(bool throwFlag) const;
+
             static const FieldTypeList_t s_fieldTypeList;
 
         protected:
@@ -1171,6 +1252,17 @@ namespace amqpAnalyze
         };
 
 
+#define AMQPSOURCE_FN_ADDRESS "address"
+#define AMQPSOURCE_FN_DURABLE "durable"
+#define AMQPSOURCE_FN_EXPIRY_POLICY "expiry-policy"
+#define AMQPSOURCE_FN_TIMEOUT "timeout"
+#define AMQPSOURCE_FN_DYNAMIC "dynamic"
+#define AMQPSOURCE_FN_DYNAMIC_NODE_PROPERTIES "dynamic-node-properties"
+#define AMQPSOURCE_FN_DISTRIBUTION_MODE "distribution-mode"
+#define AMQPSOURCE_FN_FILTER "filter"
+#define AMQPSOURCE_FN_DEFAULT_OUTCOME "default-outcome"
+#define AMQPSOURCE_FN_OUTCOMES "outcomes"
+#define AMQPSOURCE_FN_CAPABILITIES "capabilities"
         class AmqpSource: public CompositeType {
         public:
             AmqpSource(AmqpList* fieldList);
@@ -1180,6 +1272,20 @@ namespace amqpAnalyze
             inline const FieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; }
             inline AmqpCompositeType_t type() const override { return AmqpCompositeType_t::SOURCE; }
             const inline AmqpProvidesRequiresList_t& providesList() const override { return s_providesList; }
+
+            // convenience field getter methods
+            const AmqpAddress* address(bool throwFlag) const;
+            AmqpTerminusDurability_t durable(bool throwFlag) const;
+            const std::string& expiryPolicy(bool throwFlag) const;
+            uint32_t timeout(bool throwFlag) const;
+            bool dynamic(bool throwFlag) const;
+            const AmqpMap_t& dynamicNodeProperties(bool throwFlag) const;
+            const std::string& distributionMode(bool throwFlag) const;
+            const AmqpMap_t& filter(bool throwFlag) const;
+            const CompositeType* defaultOutcome(bool throwFlag) const;
+            const AmqpArray_t& outcomes(bool throwFlag) const;
+            const AmqpArray_t& capabilities(bool throwFlag) const;
+
             static const FieldTypeList_t s_fieldTypeList;
 
         protected:
@@ -1187,6 +1293,13 @@ namespace amqpAnalyze
         };
 
 
+#define AMQPTARGET_FN_ADDRESS "address"
+#define AMQPTARGET_FN_DURABLE "durable"
+#define AMQPTARGET_FN_EXPIRY_POLICY "expiry-policy"
+#define AMQPTARGET_FN_TIMEOUT "timeout"
+#define AMQPTARGET_FN_DYNAMIC "dynamic"
+#define AMQPTARGET_FN_DYNAMIC_NODE_PROPERTIES "dynamic-node-properties"
+#define AMQPTARGET_FN_CAPABILITIES "capabilities"
         class AmqpTarget: public CompositeType {
         public:
             AmqpTarget(AmqpList* fieldList);
@@ -1196,6 +1309,16 @@ namespace amqpAnalyze
             inline const FieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; }
             inline AmqpCompositeType_t type() const override { return AmqpCompositeType_t::TARGET; }
             const inline AmqpProvidesRequiresList_t& providesList() const override { return s_providesList; }
+
+            // convenience field getter methods
+            const AmqpAddress* address(bool throwFlag) const;
+            AmqpTerminusDurability_t durable(bool throwFlag) const;
+            const std::string& expiryPolicy(bool throwFlag) const;
+            uint32_t timeout(bool throwFlag) const;
+            bool dynamic(bool throwFlag) const;
+            const AmqpMap_t& dynamicNodeProperties(bool throwFlag) const;
+            const AmqpArray_t& capabilities(bool throwFlag) const;
+
             static const FieldTypeList_t s_fieldTypeList;
 
         protected:
@@ -1250,6 +1373,7 @@ namespace amqpAnalyze
         };
 
 
+#define AMQPCOORDINATOR_FN_CAPABILITIES "capabilities"
         class AmqpCoordinator: public CompositeType {
         public:
             AmqpCoordinator(AmqpList* fieldList);
@@ -1259,6 +1383,10 @@ namespace amqpAnalyze
             inline const FieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; }
             inline AmqpCompositeType_t type() const override { return AmqpCompositeType_t::COORDINATOR; }
             const inline AmqpProvidesRequiresList_t& providesList() const override { return s_providesList; }
+
+            // convenience field getter methods
+            const AmqpArray_t& capabilities(bool throwFlag) const;
+
             static const FieldTypeList_t s_fieldTypeList;
 
         protected:
@@ -1266,6 +1394,7 @@ namespace amqpAnalyze
         };
 
 
+#define AMQPDECLARE_FN_GLOBAL_ID "global-id"
         class AmqpDeclare: public CompositeType {
         public:
             AmqpDeclare(AmqpList* fieldList);
@@ -1274,10 +1403,16 @@ namespace amqpAnalyze
 
             inline const FieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; }
             inline AmqpCompositeType_t type() const override { return AmqpCompositeType_t::DECLARE; }
+
+            // convenience field getter methods
+            const Type* globalId(bool throwFlag) const;
+
             static const FieldTypeList_t s_fieldTypeList;
         };
 
 
+#define AMQPDISCHARGE_FN_TXN_ID "txn-id"
+#define AMQPDISCHARGE_FN_FAIL "fail"
         class AmqpDischarge: public CompositeType {
         public:
             AmqpDischarge(AmqpList* fieldList);
@@ -1286,10 +1421,16 @@ namespace amqpAnalyze
 
             inline const FieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; }
             inline AmqpCompositeType_t type() const override { return AmqpCompositeType_t::DISCHARGE; }
+
+            // convenience field getter methods
+            const AmqpTransactionId* txnId(bool throwFlag) const;
+            bool fail(bool throwFlag) const;
+
             static const FieldTypeList_t s_fieldTypeList;
         };
 
 
+#define AMQPDECLARED_FN_TXN_ID "txn-id"
         class AmqpDeclared: public CompositeType {
         public:
             AmqpDeclared(AmqpList* fieldList);
@@ -1299,6 +1440,10 @@ namespace amqpAnalyze
             inline const FieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; }
             inline AmqpCompositeType_t type() const override { return AmqpCompositeType_t::DECLARED; }
             const inline AmqpProvidesRequiresList_t& providesList() const override { return s_providesList; }
+
+            // convenience field getter methods
+            const AmqpTransactionId* txnId(bool throwFlag) const;
+
             static const FieldTypeList_t s_fieldTypeList;
 
         protected:
@@ -1306,6 +1451,8 @@ namespace amqpAnalyze
         };
 
 
+#define AMQPTRANSACTIONALSTATE_FN_TXN_ID "txn-id"
+#define AMQPTRANSACTIONALSTATE_FN_OUTCOME "outcome"
         class AmqpTransactionalState: public CompositeType {
         public:
             AmqpTransactionalState(AmqpList* fieldList);
@@ -1315,6 +1462,11 @@ namespace amqpAnalyze
             inline const FieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; }
             inline AmqpCompositeType_t type() const override { return AmqpCompositeType_t::TRANSACTIONAL_STATE; }
             const inline AmqpProvidesRequiresList_t& providesList() const override { return s_providesList; }
+
+            // convenience field getter methods
+            const AmqpTransactionId* txnId(bool throwFlag) const;
+            const CompositeType* outcome(bool throwFlag) const;
+
             static const FieldTypeList_t s_fieldTypeList;
 
         protected:
@@ -1322,6 +1474,7 @@ namespace amqpAnalyze
         };
 
 
+#define AMQPSASLMECHANISMS_FL_SASL_SERVER_MECHANISMS "sasl-server-mechanisms"
         class AmqpSaslMechanisms: public CompositeType {
         public:
             AmqpSaslMechanisms(AmqpList* fieldList);
@@ -1330,10 +1483,17 @@ namespace amqpAnalyze
 
             inline const FieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; }
             inline AmqpCompositeType_t type() const override { return AmqpCompositeType_t::SASL_MECHANISMS; }
+
+            // convenience field getter methods
+            const AmqpArray_t& saslServerMechanisms(bool throwFlag) const;
+
             static const FieldTypeList_t s_fieldTypeList;
         };
 
 
+#define AMQPSASLINIT_FN_MECHANISM "mechanism"
+#define AMQPSASLINIT_FN_INITIAL_RESPONSE "initial-response"
+#define AMQPSASLINIT_FN_HOSTNAME "hostname"
         class AmqpSaslInit: public CompositeType {
         public:
             AmqpSaslInit(AmqpList* fieldList);
@@ -1342,10 +1502,17 @@ namespace amqpAnalyze
 
             inline const FieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; }
             inline AmqpCompositeType_t type() const override { return AmqpCompositeType_t::SASL_INIT; }
+
+            // convenience field getter methods
+            const std::string& mechanism(bool throwFlag) const;
+            const AmqpBinary_t& initialRespose(bool throwFlag) const;
+            const std::string& hostname(bool throwFlag) const;
+
             static const FieldTypeList_t s_fieldTypeList;
         };
 
 
+#define AMQPSASLCHALLENGE_FN_CHALLENGE "challenge"
         class AmqpSaslChallenge: public CompositeType {
         public:
             AmqpSaslChallenge(AmqpList* fieldList);
@@ -1354,10 +1521,15 @@ namespace amqpAnalyze
 
             inline const FieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; }
             inline AmqpCompositeType_t type() const override { return AmqpCompositeType_t::SASL_CHALLENGE; }
+
+            // convenience field getter methods
+            const AmqpBinary_t& challenge(bool throwFlag) const;
+
             static const FieldTypeList_t s_fieldTypeList;
         };
 
 
+#define AMQPSASLRESPONSE_FN_RESPONSE "response"
         class AmqpSaslResponse: public CompositeType {
         public:
             AmqpSaslResponse(AmqpList* fieldList);
@@ -1366,10 +1538,16 @@ namespace amqpAnalyze
 
             inline const FieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; }
             inline AmqpCompositeType_t type() const override { return AmqpCompositeType_t::SASL_RESPONSE; }
+
+            // convenience field getter methods
+            const AmqpBinary_t& response(bool throwFlag) const;
+
             static const FieldTypeList_t s_fieldTypeList;
         };
 
 
+#define AMQPSASLOUTCOME_FN_CODE "code"
+#define AMQPSASLOUTCOME_FN_ADDITIONAL_DATA "additional-data"
         class AmqpSaslOutcome: public CompositeType {
         public:
             AmqpSaslOutcome(AmqpList* fieldList);
@@ -1378,9 +1556,13 @@ namespace amqpAnalyze
 
             inline const FieldTypeList_t& fieldTypeList() const override { return s_fieldTypeList; }
             inline AmqpCompositeType_t type() const override { return AmqpCompositeType_t::SASL_OUTCOME; }
+
+            // convenience field getter methods
+            AmqpSaslCode_t code(bool throwFlag) const;
+            const AmqpBinary_t& additionalData(bool throwFlag) const;
+
             static const FieldTypeList_t s_fieldTypeList;
         };
-
 
     } /* namespace amqp10 */
 } /* namespace amqpAnalyze */

@@ -12,11 +12,12 @@ set(amqpAnalyze_HEADERS
     amqpAnalyze.hpp
     amqpAnalyze/amqp10/AmqpBlock.hpp
     amqpAnalyze/amqp10/Connection.hpp
+    amqpAnalyze/amqp10/ConnectionError.hpp
     amqpAnalyze/amqp10/ConnectionHandler.hpp
     amqpAnalyze/amqp10/ConnectionState.hpp
     amqpAnalyze/amqp10/Decoder.hpp
     amqpAnalyze/amqp10/DecodeError.hpp
-    amqpAnalyze/amqp10/Endpoint.hpp
+    #amqpAnalyze/amqp10/Endpoint.hpp
     amqpAnalyze/amqp10/FieldType.hpp
     amqpAnalyze/amqp10/Frame.hpp
     amqpAnalyze/amqp10/FrameBuffer.hpp
@@ -27,6 +28,8 @@ set(amqpAnalyze_HEADERS
     amqpAnalyze/amqp10/ProtocolHeader.hpp
     amqpAnalyze/amqp10/ProvidesRequires.hpp
     amqpAnalyze/amqp10/Section.hpp
+    amqpAnalyze/amqp10/SessionHandler.hpp
+    #amqpAnalyze/amqp10/SessionState.hpp
     amqpAnalyze/amqp10/Type.hpp
     amqpAnalyze/amqp10/ValidationError.hpp
     amqpAnalyze/AmqpDissector.hpp
@@ -51,11 +54,12 @@ set(amqpAnalyze_SOURCES
     amqpAnalyze.cpp
     amqpAnalyze/amqp10/AmqpBlock.cpp
     amqpAnalyze/amqp10/Connection.cpp
+    amqpAnalyze/amqp10/ConnectionError.cpp
     amqpAnalyze/amqp10/ConnectionHandler.cpp
     amqpAnalyze/amqp10/ConnectionState.cpp
     amqpAnalyze/amqp10/Decoder.cpp
     amqpAnalyze/amqp10/DecodeError.cpp
-    amqpAnalyze/amqp10/Endpoint.cpp
+    #amqpAnalyze/amqp10/Endpoint.cpp
     amqpAnalyze/amqp10/FieldType.cpp
     amqpAnalyze/amqp10/Frame.cpp
     amqpAnalyze/amqp10/FrameBuffer.cpp
@@ -65,6 +69,8 @@ set(amqpAnalyze_SOURCES
     amqpAnalyze/amqp10/ProtocolHeader.cpp
     amqpAnalyze/amqp10/ProvidesRequires.cpp
     amqpAnalyze/amqp10/Section.cpp
+    amqpAnalyze/amqp10/SessionHandler.cpp
+    #amqpAnalyze/amqp10/SessionState.cpp
     amqpAnalyze/amqp10/Type.cpp
     amqpAnalyze/amqp10/ValidationError.cpp
     amqpAnalyze/AmqpDissector.cpp
