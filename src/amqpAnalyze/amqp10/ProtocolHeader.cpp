@@ -5,7 +5,7 @@
  *      Author: kpvdr
  */
 
-#include <amqpAnalyze/amqp10/ProtocolHeader.hpp>
+#include "ProtocolHeader.hpp"
 
 #include <amqpAnalyze/amqp10/FrameBuffer.hpp>
 #include <amqpAnalyze/Color.hpp>

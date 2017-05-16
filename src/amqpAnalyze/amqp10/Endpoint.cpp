@@ -5,7 +5,7 @@
  *      Author: kpvdr
  */
 
-#include <amqpAnalyze/amqp10/Endpoint.hpp>
+#include "Endpoint.hpp"
 
 namespace amqpAnalyze
 {

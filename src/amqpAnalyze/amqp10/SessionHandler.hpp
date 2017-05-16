@@ -10,7 +10,7 @@
 
 namespace amqpAnalyze
 {
-    class TcpAddressInfo;
+    class TcpConnection;
     class TcpDissector;
 
     namespace amqp10
@@ -29,9 +29,9 @@ namespace amqpAnalyze
             SessionHandler();
             virtual ~SessionHandler();
 
-            void handleBegin(const TcpAddressInfo& tcpAddrInfo, AmqpBegin* beginPtr, EndpointDir_t endpointDir);
-            void handleEnd(const TcpAddressInfo& tcpAddrInfo, AmqpEnd* endPtr, EndpointDir_t endpointDir);
-            static void handleFrame(const TcpAddressInfo& tcpAddrInfo, Frame* framePtr);
+            void handleBegin(const TcpConnection* tcpConnectionPtr, AmqpBegin* beginPtr, EndpointDir_t endpointDir);
+            void handleEnd(const TcpConnection* tcpConnectionPtr, AmqpEnd* endPtr, EndpointDir_t endpointDir);
+            static void handleFrame(const TcpConnection* tcpConnectionPtr, Frame* framePtr);
         };
 
     } /* namespace amqp10 */

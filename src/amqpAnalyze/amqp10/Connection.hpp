@@ -13,13 +13,12 @@
 
 namespace amqpAnalyze
 {
-    class TcpAddressInfo;
+    class TcpConnection;
 
     namespace amqp10
     {
         class AmqpClose;
         class AmqpOpen;
-        //class Endpoint;
         class Frame;
         class SessionHanlder;
 
@@ -32,12 +31,12 @@ namespace amqpAnalyze
         class Connection
         {
         public:
-            Connection(const TcpAddressInfo& tcpAddrInfo);
+            Connection(const TcpConnection* tcpConnectionPtr);
             virtual ~Connection();
 
-            void handleFrame(const TcpAddressInfo& tcpAddrInfo, Frame* framePtr);
-            void handleProtocolHeader(const TcpAddressInfo& tcpAddrInfo, ProtocolHeader* protocolHeaderPtr);
-            bool handleTcpClose(const TcpAddressInfo& tcpAddrInfo);
+            void handleFrame(const TcpConnection* tcpConnectionPtr, bool replyFlag, Frame* framePtr);
+            void handleProtocolHeader(const TcpConnection* tcpConnectionPtr, bool replyFlag, ProtocolHeader* protocolHeaderPtr);
+            bool handleTcpClose(const TcpConnection* tcpConnectionPtr, bool replyFlag);
 
         protected:
             std::vector<amqpAnalyze::Error*> _errorList;
@@ -64,8 +63,8 @@ namespace amqpAnalyze
 
             void checkChannel(const Frame* framePtr);
             bool checkError(const AmqpClose* amqpClosePtr);
-            bool isInitiator(const TcpAddressInfo& tcpAddrInfo) const;
-            bool isResponder(const TcpAddressInfo& tcpAddrInfo) const;
+            bool isInitiator(const TcpConnection* tcpConnectionPtr, bool replyFlag) const;
+            bool isResponder(const TcpConnection* tcpConnectionPtr, bool replyFlag) const;
         };
 
     } /* namespace amqp10 */

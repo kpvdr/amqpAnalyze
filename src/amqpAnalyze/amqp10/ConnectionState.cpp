@@ -5,7 +5,7 @@
  *      Author: kpvdr
  */
 
-#include <amqpAnalyze/amqp10/ConnectionState.hpp>
+#include "ConnectionState.hpp"
 
 #include <amqpAnalyze/amqp10/IllegalStateError.hpp>
 

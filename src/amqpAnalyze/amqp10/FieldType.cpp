@@ -5,7 +5,7 @@
  *      Author: kpvdr
  */
 
-#include <amqpAnalyze/amqp10/FieldType.hpp>
+#include "FieldType.hpp"
 
 namespace amqpAnalyze
 {

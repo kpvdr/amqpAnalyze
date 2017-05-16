@@ -5,7 +5,7 @@
  *      Author: kpvdr
  */
 
-#include <amqpAnalyze/Packet.hpp>
+#include "Packet.hpp"
 
 #include <amqpAnalyze/Error.hpp>
 #include <amqpAnalyze/Ip4Dissector.hpp>
@@ -91,7 +91,7 @@ namespace amqpAnalyze
         if (tcpDissectorPtr == nullptr) {
             throw Error(MSG("[" << _packetNum << "] Packet::connectionIndex: Error downcasting from Dissector* to TcpDissector*"));
         }
-        return tcpDissectorPtr->getConnectionIndex();
+        return tcpDissectorPtr->connectionIndex();
     }
 
 } /* namespace amqpAnalyze */

@@ -5,7 +5,7 @@
  *      Author: kpvdr
  */
 
-#include <amqpAnalyze/FileParser.hpp>
+#include "FileParser.hpp"
 
 #include <amqpAnalyze.hpp>
 #include <amqpAnalyze/Error.hpp>

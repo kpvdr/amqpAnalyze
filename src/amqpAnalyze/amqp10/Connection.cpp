@@ -5,34 +5,35 @@
  *      Author: kpvdr
  */
 
-#include <amqpAnalyze/amqp10/Connection.hpp>
+#include "Connection.hpp"
 
 #include <amqpAnalyze/amqp10/ConnectionError.hpp>
 #include <amqpAnalyze/amqp10/Endpoint.hpp>
 #include <amqpAnalyze/amqp10/Frame.hpp>
 #include <amqpAnalyze/amqp10/Performative.hpp>
+//#include <amqpAnalyze/amqp10/Session.hpp>
 #include <amqpAnalyze/amqp10/SessionHandler.hpp>
 #include <amqpAnalyze/amqp10/Type.hpp>
 #include <amqpAnalyze/Error.hpp>
-#include <amqpAnalyze/TcpAddressInfo.hpp>
+#include <amqpAnalyze/TcpConnection.hpp>
 
 namespace amqpAnalyze
 {
     namespace amqp10
     {
 
-        Connection::Connection(const TcpAddressInfo& tcpAddrInfo):
+        Connection::Connection(const TcpConnection* tcpConnectionPtr):
             _errorList(),
             _closeError(),
             //_frameErrorFlag(false),
-            _initiatorAddrStr(tcpAddrInfo.srcAddress()),
+            _initiatorAddrStr(tcpConnectionPtr->srcAddress()),
             //_initiatorCloseError(),
             _initiatorEndpoints(),
             //_initiatorHeaderSent(false),
             _initiatorOpen(nullptr),
             _initiatorState("initiator"),
             _initiatorTcpClosedFlag(false),
-            _responderAddrStr(tcpAddrInfo.destAddress()),
+            _responderAddrStr(tcpConnectionPtr->destAddress()),
             //_responderCloseError(),
             _responderEndpoints(),
             //_responderHeaderSent(false),
@@ -61,7 +62,7 @@ namespace amqpAnalyze
             _errorList.clear();
         }
 
-        void Connection::handleFrame(const TcpAddressInfo& tcpAddrInfo, Frame* framePtr) {
+        void Connection::handleFrame(const TcpConnection* tcpConnectionPtr, bool replyFlag, Frame* framePtr) {
             checkChannel(framePtr);
             if (framePtr->isEmpty()) return;  // ignore heartbeats
 //            if (framePtr->hasErrors()) {
@@ -76,18 +77,18 @@ namespace amqpAnalyze
             case PerformativeType_t::OPEN:
                 {
                     AmqpOpen* amqpOpenPtr(dynamic_cast<AmqpOpen*>(performativePtr));
-                    if (isInitiator(tcpAddrInfo)) {
+                    if (isInitiator(tcpConnectionPtr, replyFlag)) {
                         _initiatorOpen = amqpOpenPtr;
                         _initiatorState.sentOpen();
                         _responderState.receivedOpen(_lastActor == LastActorType_t::INITIATOR);
                         _lastActor = LastActorType_t::INITIATOR;
-                    } else if (isResponder(tcpAddrInfo)) {
+                    } else if (isResponder(tcpConnectionPtr, replyFlag)) {
                         _responderOpen = amqpOpenPtr;
                         _responderState.sentOpen();
                         _initiatorState.receivedOpen(false);
                         _lastActor = LastActorType_t::RECEIVER;
                     } else {
-                        throw amqpAnalyze::Error(MSG("Connection::handleFrame(): TCP address \"" << tcpAddrInfo
+                        throw amqpAnalyze::Error(MSG("Connection::handleFrame(): TCP address \"" << tcpConnectionPtr
                                         << "\" matches neither initiator nor responder"));
                     }
                     oss << _initiatorState.stateStr() << ":" <<  _responderState.stateStr();
@@ -102,16 +103,16 @@ namespace amqpAnalyze
                                         << performativePtr->name() << "\""));
                     }
                     const bool closeErrorFlag = checkError(amqpClosePtr);
-                    if (isInitiator(tcpAddrInfo)) {
+                    if (isInitiator(tcpConnectionPtr, replyFlag)) {
                         _initiatorState.sentClose(closeErrorFlag);
                         _responderState.receivedClose(_lastActor == LastActorType_t::INITIATOR);
                         _lastActor = LastActorType_t::INITIATOR;
-                    } else if (isResponder(tcpAddrInfo)) {
+                    } else if (isResponder(tcpConnectionPtr, replyFlag)) {
                         _responderState.sentClose(closeErrorFlag);
                         _initiatorState.receivedClose(false);
                         _lastActor = LastActorType_t::RECEIVER;
                     } else {
-                        throw amqpAnalyze::Error(MSG("Connection::handleFrame(): TCP address \"" << tcpAddrInfo
+                        throw amqpAnalyze::Error(MSG("Connection::handleFrame(): TCP address \"" << tcpConnectionPtr
                                         << "\" matches neither initiator nor responder"));
                     }
                     oss << _initiatorState.stateStr() << ":" <<  _responderState.stateStr();
@@ -125,7 +126,15 @@ namespace amqpAnalyze
                         throw amqpAnalyze::Error(MSG("Connection::handleFrame(): Error downcasting class \"Performative\" to class \"AmqpBegin\": found=\""
                                         << performativePtr->name() << "\""));
                     }
-                    //std::map<uint16_t, SessionHanlder*>::iterator i=_initiatorEndpoints.lower_bound();TODO HERE
+/*
+                    Session* sessionPtr = nullptr;
+                    std::map<uint16_t, SessionHanlder*>::iterator itr=_initiatorEndpoints.lower_bound(framePtr->typeSpecific());
+                    if (itr != _initiatorEndpoints.end() && !(_initiatorEndpoints.key_comp()(framePtr->typeSpecific(), itr->first))) {
+                        sessionPtr = itr->second; ???
+                    } else {
+                        sessionPtr = new Session();
+                    }
+*/
                 }
                 break;
             case PerformativeType_t::END:
@@ -138,21 +147,21 @@ namespace amqpAnalyze
                 }
                 break;
             default:;
-                SessionHandler::handleFrame(tcpAddrInfo, framePtr);
+                SessionHandler::handleFrame(tcpConnectionPtr, framePtr);
             }
         }
 
-        void Connection::handleProtocolHeader(const TcpAddressInfo& tcpAddrInfo, ProtocolHeader* protocolHeaderPtr) {
-            if (isInitiator(tcpAddrInfo)) {
+        void Connection::handleProtocolHeader(const TcpConnection* tcpConnectionPtr, bool replyFlag, ProtocolHeader* protocolHeaderPtr) {
+            if (isInitiator(tcpConnectionPtr, replyFlag)) {
                 _initiatorState.sentProtocolHeader(protocolHeaderPtr->version());
                 _responderState.receivedProtocolHeader(protocolHeaderPtr->version());
                 _lastActor = LastActorType_t::INITIATOR;
-            } else if (isResponder(tcpAddrInfo)) {
+            } else if (isResponder(tcpConnectionPtr, replyFlag)) {
                 _responderState.sentProtocolHeader(protocolHeaderPtr->version());
                 _initiatorState.receivedProtocolHeader(protocolHeaderPtr->version());
                 _lastActor = LastActorType_t::RECEIVER;
             } else {
-                throw amqpAnalyze::Error(MSG("Connection::handleProtocolHeader(): TCP address \"" << tcpAddrInfo
+                throw amqpAnalyze::Error(MSG("Connection::handleProtocolHeader(): TCP address \"" << tcpConnectionPtr
                                 << "\" matches neither initiator nor responder"));
             }
             std::ostringstream oss;
@@ -160,15 +169,15 @@ namespace amqpAnalyze
             protocolHeaderPtr->setStateStr(oss.str());
         }
 
-        bool Connection::handleTcpClose(const TcpAddressInfo& tcpAddrInfo) {
-            if (isInitiator(tcpAddrInfo)) {
+        bool Connection::handleTcpClose(const TcpConnection* tcpConnectionPtr, bool replyFlag) {
+            if (isInitiator(tcpConnectionPtr, replyFlag)) {
                 if (_responderTcpClosedFlag) return true;
                 _initiatorTcpClosedFlag = true;
-            } else if (isResponder(tcpAddrInfo)) {
+            } else if (isResponder(tcpConnectionPtr, replyFlag)) {
                 if (_initiatorTcpClosedFlag) return true;
                 _responderTcpClosedFlag = true;
             } else {
-                throw amqpAnalyze::Error(MSG("Connection::handleTcpClose(): TCP address \"" << tcpAddrInfo
+                throw amqpAnalyze::Error(MSG("Connection::handleTcpClose(): TCP address \"" << tcpConnectionPtr
                                 << "\" matches neither initiator nor responder"));
             }
             return false;
@@ -209,12 +218,20 @@ namespace amqpAnalyze
 */
         }
 
-        bool Connection::isInitiator(const TcpAddressInfo& tcpAddrInfo) const {
-            return tcpAddrInfo.srcAddress().compare(_initiatorAddrStr) == 0; // TODO: this could be an inefficient way to determine initiator
+        bool Connection::isInitiator(const TcpConnection* tcpConnectionPtr, bool replyFlag) const {
+            // TODO: Comparing strings like this could be an inefficient way to determine initiator vs. responder
+            if (replyFlag) {
+                return tcpConnectionPtr->destAddress().compare(_initiatorAddrStr) == 0;
+            }
+            return tcpConnectionPtr->srcAddress().compare(_initiatorAddrStr) == 0;
         }
 
-        bool Connection::isResponder(const TcpAddressInfo& tcpAddrInfo) const {
-            return tcpAddrInfo.srcAddress().compare(_responderAddrStr) == 0; // TODO: this could be an inefficient way to determine initiator
+        bool Connection::isResponder(const TcpConnection* tcpConnectionPtr, bool replyFlag) const {
+            // TODO: Comparing strings like this could be an inefficient way to determine initiator vs. responder
+            if (replyFlag) {
+                return tcpConnectionPtr->destAddress().compare(_responderAddrStr) == 0;
+            }
+            return tcpConnectionPtr->srcAddress().compare(_responderAddrStr) == 0;
         }
 
     } /* namespace amqp10 */

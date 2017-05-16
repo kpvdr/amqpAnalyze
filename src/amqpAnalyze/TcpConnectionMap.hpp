@@ -8,7 +8,6 @@
 #ifndef SRC_AMQPANALYZE_TCPCONNECTIONMAP_HPP_
 #define SRC_AMQPANALYZE_TCPCONNECTIONMAP_HPP_
 
-#include <amqpAnalyze/TcpAddressInfo.hpp>
 #include <map>
 #include <vector>
 
@@ -16,9 +15,10 @@ struct tcphdr;
 
 namespace amqpAnalyze
 {
-    struct TcpConnection;
+    class TcpConnection;
+    class TcpDissector;
 
-    typedef std::map<std::size_t, struct TcpConnection*> ConnectionMap_t;
+    typedef std::map<std::size_t, TcpConnection*> ConnectionMap_t;
     typedef ConnectionMap_t::iterator ConnectionMap_itr_t;
 
     typedef std::vector<std::size_t> ConnectionHashList_t;
@@ -30,15 +30,13 @@ namespace amqpAnalyze
         TcpConnectionMap();
         virtual ~TcpConnectionMap();
 
-        uint32_t handleTcpHeader(TcpDissector* tcpDissector, uint64_t packetNum);
+        TcpConnection* getTcpConnection(TcpDissector* tcpDissector, uint64_t packetNum);
         bool hasConnection(std::size_t hash) const;
         void print(std::ostream& os, bool showHashFlag) const;
 
     protected:
         ConnectionMap_t _connectionMap;
         ConnectionHashList_t _connectionList;
-
-        TcpConnection* getTcpConnection(TcpDissector* tcpDissector, uint64_t packetNum);
     };
 
 } /* namespace amqpAnalyze */

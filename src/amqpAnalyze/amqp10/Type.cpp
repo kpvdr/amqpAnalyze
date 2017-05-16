@@ -5,7 +5,7 @@
  *      Author: kpvdr
  */
 
-#include <amqpAnalyze/amqp10/Type.hpp>
+#include "Type.hpp"
 
 #include <amqpAnalyze/amqp10/AmqpBlock.hpp>
 #include <amqpAnalyze/amqp10/FieldType.hpp>

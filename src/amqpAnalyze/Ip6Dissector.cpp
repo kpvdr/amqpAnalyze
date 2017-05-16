@@ -5,7 +5,7 @@
  *      Author: kpvdr
  */
 
-#include <amqpAnalyze/Ip6Dissector.hpp>
+#include "Ip6Dissector.hpp"
 
 #include <amqpAnalyze/Error.hpp>
 #include <amqpAnalyze/Packet.hpp>

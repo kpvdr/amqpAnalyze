@@ -5,7 +5,7 @@
  *      Author: kpvdr
  */
 
-#include <amqpAnalyze/amqp10/Decoder.hpp>
+#include "Decoder.hpp"
 
 #include <amqpAnalyze/amqp10/FieldType.hpp>
 #include <amqpAnalyze/amqp10/FrameBuffer.hpp>

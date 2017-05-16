@@ -5,7 +5,7 @@
  *      Author: kpvdr
  */
 
-#include <amqpAnalyze/Dissector.hpp>
+#include "Dissector.hpp"
 
 #include <amqpAnalyze/Color.hpp>
 #include <amqpAnalyze/Error.hpp>

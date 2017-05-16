@@ -5,7 +5,7 @@
  *      Author: kpvdr
  */
 
-#include <amqpAnalyze/amqp10/SessionState.hpp>
+#include "SessionState.hpp"
 
 #include <amqpAnalyze/amqp10/IllegalStateError.hpp>
 

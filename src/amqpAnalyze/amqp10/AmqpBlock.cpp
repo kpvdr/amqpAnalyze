@@ -5,7 +5,7 @@
  *      Author: kpvdr
  */
 
-#include <amqpAnalyze/amqp10/AmqpBlock.hpp>
+#include "AmqpBlock.hpp"
 
 #include <amqpAnalyze/Options.hpp>
 

@@ -12,7 +12,7 @@
 
 namespace amqpAnalyze
 {
-    class TcpAddressInfo;
+    class TcpConnection;
     class TcpDissector;
 
     namespace amqp10
@@ -25,13 +25,13 @@ namespace amqpAnalyze
             ConnectionHandler();
             virtual ~ConnectionHandler();
 
-            void handleFrame(const TcpAddressInfo& tcpAddrInfo, AmqpBlock* blockPtr);
+            void handleFrame(const TcpConnection* tcpConnectionPtr, bool replyFlag, AmqpBlock* blockPtr);
             void tcpClose(TcpDissector* tcpDissectorPtr);
 
         protected:
             std::map<uint64_t, Connection*> _connectionMap;
 
-            Connection* insertIfNotPresent(const amqpAnalyze::TcpAddressInfo& tcpAddrInfo);
+            Connection* insertIfNotPresent(const TcpConnection* tcpConnectionPtr);
         };
 
     } /* namespace amqp10 */

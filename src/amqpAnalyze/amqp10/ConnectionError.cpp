@@ -5,7 +5,7 @@
  *      Author: kpvdr
  */
 
-#include <amqpAnalyze/amqp10/ConnectionError.hpp>
+#include "ConnectionError.hpp"
 
 namespace amqpAnalyze
 {

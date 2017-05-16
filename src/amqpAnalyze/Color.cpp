@@ -5,7 +5,7 @@
  *      Author: kpvdr
  */
 
-#include <amqpAnalyze/Color.hpp>
+#include "Color.hpp"
 
 #include <sstream>
 

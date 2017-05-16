@@ -5,7 +5,7 @@
  *      Author: kpvdr
  */
 
-#include <amqpAnalyze/amqp10/Performative.hpp>
+#include "Performative.hpp"
 
 #include <amqpAnalyze/amqp10/FieldType.hpp>
 #include <amqpAnalyze/amqp10/ProvidesRequires.hpp>

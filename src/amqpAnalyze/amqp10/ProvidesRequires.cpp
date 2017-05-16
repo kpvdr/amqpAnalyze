@@ -5,7 +5,7 @@
  *      Author: kpvdr
  */
 
-#include <amqpAnalyze/amqp10/ProvidesRequires.hpp>
+#include "ProvidesRequires.hpp"
 
 #include <sstream>
 

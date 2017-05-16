@@ -5,7 +5,7 @@
  *      Author: kpvdr
  */
 
-#include <amqpAnalyze/amqp10/SessionHandler.hpp>
+#include "SessionHandler.hpp"
 
 namespace amqpAnalyze
 {
@@ -16,12 +16,12 @@ namespace amqpAnalyze
 
         SessionHandler::~SessionHandler() {}
 
-        void SessionHandler::handleBegin(const TcpAddressInfo& tcpAddrInfo, AmqpBegin* beginPtr, EndpointDir_t endpointDir) {}
+        void SessionHandler::handleBegin(const TcpConnection* tcpConnectionPtr, AmqpBegin* beginPtr, EndpointDir_t endpointDir) {}
 
-        void SessionHandler::handleEnd(const TcpAddressInfo& tcpAddrInfo, AmqpEnd* endPtr, EndpointDir_t endpointDir) {}
+        void SessionHandler::handleEnd(const TcpConnection* tcpConnectionPtr, AmqpEnd* endPtr, EndpointDir_t endpointDir) {}
 
         // static
-        void SessionHandler::handleFrame(const TcpAddressInfo& tcpAddrInfo, Frame* framePtr) {}
+        void SessionHandler::handleFrame(const TcpConnection* tcpConnectionPtr, Frame* framePtr) {}
 
     } /* namespace amqp10 */
 } /* namespace amqpAnalyze */

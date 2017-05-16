@@ -8,16 +8,21 @@
 #ifndef SRC_AMQPANALYZE_TCPCONNECTION_HPP_
 #define SRC_AMQPANALYZE_TCPCONNECTION_HPP_
 
-#include "TcpAddressInfo.hpp"
+#include <cstdint>
+#include <string>
 
 namespace amqpAnalyze
 {
+    class TcpDissector;
 
-	class TcpConnection: public TcpAddressInfo {
+	class TcpConnection {
 	public:
-        TcpConnection(const TcpAddressInfo& tcpAddressInfo, uint32_t initSrcSequence, uint32_t connectionIndex, uint64_t packetNumber);
+        TcpConnection(const TcpDissector* tcpDissectorPtr, uint32_t initSrcSequence, uint32_t connectionIndex, uint64_t packetNumber);
         virtual ~TcpConnection();
 
+        inline const std::string& destAddress() const { return _destAddrStr; }
+        inline std::size_t hash() const { return _hash; }
+        inline const std::string& srcAddress() const { return _srcAddrStr; }
         inline uint32_t connectionIndex() const { return _connectionIndex; }
         inline uint64_t firstPacketNumber() const { return _firstPacketNumber; }
         inline uint32_t initDestSequence() const { return _initDestSequence; }
@@ -29,6 +34,9 @@ namespace amqpAnalyze
         inline void setLastPacketNumber(uint64_t lastPacketNumber) { _lastPacketNumber = lastPacketNumber; }
 
 	protected:
+        const std::string _destAddrStr;
+        const std::size_t _hash;
+        const std::string _srcAddrStr;
         uint32_t _initSrcSequence;
         uint32_t _initDestSequence;
         bool _srcFinFlag;

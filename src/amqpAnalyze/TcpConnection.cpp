@@ -5,15 +5,19 @@
  *      Author: kvdr
  */
 
-#include <amqpAnalyze/TcpConnection.hpp>
+#include "TcpConnection.hpp"
+
+#include <amqpAnalyze/TcpDissector.hpp>
 #include <iomanip>
 #include <iostream>
 
 namespace amqpAnalyze
 {
 
-    TcpConnection::TcpConnection(const TcpAddressInfo& tcpAddressInfo, uint32_t initSrcSequence, uint32_t connectionIndex, uint64_t packetNumber):
-        TcpAddressInfo(tcpAddressInfo),
+    TcpConnection::TcpConnection(const TcpDissector* tcpDissectorPtr, uint32_t initSrcSequence, uint32_t connectionIndex, uint64_t packetNumber):
+        _srcAddrStr(tcpDissectorPtr->tcpSourceAddrStr(false)),
+        _destAddrStr(tcpDissectorPtr->tcpDestinationAddrStr(false)),
+        _hash(tcpDissectorPtr->hash()),
         _initSrcSequence(initSrcSequence),
         _initDestSequence(0),
         _srcFinFlag(false),

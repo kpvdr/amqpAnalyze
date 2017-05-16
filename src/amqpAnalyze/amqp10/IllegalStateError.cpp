@@ -5,7 +5,7 @@
  *      Author: kpvdr
  */
 
-#include <amqpAnalyze/amqp10/IllegalStateError.hpp>
+#include "IllegalStateError.hpp"
 
 namespace amqpAnalyze
 {

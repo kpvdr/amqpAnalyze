@@ -5,7 +5,7 @@
  *      Author: kpvdr
  */
 
-#include <amqpAnalyze/TcpDissector.hpp>
+#include "TcpDissector.hpp"
 
 #include <amqpAnalyze/amqp10/ConnectionHandler.hpp>
 #include <amqpAnalyze/AmqpDissector.hpp>
@@ -14,6 +14,7 @@
 #include <amqpAnalyze/Ip4Dissector.hpp>
 #include <amqpAnalyze/Ip6Dissector.hpp>
 #include <amqpAnalyze/Packet.hpp>
+#include <amqpAnalyze/TcpConnection.hpp>
 #include <amqpAnalyze/TcpConnectionMap.hpp>
 #include <cstring>
 #include <iostream>
@@ -24,17 +25,17 @@ namespace amqpAnalyze
 
     TcpDissector::TcpDissector(Packet* packetPtr, uint32_t dataOffs, Dissector* parent):
             Dissector(packetPtr, dataOffs, parent),
-            _connectionIndex(0)
+            _tcpConnection(nullptr),
+            _replyFlag(false)
     {
         std::memcpy((char*)&_tcpHeader, (const char*)(_packetPtr->dataPtr()+_dataOffs), sizeof(struct tcphdr));
         _hdrSizeBytes = _tcpHeader.doff * sizeof(uint32_t);  // doff is tcp header size in 32-bit words
         _remainingDataLength = _packetPtr->pcapPacketHeaderPtr()->caplen - _dataOffs - _hdrSizeBytes;
-        _tcpAddressInfo.setAddress(this);
         try {
-            _connectionIndex = g_tcpConnectionMap.handleTcpHeader(this, _packetPtr->packetNum());
+            _tcpConnection = g_tcpConnectionMap.getTcpConnection(this, _packetPtr->packetNum());
+            _replyFlag = _tcpConnection->srcAddress().compare(tcpDestinationAddrStr(false)) == 0;
             if (_tcpHeader.fin) {
-                // Notify connection state objects of TCP close
-                g_amqpConnectionHandler.tcpClose(this);
+                g_amqpConnectionHandler.tcpClose(this); // Notify connection state objects of TCP close
             }
             if (_remainingDataLength) {
                 try {
@@ -53,34 +54,34 @@ namespace amqpAnalyze
 
     void TcpDissector::appendString(std::ostringstream& oss, size_t margin) const {
         oss << "\n" << std::string(margin, ' ') << Color::color(DisplayColorType_t::DISSECTOR_NAME, "TCP")
-            << ": " << getSourceAddrStr() << " -> " << getDestinationAddrStr() << " [" << getFlagsAsString()
-            << "] ci=" << _connectionIndex;
+            << ": " << tcpSourceAddrStr() << " -> " << tcpDestinationAddrStr() << " [" << tcpFlagsAsStr()
+            << "] ci=" << connectionIndex();
         appendErrors(oss, margin);
     }
 
-    std::string TcpDissector::getSourceAddrStr(bool colorFlag) const {
+    std::string TcpDissector::tcpSourceAddrStr(bool colorFlag) const {
         std::stringstream oss;
         oss << ((IpDissector*)_parent)->getSourceAddrStr() << ":";
         if (colorFlag) {
-            oss << Color::color(DisplayColorType_t::TCP_PORT, std::to_string(getSourcePort()));
+            oss << Color::color(DisplayColorType_t::TCP_PORT, std::to_string(tcpSourcePort()));
         } else {
-            oss << std::to_string(getSourcePort());
+            oss << std::to_string(tcpSourcePort());
         }
         return oss.str();
     }
 
-    std::string TcpDissector::getDestinationAddrStr(bool colorFlag) const {
+    std::string TcpDissector::tcpDestinationAddrStr(bool colorFlag) const {
         std::stringstream oss;
         oss << ((IpDissector*)_parent)->getDestinationAddrStr() << ":";
         if (colorFlag) {
-            oss << Color::color(DisplayColorType_t::TCP_PORT, std::to_string(getDestinationPort()));
+            oss << Color::color(DisplayColorType_t::TCP_PORT, std::to_string(tcpDestinationPort()));
         } else {
-            oss << std::to_string(getDestinationPort());
+            oss << std::to_string(tcpDestinationPort());
         }
         return oss.str();
     }
 
-    std::string TcpDissector::getConnectionHashStr() const {
+    std::string TcpDissector::hashStr() const {
         bool srcAddrGreater = false;
         if (((IpDissector*)_parent)->isIp6()) {
             // IPv6 hash
@@ -91,7 +92,7 @@ namespace amqpAnalyze
             ip6ParentDissector->getDestinationAddr(destAddr);
             // Order so that addr1<addr2 when taking hash
             if (srcAddr == destAddr) {
-                if (getSourcePort() > getDestinationPort()) {
+                if (tcpSourcePort() > tcpDestinationPort()) {
                     srcAddrGreater = true;
                 }
             } else if (srcAddr > destAddr) {
@@ -104,7 +105,7 @@ namespace amqpAnalyze
             uint32_t destAddr = ip4Dissector->getDestinationAddr();
             // Order so that addr1<addr2 when taking hash
             if (srcAddr == destAddr) {
-                if (getSourcePort() > getDestinationPort()) {
+                if (tcpSourcePort() > tcpDestinationPort()) {
                     srcAddrGreater = true;
                 }
             } else if (srcAddr > destAddr) {
@@ -113,26 +114,27 @@ namespace amqpAnalyze
         }
         std::stringstream oss;
         if (srcAddrGreater) {
-            oss << getDestinationAddrStr() << ", " << getSourceAddrStr();
+            oss << tcpDestinationAddrStr() << ", " << tcpSourceAddrStr();
         } else {
-            oss << getSourceAddrStr() << ", " << getDestinationAddrStr();
+            oss << tcpSourceAddrStr() << ", " << tcpDestinationAddrStr();
         }
         return oss.str();
     }
 
-    uint32_t TcpDissector::getConnectionIndex() const {
-        return _connectionIndex;
+    uint32_t TcpDissector::connectionIndex() const {
+        if (_tcpConnection == nullptr) return 0;
+        return _tcpConnection->connectionIndex();
     }
 
-    uint16_t TcpDissector::getSourcePort() const {
+    uint16_t TcpDissector::tcpSourcePort() const {
         return ntohs(_tcpHeader.source);
     }
 
-    uint16_t TcpDissector::getDestinationPort() const {
+    uint16_t TcpDissector::tcpDestinationPort() const {
         return ntohs(_tcpHeader.dest);
     }
 
-    std::string TcpDissector::getFlagsAsString() const {
+    std::string TcpDissector::tcpFlagsAsStr() const {
         std::ostringstream oss;
         bool spacer = false;
         if (_tcpHeader.fin != 0) { oss << "FIN"; spacer = true; }
@@ -144,33 +146,37 @@ namespace amqpAnalyze
         return oss.str();
     }
 
-    bool TcpDissector::ack() const {
+    bool TcpDissector::tcpAck() const {
         return _tcpHeader.ack != 0;
     }
 
-    bool TcpDissector::fin() const {
+    bool TcpDissector::tcpFin() const {
         return _tcpHeader.fin != 0;
     }
 
-    bool TcpDissector::syn() const {
+    bool TcpDissector::tcpSyn() const {
         return _tcpHeader.syn != 0;
     }
 
-    uint32_t TcpDissector::getSequence() const {
+    uint32_t TcpDissector::tcpSequenceNum() const {
         return ::ntohl(_tcpHeader.seq);
     }
 
-    uint32_t TcpDissector::getAckSequence() const {
+    uint32_t TcpDissector::tcpAckSequenceNum() const {
         return ::ntohl(_tcpHeader.ack_seq);
     }
 
-    std::size_t TcpDissector::getConnectionHash() const {
+    std::size_t TcpDissector::hash() const {
         std::hash<std::string> hashFn;
-        return hashFn(getConnectionHashStr());
+        return hashFn(hashStr());
     }
 
-    const TcpAddressInfo& TcpDissector::getTcpAddressInfo() const {
-        return _tcpAddressInfo;
+    bool TcpDissector::replyFlag() const {
+        return _replyFlag;
+    }
+
+    const TcpConnection* TcpDissector::tcpConnection() const {
+        return _tcpConnection;
     }
 
 } /* namespace amqpAnalyze */

@@ -5,7 +5,7 @@
  *      Author: kpvdr
  */
 
-#include <amqpAnalyze/Options.hpp>
+#include "Options.hpp"
 
 #include <amqpAnalyze/Error.hpp>
 #include <cstring>

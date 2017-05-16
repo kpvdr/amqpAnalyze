@@ -5,7 +5,7 @@
  *      Author: kpvdr
  */
 
-#include <amqpAnalyze/IpDissector.hpp>
+#include "IpDissector.hpp"
 
 namespace amqpAnalyze
 {
