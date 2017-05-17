@@ -47,6 +47,7 @@ namespace amqpAnalyze
         std::size_t hash() const; // calculate hash for this instance
         bool replyFlag() const;
         const TcpConnection* tcpConnection() const;
+        TcpConnection* tcpConnection();
 
     protected:
         struct tcphdr _tcpHeader;

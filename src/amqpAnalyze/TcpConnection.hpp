@@ -13,6 +13,7 @@
 
 namespace amqpAnalyze
 {
+    enum class AmqpVersions_t;
     class TcpDissector;
 
 	class TcpConnection {
@@ -32,6 +33,8 @@ namespace amqpAnalyze
         inline void setInitDestSequence(uint32_t initDestSequence) { _initDestSequence = initDestSequence; }
         inline void setSrcFinFlag() { _srcFinFlag = true; }
         inline void setLastPacketNumber(uint64_t lastPacketNumber) { _lastPacketNumber = lastPacketNumber; }
+        inline AmqpVersions_t amqpVersion() const { return _amqpVersion; }
+        inline void setAmqpVersion(AmqpVersions_t amqpVersion) { _amqpVersion = amqpVersion; }
 
 	protected:
         const std::string _destAddrStr;
@@ -44,6 +47,7 @@ namespace amqpAnalyze
         uint32_t _connectionIndex;
         uint64_t _firstPacketNumber;
         uint64_t _lastPacketNumber;
+        AmqpVersions_t _amqpVersion;
 	};
 
 } /* namespace amqpAnalyze */

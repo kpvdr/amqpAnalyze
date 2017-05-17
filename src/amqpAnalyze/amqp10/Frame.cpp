@@ -8,15 +8,15 @@
 #include "Frame.hpp"
 
 #include <amqpAnalyze/amqp10/Decoder.hpp>
-#include <amqpAnalyze/amqp10/FrameBuffer.hpp>
+#include <amqpAnalyze/amqp10/FrameBuffer10.hpp>
 #include <amqpAnalyze/amqp10/Performative.hpp>
 #include <amqpAnalyze/amqp10/Section.hpp>
 #include <amqpAnalyze/Options.hpp>
+#include <amqpAnalyze/ValidationError.hpp>
 #include <iomanip>
 #include <netinet/in.h>
 
 #include "FramePlaceholder.hpp"
-#include "ValidationError.hpp"
 
 namespace amqpAnalyze
 {
@@ -30,7 +30,7 @@ namespace amqpAnalyze
             _typeSpecific(::ntohl(hdrPtr->_typeSpecific))
         {}
 
-        Frame::Frame(FrameBuffer& frameBuffer):
+        Frame::Frame(FrameBuffer10& frameBuffer):
             AmqpBlock(frameBuffer.getPacketNum(), frameBuffer.pushFrameOffsetSnapshot()),
             _hdr((hdr*)frameBuffer.getStructPtr(sizeof(hdr))),
             _extendedHeaderSize((_hdr._doff * 4) - 8),

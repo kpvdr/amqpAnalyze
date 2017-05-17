@@ -179,4 +179,8 @@ namespace amqpAnalyze
         return _tcpConnection;
     }
 
+    TcpConnection* TcpDissector::tcpConnection() {
+        return _tcpConnection;
+    }
+
 } /* namespace amqpAnalyze */

@@ -11,10 +11,10 @@
 #include <amqpAnalyze/amqp10/FieldType.hpp>
 #include <amqpAnalyze/amqp10/ProvidesRequires.hpp>
 #include <amqpAnalyze/Color.hpp>
+#include <amqpAnalyze/ValidationError.hpp>
 #include <cstring>
 #include <iomanip>
 #include <string>
-#include "ValidationError.hpp"
 
 #define SIZE_DESIGNATION_CHAR ':'
 

@@ -15,6 +15,7 @@ struct pcap_pkthdr;
 
 namespace amqpAnalyze
 {
+    class TcpDissector;
 
     enum class AmqpVersions_t {
         NONE = 0,
@@ -35,12 +36,16 @@ namespace amqpAnalyze
 
     protected:
         std::size_t _amqpDataSize;
+        TcpDissector* _tcpDissectorPtr;
         std::string _debugHexFrameData;
         amqp10::AmqpBlockList_t _amqpBlockList;
         static std::map<AmqpVersions_t, const char*> s_amqpVerionStr;
 
-        void handleAmqp_0_10();
-        void handleAmqp_1_0();
+        void handleAmqp0_8();
+        void handleAmqp0_9();
+        void handleAmqp0_9_1();
+        void handleAmqp0_10();
+        void handleAmqp1_0();
         AmqpVersions_t protocolHeaderVersion();
     };
 

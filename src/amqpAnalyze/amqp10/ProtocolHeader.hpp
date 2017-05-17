@@ -42,7 +42,7 @@ namespace amqpAnalyze
                 hdr(const struct hdr* hdrPtr);
             };
 
-            ProtocolHeader(FrameBuffer& frameBuffer);
+            ProtocolHeader(FrameBuffer10& frameBuffer);
             ~ProtocolHeader();
 
             std::ostringstream& appendString(std::ostringstream& oss, std::size_t margin, bool ignoreMargin) const override;

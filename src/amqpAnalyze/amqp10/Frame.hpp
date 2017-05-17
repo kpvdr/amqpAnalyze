@@ -32,7 +32,7 @@ namespace amqpAnalyze
                 const uint16_t _typeSpecific;
                 hdr(const struct hdr* hdrPtr);
             };
-            Frame(FrameBuffer& frameBuffer);
+            Frame(FrameBuffer10& frameBuffer);
             virtual ~Frame();
 
             std::ostringstream& appendString(std::ostringstream& oss, std::size_t margin, bool ignoreFirstMargin) const override;

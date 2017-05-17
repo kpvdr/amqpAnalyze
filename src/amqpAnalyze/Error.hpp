@@ -16,7 +16,7 @@ namespace amqpAnalyze
 {
     namespace amqp10
     {
-        class FrameBuffer;
+        class FrameBuffer10;
     }
 
     class Message {

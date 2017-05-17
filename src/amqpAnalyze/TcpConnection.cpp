@@ -7,6 +7,7 @@
 
 #include "TcpConnection.hpp"
 
+#include <amqpAnalyze/AmqpDissector.hpp>
 #include <amqpAnalyze/TcpDissector.hpp>
 #include <iomanip>
 #include <iostream>
@@ -24,7 +25,8 @@ namespace amqpAnalyze
         _destFinFlag(false),
         _connectionIndex(connectionIndex),
         _firstPacketNumber(packetNumber),
-        _lastPacketNumber(packetNumber)
+        _lastPacketNumber(packetNumber),
+        _amqpVersion(AmqpVersions_t::NONE)
     {}
 
     TcpConnection::~TcpConnection() {}

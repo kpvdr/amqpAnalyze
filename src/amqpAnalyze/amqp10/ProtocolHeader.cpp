@@ -7,12 +7,12 @@
 
 #include "ProtocolHeader.hpp"
 
-#include <amqpAnalyze/amqp10/FrameBuffer.hpp>
+#include <amqpAnalyze/amqp10/FrameBuffer10.hpp>
 #include <amqpAnalyze/Color.hpp>
 #include <amqpAnalyze/Options.hpp>
+#include <amqpAnalyze/ValidationError.hpp>
 #include <iomanip>
 #include <netinet/in.h>
-#include "ValidationError.hpp"
 
 namespace amqpAnalyze
 {
@@ -39,7 +39,7 @@ namespace amqpAnalyze
                 _version(hdrPtr->_version)
         {}
 
-        ProtocolHeader::ProtocolHeader(FrameBuffer& frameBuffer):
+        ProtocolHeader::ProtocolHeader(FrameBuffer10& frameBuffer):
                 AmqpBlock(frameBuffer.getPacketNum(), frameBuffer.pushFrameOffsetSnapshot()),
                 _hdr((hdr*)frameBuffer.getStructPtr(sizeof(hdr)))
         {

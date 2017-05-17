@@ -5,9 +5,9 @@
  *      Author: kpvdr
  */
 
+#include <amqpAnalyze/FrameBuffer.hpp>
 #include "Error.hpp"
 
-#include <amqpAnalyze/amqp10/FrameBuffer.hpp>
 
 namespace amqpAnalyze
 {

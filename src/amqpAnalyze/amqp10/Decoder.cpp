@@ -8,11 +8,11 @@
 #include "Decoder.hpp"
 
 #include <amqpAnalyze/amqp10/FieldType.hpp>
-#include <amqpAnalyze/amqp10/FrameBuffer.hpp>
+#include <amqpAnalyze/amqp10/FrameBuffer10.hpp>
 #include <amqpAnalyze/amqp10/Performative.hpp>
 #include <amqpAnalyze/amqp10/Section.hpp>
+#include <amqpAnalyze/DecodeError.hpp>
 #include <memory>
-#include "DecodeError.hpp"
 
 namespace amqpAnalyze
 {
@@ -24,14 +24,14 @@ namespace amqpAnalyze
         Decoder::~Decoder() {}
 
         // static
-        Type* Decoder::decode(FrameBuffer& frameBuffer) {
+        Type* Decoder::decode(FrameBuffer10& frameBuffer) {
             uint8_t code = frameBuffer.getUint8();
             if (code > 0) return Decoder::decodePrimitive(code, frameBuffer);
             return Decoder::decodeComposite(frameBuffer);
         }
 
         // static
-        PrimitiveType* Decoder::decodePrimitive(uint8_t code, FrameBuffer& frameBuffer, const char* fieldName) {
+        PrimitiveType* Decoder::decodePrimitive(uint8_t code, FrameBuffer10& frameBuffer, const char* fieldName) {
             switch(code) {
 
             // null
@@ -204,7 +204,7 @@ namespace amqpAnalyze
         }
 
         // static
-        CompositeType* Decoder::decodeComposite(FrameBuffer& frameBuffer, const char* fieldName) {
+        CompositeType* Decoder::decodeComposite(FrameBuffer10& frameBuffer, const char* fieldName) {
             std::unique_ptr<PrimitiveType> descriptorPtr((PrimitiveType*)Decoder::decode(frameBuffer));
             switch (descriptorPtr->type()) {
             case AmqpPrimitiveType_t::ULONG_TYPE: {
@@ -269,7 +269,7 @@ namespace amqpAnalyze
         }
 
         // static
-        Performative* Decoder::decodePerformative(FrameBuffer& frameBuffer) {
+        Performative* Decoder::decodePerformative(FrameBuffer10& frameBuffer) {
             std::size_t dataOffset = frameBuffer.pushFrameOffsetSnapshot();
             const uint8_t lfb = frameBuffer.getUint8();
             if (lfb != 0) {
@@ -329,7 +329,7 @@ namespace amqpAnalyze
 
 
         // static
-        Section* Decoder::decodeSection(FrameBuffer& frameBuffer) {
+        Section* Decoder::decodeSection(FrameBuffer10& frameBuffer) {
             std::size_t dataOffset = frameBuffer.pushFrameOffsetSnapshot();
             const uint8_t lfb = frameBuffer.getUint8();
             if (lfb != 0) {
@@ -390,7 +390,7 @@ namespace amqpAnalyze
 
 
         // static
-        AmqpList* Decoder::decodeFieldList(FrameBuffer& frameBuffer, const FieldTypeList_t& fieldTypeList) {
+        AmqpList* Decoder::decodeFieldList(FrameBuffer10& frameBuffer, const FieldTypeList_t& fieldTypeList) {
             uint8_t code = frameBuffer.getUint8();
             switch (code) {
                 case 0x45:
@@ -413,7 +413,7 @@ namespace amqpAnalyze
 
 
         // static
-        AmqpList* Decoder::decodeFieldList(std::size_t size, std::size_t count, FrameBuffer& frameBuffer, const FieldTypeList_t& fieldTypeList) {
+        AmqpList* Decoder::decodeFieldList(std::size_t size, std::size_t count, FrameBuffer10& frameBuffer, const FieldTypeList_t& fieldTypeList) {
             if (count > fieldTypeList.size()) {
                 throw DecodeError(frameBuffer, MSG("Decoder::decodeFieldList(): FieldList too large for fieldTypeList: FieldList size="
                                                        << count << "; fieldTypeList size=" << fieldTypeList.size()));
@@ -432,7 +432,7 @@ namespace amqpAnalyze
 
 
         // static
-        Type* Decoder::decodeField(FrameBuffer& frameBuffer, const FieldType& fieldType) {
+        Type* Decoder::decodeField(FrameBuffer10& frameBuffer, const FieldType& fieldType) {
             uint8_t code = frameBuffer.getUint8();
             if (code == 0x40) {
                 return new AmqpNull(fieldType._fieldName);

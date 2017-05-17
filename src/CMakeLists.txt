@@ -16,11 +16,10 @@ set(amqpAnalyze_HEADERS
     amqpAnalyze/amqp10/ConnectionHandler.hpp
     amqpAnalyze/amqp10/ConnectionState.hpp
     amqpAnalyze/amqp10/Decoder.hpp
-    amqpAnalyze/amqp10/DecodeError.hpp
     #amqpAnalyze/amqp10/Endpoint.hpp
     amqpAnalyze/amqp10/FieldType.hpp
     amqpAnalyze/amqp10/Frame.hpp
-    amqpAnalyze/amqp10/FrameBuffer.hpp
+    amqpAnalyze/amqp10/FrameBuffer10.hpp
     amqpAnalyze/amqp10/FramePlaceholder.hpp
     amqpAnalyze/amqp10/FwdDecls.hpp
     amqpAnalyze/amqp10/IllegalStateError.hpp
@@ -31,12 +30,13 @@ set(amqpAnalyze_HEADERS
     amqpAnalyze/amqp10/SessionHandler.hpp
     #amqpAnalyze/amqp10/SessionState.hpp
     amqpAnalyze/amqp10/Type.hpp
-    amqpAnalyze/amqp10/ValidationError.hpp
     amqpAnalyze/AmqpDissector.hpp
     amqpAnalyze/Color.hpp
+    amqpAnalyze/DecodeError.hpp
     amqpAnalyze/Dissector.hpp
     amqpAnalyze/Error.hpp
     amqpAnalyze/FileParser.hpp
+    amqpAnalyze/FrameBuffer.hpp
     amqpAnalyze/FwdDecls.hpp
     amqpAnalyze/IpDissector.hpp
     amqpAnalyze/Ip4Dissector.hpp
@@ -46,6 +46,7 @@ set(amqpAnalyze_HEADERS
     amqpAnalyze/TcpConnection.hpp
     amqpAnalyze/TcpConnectionMap.hpp
     amqpAnalyze/TcpDissector.hpp
+    amqpAnalyze/ValidationError.hpp
 )
 
 set(amqpAnalyze_SOURCES
@@ -57,11 +58,10 @@ set(amqpAnalyze_SOURCES
     amqpAnalyze/amqp10/ConnectionHandler.cpp
     amqpAnalyze/amqp10/ConnectionState.cpp
     amqpAnalyze/amqp10/Decoder.cpp
-    amqpAnalyze/amqp10/DecodeError.cpp
     #amqpAnalyze/amqp10/Endpoint.cpp
     amqpAnalyze/amqp10/FieldType.cpp
     amqpAnalyze/amqp10/Frame.cpp
-    amqpAnalyze/amqp10/FrameBuffer.cpp
+    amqpAnalyze/amqp10/FrameBuffer10.cpp
     amqpAnalyze/amqp10/FramePlaceholder.cpp
     amqpAnalyze/amqp10/IllegalStateError.cpp
     amqpAnalyze/amqp10/Performative.cpp
@@ -71,12 +71,13 @@ set(amqpAnalyze_SOURCES
     amqpAnalyze/amqp10/SessionHandler.cpp
     #amqpAnalyze/amqp10/SessionState.cpp
     amqpAnalyze/amqp10/Type.cpp
-    amqpAnalyze/amqp10/ValidationError.cpp
     amqpAnalyze/AmqpDissector.cpp
     amqpAnalyze/Color.cpp
+    amqpAnalyze/DecodeError.cpp
     amqpAnalyze/Dissector.cpp
     amqpAnalyze/Error.cpp
     amqpAnalyze/FileParser.cpp
+    amqpAnalyze/FrameBuffer.cpp
     amqpAnalyze/IpDissector.cpp
     amqpAnalyze/Ip4Dissector.cpp
     amqpAnalyze/Ip6Dissector.cpp
@@ -85,6 +86,7 @@ set(amqpAnalyze_SOURCES
     amqpAnalyze/TcpConnection.cpp
     amqpAnalyze/TcpConnectionMap.cpp
     amqpAnalyze/TcpDissector.cpp
+    amqpAnalyze/ValidationError.cpp
 )
  
 
