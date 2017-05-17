@@ -24,12 +24,12 @@ public:
 	virtual ~Ip6Dissector();
 
 	void appendString(std::ostringstream& oss, size_t margin) const override;
+    void destinationAddr(std::array<uint32_t, 4>& destinationAddr) const;
+    std::string destinationAddrStr() const override;
 	inline DissectorType_t dissectorType() const override { return DissectorType_t::DISSECTOR_IP6; }
-	void getSourceAddr(std::array<uint32_t, 4>& sourceAddr) const;
-    void getDestinationAddr(std::array<uint32_t, 4>& destinationAddr) const;
-    std::string getSourceAddrStr() const override;
-    std::string getDestinationAddrStr() const override;
     inline bool isIp6() const { return true; }
+    void sourceAddr(std::array<uint32_t, 4>& sourceAddr) const;
+    std::string sourceAddrStr() const override;
 };
 
 } /* namespace amqpAnalyze */

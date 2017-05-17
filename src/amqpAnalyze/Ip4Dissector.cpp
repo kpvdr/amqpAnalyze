@@ -32,23 +32,23 @@ namespace amqpAnalyze {
 
     void Ip4Dissector::appendString(std::ostringstream& oss, size_t margin) const {}
 
-    uint32_t Ip4Dissector::getSourceAddr() const {
-        return _ip4Header.ip_src.s_addr;
-    }
-
-    uint32_t Ip4Dissector::getDestinationAddr() const {
+    uint32_t Ip4Dissector::destinationAddr() const {
         return _ip4Header.ip_dst.s_addr;
     }
 
-    std::string Ip4Dissector::getSourceAddrStr() const {
+    std::string Ip4Dissector::destinationAddrStr() const {
         char buf[INET_ADDRSTRLEN];
-        ::inet_ntop(AF_INET, &(_ip4Header.ip_src), buf, INET_ADDRSTRLEN);
+        ::inet_ntop(AF_INET, &(_ip4Header.ip_dst), buf, INET_ADDRSTRLEN);
         return buf;
     }
 
-    std::string Ip4Dissector::getDestinationAddrStr() const {
+    uint32_t Ip4Dissector::sourceAddr() const {
+        return _ip4Header.ip_src.s_addr;
+    }
+
+    std::string Ip4Dissector::sourceAddrStr() const {
         char buf[INET_ADDRSTRLEN];
-        ::inet_ntop(AF_INET, &(_ip4Header.ip_dst), buf, INET_ADDRSTRLEN);
+        ::inet_ntop(AF_INET, &(_ip4Header.ip_src), buf, INET_ADDRSTRLEN);
         return buf;
     }
 

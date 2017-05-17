@@ -23,12 +23,12 @@ namespace amqpAnalyze
         virtual ~Ip4Dissector();
 
         void appendString(std::ostringstream& oss, size_t margin) const override;
+        uint32_t destinationAddr() const;
+        std::string destinationAddrStr() const override;
         inline DissectorType_t dissectorType() const override { return DissectorType_t::DISSECTOR_IP4; }
-        uint32_t getSourceAddr() const;
-        uint32_t getDestinationAddr() const;
-        std::string getSourceAddrStr() const override;
-        std::string getDestinationAddrStr() const override;
         inline bool isIp6() const override { return false; }
+        uint32_t sourceAddr() const;
+        std::string sourceAddrStr() const override;
 
     protected:
         struct ip _ip4Header;

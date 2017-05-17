@@ -35,7 +35,7 @@ namespace amqpAnalyze
             _tcpConnection = g_tcpConnectionMap.getTcpConnection(this, _packetPtr->packetNum());
             _replyFlag = _tcpConnection->srcAddress().compare(tcpDestinationAddrStr(false)) == 0;
             if (_tcpHeader.fin) {
-                g_amqpConnectionHandler.tcpClose(this); // Notify connection state objects of TCP close
+                g_amqpConnectionHandler.handleTcpClose(this); // Notify connection state objects of TCP close
             }
             if (_remainingDataLength) {
                 try {
@@ -59,20 +59,12 @@ namespace amqpAnalyze
         appendErrors(oss, margin);
     }
 
-    std::string TcpDissector::tcpSourceAddrStr(bool colorFlag) const {
-        std::stringstream oss;
-        oss << ((IpDissector*)_parent)->getSourceAddrStr() << ":";
-        if (colorFlag) {
-            oss << Color::color(DisplayColorType_t::TCP_PORT, std::to_string(tcpSourcePort()));
-        } else {
-            oss << std::to_string(tcpSourcePort());
-        }
-        return oss.str();
-    }
+
+    // --- TCP destination & source address ---
 
     std::string TcpDissector::tcpDestinationAddrStr(bool colorFlag) const {
         std::stringstream oss;
-        oss << ((IpDissector*)_parent)->getDestinationAddrStr() << ":";
+        oss << ((IpDissector*)_parent)->destinationAddrStr() << ":";
         if (colorFlag) {
             oss << Color::color(DisplayColorType_t::TCP_PORT, std::to_string(tcpDestinationPort()));
         } else {
@@ -81,58 +73,27 @@ namespace amqpAnalyze
         return oss.str();
     }
 
-    std::string TcpDissector::hashStr() const {
-        bool srcAddrGreater = false;
-        if (((IpDissector*)_parent)->isIp6()) {
-            // IPv6 hash
-            Ip6Dissector* ip6ParentDissector = (Ip6Dissector*)_parent;
-            std::array<uint32_t, 4> srcAddr;
-            ip6ParentDissector->getSourceAddr(srcAddr);
-            std::array<uint32_t, 4> destAddr;
-            ip6ParentDissector->getDestinationAddr(destAddr);
-            // Order so that addr1<addr2 when taking hash
-            if (srcAddr == destAddr) {
-                if (tcpSourcePort() > tcpDestinationPort()) {
-                    srcAddrGreater = true;
-                }
-            } else if (srcAddr > destAddr) {
-                srcAddrGreater = true;
-            }
-        } else {
-            // IPv4 hash
-            Ip4Dissector* ip4Dissector = (Ip4Dissector*)_parent;
-            uint32_t srcAddr = ip4Dissector->getSourceAddr();
-            uint32_t destAddr = ip4Dissector->getDestinationAddr();
-            // Order so that addr1<addr2 when taking hash
-            if (srcAddr == destAddr) {
-                if (tcpSourcePort() > tcpDestinationPort()) {
-                    srcAddrGreater = true;
-                }
-            } else if (srcAddr > destAddr) {
-                srcAddrGreater = true;
-            }
-        }
-        std::stringstream oss;
-        if (srcAddrGreater) {
-            oss << tcpDestinationAddrStr() << ", " << tcpSourceAddrStr();
-        } else {
-            oss << tcpSourceAddrStr() << ", " << tcpDestinationAddrStr();
-        }
-        return oss.str();
+    uint16_t TcpDissector::tcpDestinationPort() const {
+        return ntohs(_tcpHeader.dest);
     }
 
-    uint32_t TcpDissector::connectionIndex() const {
-        if (_tcpConnection == nullptr) return 0;
-        return _tcpConnection->connectionIndex();
+    std::string TcpDissector::tcpSourceAddrStr(bool colorFlag) const {
+        std::stringstream oss;
+        oss << ((IpDissector*)_parent)->sourceAddrStr() << ":";
+        if (colorFlag) {
+            oss << Color::color(DisplayColorType_t::TCP_PORT, std::to_string(tcpSourcePort()));
+        } else {
+            oss << std::to_string(tcpSourcePort());
+        }
+        return oss.str();
     }
 
     uint16_t TcpDissector::tcpSourcePort() const {
         return ntohs(_tcpHeader.source);
     }
 
-    uint16_t TcpDissector::tcpDestinationPort() const {
-        return ntohs(_tcpHeader.dest);
-    }
+
+    // --- TCP flags ---
 
     std::string TcpDissector::tcpFlagsAsStr() const {
         std::ostringstream oss;
@@ -158,12 +119,23 @@ namespace amqpAnalyze
         return _tcpHeader.syn != 0;
     }
 
+
+    // --- TCP sequence and ack sequence numbers ---
+
+    uint32_t TcpDissector::tcpAckSequenceNum() const {
+        return ::ntohl(_tcpHeader.ack_seq);
+    }
+
     uint32_t TcpDissector::tcpSequenceNum() const {
         return ::ntohl(_tcpHeader.seq);
     }
 
-    uint32_t TcpDissector::tcpAckSequenceNum() const {
-        return ::ntohl(_tcpHeader.ack_seq);
+
+    // --- Functions for mapping TCP connections ---
+
+    uint32_t TcpDissector::connectionIndex() const {
+        if (_tcpConnection == nullptr) return 0;
+        return _tcpConnection->connectionIndex();
     }
 
     std::size_t TcpDissector::hash() const {
@@ -181,6 +153,49 @@ namespace amqpAnalyze
 
     TcpConnection* TcpDissector::tcpConnection() {
         return _tcpConnection;
+    }
+
+
+    // protected
+
+    std::string TcpDissector::hashStr() const {
+        bool srcAddrGreater = false;
+        if (((IpDissector*)_parent)->isIp6()) {
+            // IPv6 hash
+            Ip6Dissector* ip6ParentDissector = (Ip6Dissector*)_parent;
+            std::array<uint32_t, 4> srcAddr;
+            ip6ParentDissector->sourceAddr(srcAddr);
+            std::array<uint32_t, 4> destAddr;
+            ip6ParentDissector->destinationAddr(destAddr);
+            // Order so that addr1<addr2 when taking hash
+            if (srcAddr == destAddr) {
+                if (tcpSourcePort() > tcpDestinationPort()) {
+                    srcAddrGreater = true;
+                }
+            } else if (srcAddr > destAddr) {
+                srcAddrGreater = true;
+            }
+        } else {
+            // IPv4 hash
+            Ip4Dissector* ip4Dissector = (Ip4Dissector*)_parent;
+            uint32_t srcAddr = ip4Dissector->sourceAddr();
+            uint32_t destAddr = ip4Dissector->destinationAddr();
+            // Order so that addr1<addr2 when taking hash
+            if (srcAddr == destAddr) {
+                if (tcpSourcePort() > tcpDestinationPort()) {
+                    srcAddrGreater = true;
+                }
+            } else if (srcAddr > destAddr) {
+                srcAddrGreater = true;
+            }
+        }
+        std::stringstream oss;
+        if (srcAddrGreater) {
+            oss << tcpDestinationAddrStr() << ", " << tcpSourceAddrStr();
+        } else {
+            oss << tcpSourceAddrStr() << ", " << tcpDestinationAddrStr();
+        }
+        return oss.str();
     }
 
 } /* namespace amqpAnalyze */

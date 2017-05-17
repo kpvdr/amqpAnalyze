@@ -102,21 +102,22 @@ namespace amqpAnalyze {
         appendErrors(oss, margin);
     }
 
+    // protected
+
     void AmqpDissector::handleAmqp0_8() {
-        std::cout << Color::color(DisplayColorType_t::MSG_ERROR, MSG("AMQP 0-8 not handled")) << std::endl;
+        addError(new Error(MSG("AMQP 0-8 not handled")));
     }
 
     void AmqpDissector::handleAmqp0_9() {
-        std::cout << Color::color(DisplayColorType_t::MSG_ERROR, MSG("AMQP 0-9 not handled")) << std::endl;
+        addError(new Error(MSG("AMQP 0-9 not handled")));
     }
 
     void AmqpDissector::handleAmqp0_9_1() {
-        std::cout << Color::color(DisplayColorType_t::MSG_ERROR, MSG("AMQP 0-9-1 not handled")) << std::endl;
+        addError(new Error(MSG("AMQP 0-9-1 not handled")));
     }
 
     void AmqpDissector::handleAmqp0_10() {
         addError(new Error(MSG("AMQP 0-10 not handled")));
-        //std::cout << Color::color(DisplayColorType_t::MSG_ERROR, MSG("AMQP 0-10 not handled")) << std::endl;
     }
 
     void AmqpDissector::handleAmqp1_0() {
@@ -152,8 +153,10 @@ namespace amqpAnalyze {
                         case 0: return AmqpVersions_t::AMQP_1_0;
                         default: return AmqpVersions_t::UNKNOWN;
                         }
+                        break;
                     default:  return AmqpVersions_t::UNKNOWN;
                     }
+                    break;
                 case 1: // AMQP 0-x (other than 0-9-1)
                     if (*(dataPtr + 6) != 0) return AmqpVersions_t::UNKNOWN; // 7th byte, major, must be 0
                     switch (*(dataPtr + 7)) { // 8th byte, minor
@@ -162,6 +165,7 @@ namespace amqpAnalyze {
                     case 10: return AmqpVersions_t::AMQP_0_10;
                     default: return AmqpVersions_t::UNKNOWN;
                     }
+                    break;
                 default:
                     return AmqpVersions_t::UNKNOWN;
                 }

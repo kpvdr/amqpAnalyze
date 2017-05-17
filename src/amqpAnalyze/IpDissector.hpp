@@ -19,8 +19,8 @@ namespace amqpAnalyze
         IpDissector(Packet* packetPtr, uint32_t packetOffs);
         virtual ~IpDissector();
 
-        virtual std::string getSourceAddrStr() const = 0;
-        virtual std::string getDestinationAddrStr() const = 0;
+        virtual std::string sourceAddrStr() const = 0;
+        virtual std::string destinationAddrStr() const = 0;
         virtual bool isIp6() const = 0;
     };
 

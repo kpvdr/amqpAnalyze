@@ -26,7 +26,7 @@ namespace amqpAnalyze
             virtual ~ConnectionHandler();
 
             void handleFrame(const TcpConnection* tcpConnectionPtr, bool replyFlag, AmqpBlock* blockPtr);
-            void tcpClose(TcpDissector* tcpDissectorPtr);
+            void handleTcpClose(TcpDissector* tcpDissectorPtr);
 
         protected:
             std::map<uint64_t, Connection*> _connectionMap;

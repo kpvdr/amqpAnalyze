@@ -39,8 +39,8 @@ namespace amqpAnalyze
         bool tcpSyn() const;
 
         // TCP sequence and ack sequence numbers
-        uint32_t tcpSequenceNum() const;
         uint32_t tcpAckSequenceNum() const;
+        uint32_t tcpSequenceNum() const;
 
         // Functions for mapping TCP connections
         uint32_t connectionIndex() const; // index in global list

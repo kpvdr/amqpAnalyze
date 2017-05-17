@@ -32,29 +32,29 @@ namespace amqpAnalyze {
 
     void Ip6Dissector::appendString(std::ostringstream& oss, size_t margin) const {}
 
-    void Ip6Dissector::getSourceAddr(std::array<uint32_t, 4>& sourceAddr) const {
-        sourceAddr[0] = _ip6Header.ip6_src.s6_addr32[0];
-        sourceAddr[1] = _ip6Header.ip6_src.s6_addr32[1];
-        sourceAddr[2] = _ip6Header.ip6_src.s6_addr32[2];
-        sourceAddr[3] = _ip6Header.ip6_src.s6_addr32[3];
-    }
-
-    void Ip6Dissector::getDestinationAddr(std::array<uint32_t, 4>& destinationAddr) const {
+    void Ip6Dissector::destinationAddr(std::array<uint32_t, 4>& destinationAddr) const {
         destinationAddr[0] = _ip6Header.ip6_dst.s6_addr32[0];
         destinationAddr[1] = _ip6Header.ip6_dst.s6_addr32[1];
         destinationAddr[2] = _ip6Header.ip6_dst.s6_addr32[2];
         destinationAddr[3] = _ip6Header.ip6_dst.s6_addr32[3];
     }
 
-    std::string Ip6Dissector::getSourceAddrStr() const {
+    std::string Ip6Dissector::destinationAddrStr() const {
         char buf[INET6_ADDRSTRLEN];
-        ::inet_ntop(AF_INET6, &(_ip6Header.ip6_src), buf, INET6_ADDRSTRLEN);
+        ::inet_ntop(AF_INET6, &(_ip6Header.ip6_dst), buf, INET6_ADDRSTRLEN);
         return buf;
     }
 
-    std::string Ip6Dissector::getDestinationAddrStr() const {
+    void Ip6Dissector::sourceAddr(std::array<uint32_t, 4>& sourceAddr) const {
+        sourceAddr[0] = _ip6Header.ip6_src.s6_addr32[0];
+        sourceAddr[1] = _ip6Header.ip6_src.s6_addr32[1];
+        sourceAddr[2] = _ip6Header.ip6_src.s6_addr32[2];
+        sourceAddr[3] = _ip6Header.ip6_src.s6_addr32[3];
+    }
+
+    std::string Ip6Dissector::sourceAddrStr() const {
         char buf[INET6_ADDRSTRLEN];
-        ::inet_ntop(AF_INET6, &(_ip6Header.ip6_dst), buf, INET6_ADDRSTRLEN);
+        ::inet_ntop(AF_INET6, &(_ip6Header.ip6_src), buf, INET6_ADDRSTRLEN);
         return buf;
     }
 

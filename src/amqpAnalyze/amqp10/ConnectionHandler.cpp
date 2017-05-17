@@ -62,7 +62,7 @@ namespace amqpAnalyze
             }
         }
 
-        void ConnectionHandler::tcpClose(TcpDissector* tcpDissectorPtr) {
+        void ConnectionHandler::handleTcpClose(TcpDissector* tcpDissectorPtr) {
             const TcpConnection* tcpConnectionPtr = tcpDissectorPtr->tcpConnection();
             Connection* connectionPtr = nullptr;
             try { connectionPtr = _connectionMap.at(tcpConnectionPtr->hash()); }
