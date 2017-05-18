@@ -32,7 +32,7 @@ namespace amqpAnalyze {
                     {DisplayColorType_t::AMQP_TYPE_UUID, FGND_BMGT},
                     {DisplayColorType_t::AMQP_RESTRICTED_LIST, FGND_BWHT},
                     {DisplayColorType_t::AMQP_STATE_CONNECTION, FGND_YLW},
-                    {DisplayColorType_t::AMQP_STATE_SESSION, FGND_YLW},
+                    {DisplayColorType_t::AMQP_STATE_SESSION, FGND_GRN},
                     {DisplayColorType_t::AMQP_STATE_LINK, FGND_YLW},
                     {DisplayColorType_t::MSG_ERROR, FGND_BRED},
                     {DisplayColorType_t::MSG_WARNING, FGND_BYLW},

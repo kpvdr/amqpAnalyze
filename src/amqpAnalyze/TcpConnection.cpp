@@ -16,9 +16,9 @@ namespace amqpAnalyze
 {
 
     TcpConnection::TcpConnection(const TcpDissector* tcpDissectorPtr, uint32_t initSrcSequence, uint32_t connectionIndex, uint64_t packetNumber):
-        _srcAddrStr(tcpDissectorPtr->tcpSourceAddrStr(false)),
         _destAddrStr(tcpDissectorPtr->tcpDestinationAddrStr(false)),
         _hash(tcpDissectorPtr->hash()),
+        _srcAddrStr(tcpDissectorPtr->tcpSourceAddrStr(false)),
         _initSrcSequence(initSrcSequence),
         _initDestSequence(0),
         _srcFinFlag(false),
@@ -26,7 +26,11 @@ namespace amqpAnalyze
         _connectionIndex(connectionIndex),
         _firstPacketNumber(packetNumber),
         _lastPacketNumber(packetNumber),
-        _amqpVersion(AmqpVersions_t::NONE)
+        _amqpVersion(AmqpVersions_t::NONE),
+        _numSessions(0),
+        _numLinks(0),
+        _numTransfers(0),
+        _numTransactions(0)
     {}
 
     TcpConnection::~TcpConnection() {}

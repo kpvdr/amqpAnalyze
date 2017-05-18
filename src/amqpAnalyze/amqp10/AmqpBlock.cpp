@@ -31,6 +31,10 @@ namespace amqpAnalyze
             _errorPtrList.push_back(errorPtr);
         }
 
+        void AmqpBlock::appendStateStr(const std::string& stateStr) {
+            _stateStr.append(stateStr);
+        }
+
         std::ostringstream& AmqpBlock::appendStringEpilog(std::ostringstream& oss, std::size_t margin) const {
             for (ErrorPtrListCitr_t i=_errorPtrList.cbegin(); i!=_errorPtrList.cend(); ++i) {
                 oss << "\n" << std::string(margin, ' ') << (*i)->formattedMessage(g_optionsPtr->s_colorFlag);
@@ -60,6 +64,10 @@ namespace amqpAnalyze
 
         void AmqpBlock::setStateStr(const std::string& stateStr) {
             _stateStr.assign(stateStr);
+        }
+
+        const std::string& AmqpBlock::stateStr() const {
+            return _stateStr;
         }
 
         // static

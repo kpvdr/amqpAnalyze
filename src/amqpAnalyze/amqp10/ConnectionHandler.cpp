@@ -34,31 +34,22 @@ namespace amqpAnalyze
             _connectionMap.clear();
         }
 
-        void ConnectionHandler::handleFrame(const TcpConnection* tcpConnectionPtr, bool replyFlag, AmqpBlock* blockPtr) {
-            if (std::strcmp(blockPtr->name(), "ProtocolHeader") == 0) {
-                ProtocolHeader* protocolHeaderPtr = dynamic_cast<ProtocolHeader*>(blockPtr);
-                if (protocolHeaderPtr == nullptr)  {
-                    throw amqpAnalyze::Error(MSG("ConnectionHandler::handleFrame(): Error in class ProtocolHeader downcast"));
-                }
-                try { insertIfNotPresent(tcpConnectionPtr)->handleProtocolHeader(tcpConnectionPtr, replyFlag, protocolHeaderPtr); }
-                catch (const IllegalStateError* ePtr) {
-                    protocolHeaderPtr->addError(ePtr);
-                }
-            } else  if (std::strcmp(blockPtr->name(), "Frame") == 0) {
-                Frame* framePtr = dynamic_cast<Frame*>(blockPtr);
-                if (framePtr == nullptr) {
-                    throw amqpAnalyze::Error(MSG("ConnectionHandler::handleFrame: Error in class Frame downcast"));
-                }
-                try { _connectionMap.at(tcpConnectionPtr->hash())->handleFrame(tcpConnectionPtr, replyFlag, framePtr); }
-                catch (const std::out_of_range& e) {
-                    framePtr->addError(new amqpAnalyze::Error(MSG("ConnectionHandler::handleFrame: AMQP connection map: address not seen, possible missing previous AMQP frames. ("
-                                    << tcpConnectionPtr << ")")));
-                }
-                catch (const IllegalStateError* ePtr) {
-                    framePtr->addError(ePtr);
-                }
-            } else {
-                throw amqpAnalyze::Error(MSG("ConnectionHandler::handleFrame: Unexpected block type: \"" << blockPtr->name() << "\""));
+        void ConnectionHandler::handleFrame(TcpConnection* tcpConnectionPtr, bool replyFlag, Frame* framePtr) {
+            try { _connectionMap.at(tcpConnectionPtr->hash())->handleFrame(tcpConnectionPtr, replyFlag, framePtr); }
+            catch (const std::out_of_range& e) {
+                framePtr->addError(new amqpAnalyze::Error(MSG("ConnectionHandler::handleFrame: AMQP connection map: address not seen, possible missing previous AMQP frames. ("
+                                << tcpConnectionPtr << ")")));
+            }
+            catch (const IllegalStateError* ePtr) {
+                framePtr->addError(ePtr);
+            }
+        }
+
+        void ConnectionHandler::handleProtocolHeader(const TcpConnection* tcpConnectionPtr, bool replyFlag, ProtocolHeader* protocolHeaderPtr) {
+            try {
+                insertIfNotPresent(tcpConnectionPtr)->handleProtocolHeader(tcpConnectionPtr, replyFlag, protocolHeaderPtr);
+            } catch (const IllegalStateError* ePtr) {
+                protocolHeaderPtr->addError(ePtr);
             }
         }
 

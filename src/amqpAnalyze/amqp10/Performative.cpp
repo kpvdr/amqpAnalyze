@@ -39,7 +39,7 @@ namespace amqpAnalyze
             if (_fieldListPtr != nullptr) {
                 _fieldListPtr->appendString(oss, margin + 9 + std::strlen(typeStr()), false, g_optionsPtr->s_colorFlag);
             }
-            if (g_optionsPtr->s_showStateFlag && !_stateStr.empty()) oss << " | " << Color::color(DisplayColorType_t::AMQP_STATE_SESSION, _stateStr);
+            if (g_optionsPtr->s_showStateFlag && !_stateStr.empty()) oss << " | " << Color::color(DisplayColorType_t::AMQP_STATE_CONNECTION, _stateStr);
             return appendStringEpilog(oss, margin + 9);
         }
 

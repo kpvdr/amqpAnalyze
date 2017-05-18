@@ -33,6 +33,7 @@ namespace amqpAnalyze
 
         void appendString(std::ostringstream& oss, size_t margin) const override;
         inline DissectorType_t dissectorType() const override { return DissectorType_t::DISSECTOR_AMQP; }
+        static const char* amqpVersionStr(AmqpVersions_t amqpVersion);
 
     protected:
         std::size_t _amqpDataSize;

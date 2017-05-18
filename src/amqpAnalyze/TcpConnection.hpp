@@ -35,6 +35,14 @@ namespace amqpAnalyze
         inline void setLastPacketNumber(uint64_t lastPacketNumber) { _lastPacketNumber = lastPacketNumber; }
         inline AmqpVersions_t amqpVersion() const { return _amqpVersion; }
         inline void setAmqpVersion(AmqpVersions_t amqpVersion) { _amqpVersion = amqpVersion; }
+        inline void incrNumSessions() { ++_numSessions; }
+        inline void incrNumLinks() { ++_numLinks; }
+        inline void incrNumTransfers() { ++_numTransfers; }
+        inline void incrNumTransactions() { ++_numTransactions; }
+        inline uint32_t numSessions() const { return _numSessions; }
+        inline uint32_t numLinks() const { return _numLinks; }
+        inline uint32_t numTransfers() const { return _numTransfers; }
+        inline uint32_t numTransactions() const { return _numTransactions; }
 
 	protected:
         const std::string _destAddrStr;
@@ -48,6 +56,10 @@ namespace amqpAnalyze
         uint64_t _firstPacketNumber;
         uint64_t _lastPacketNumber;
         AmqpVersions_t _amqpVersion;
+        uint32_t _numSessions;
+        uint32_t _numLinks;
+        uint32_t _numTransfers;
+        uint32_t _numTransactions;
 	};
 
 } /* namespace amqpAnalyze */

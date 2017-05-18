@@ -102,6 +102,11 @@ namespace amqpAnalyze {
         appendErrors(oss, margin);
     }
 
+    // static
+    const char* AmqpDissector::amqpVersionStr(AmqpVersions_t amqpVersion) {
+        return s_amqpVerionStr[amqpVersion];
+    }
+
     // protected
 
     void AmqpDissector::handleAmqp0_8() {
@@ -123,16 +128,17 @@ namespace amqpAnalyze {
     void AmqpDissector::handleAmqp1_0() {
         amqp10::FrameBuffer10 frameBuffer(_packetPtr->packetNum(), _packetPtr->dataPtr() + _dataOffs, _amqpDataSize);
         while (!frameBuffer.empty()) {
-            amqp10::AmqpBlock* amqpBlockPtr = nullptr;
             if (std::string((const char*)frameBuffer.getDataPtr(), 4).compare("AMQP") == 0) {
-                amqpBlockPtr = new amqp10::ProtocolHeader(frameBuffer);
-                if (g_optionsPtr->s_validateFlag) amqpBlockPtr->validate();
+                amqp10::ProtocolHeader* protocolHeaderPtr = new amqp10::ProtocolHeader(frameBuffer);
+                if (g_optionsPtr->s_validateFlag) protocolHeaderPtr->validate();
+                _amqpBlockList.push_back(protocolHeaderPtr);
+                g_amqpConnectionHandler.handleProtocolHeader(_tcpDissectorPtr->tcpConnection(), _tcpDissectorPtr->replyFlag(), protocolHeaderPtr);
             } else {
-                amqpBlockPtr = new amqp10::Frame(frameBuffer);
-                if (g_optionsPtr->s_validateFlag) amqpBlockPtr->validate();
+                amqp10::Frame* framePtr = new amqp10::Frame(frameBuffer);
+                if (g_optionsPtr->s_validateFlag) framePtr->validate();
+                _amqpBlockList.push_back(framePtr);
+                g_amqpConnectionHandler.handleFrame(_tcpDissectorPtr->tcpConnection(), _tcpDissectorPtr->replyFlag(), framePtr);
             }
-            _amqpBlockList.push_back(amqpBlockPtr);
-            g_amqpConnectionHandler.handleFrame(_tcpDissectorPtr->tcpConnection(), _tcpDissectorPtr->replyFlag(), amqpBlockPtr);
             if (g_optionsPtr->s_showAmqpDataFlag) _debugHexFrameData.assign(frameBuffer.getHexDump());
         }
     }
@@ -167,6 +173,7 @@ namespace amqpAnalyze {
                     }
                     break;
                 default:
+                    // Has AMQP magic, but unrecognized version
                     return AmqpVersions_t::UNKNOWN;
                 }
             }

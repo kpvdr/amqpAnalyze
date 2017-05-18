@@ -18,6 +18,8 @@ namespace amqpAnalyze
     namespace amqp10
     {
         class Connection;
+        class Frame;
+        class ProtocolHeader;
 
         class ConnectionHandler
         {
@@ -25,7 +27,8 @@ namespace amqpAnalyze
             ConnectionHandler();
             virtual ~ConnectionHandler();
 
-            void handleFrame(const TcpConnection* tcpConnectionPtr, bool replyFlag, AmqpBlock* blockPtr);
+            void handleFrame(TcpConnection* tcpConnectionPtr, bool replyFlag, Frame* framePtr);
+            void handleProtocolHeader(const TcpConnection* tcpConnectionPtr, bool replyFlag, ProtocolHeader* protocolHeaderPtr);
             void handleTcpClose(TcpDissector* tcpDissectorPtr);
 
         protected:

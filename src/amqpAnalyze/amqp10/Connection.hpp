@@ -20,7 +20,10 @@ namespace amqpAnalyze
         class AmqpClose;
         class AmqpOpen;
         class Frame;
-        class SessionHanlder;
+        class Session;
+
+        typedef std::map<uint16_t, Session*> SessionMap_t;
+        typedef SessionMap_t::iterator SessionMapItr_t;
 
         enum class LastActorType_t {
             NONE,
@@ -34,37 +37,32 @@ namespace amqpAnalyze
             Connection(const TcpConnection* tcpConnectionPtr);
             virtual ~Connection();
 
-            void handleFrame(const TcpConnection* tcpConnectionPtr, bool replyFlag, Frame* framePtr);
+            void handleFrame(TcpConnection* tcpConnectionPtr, bool replyFlag, Frame* framePtr);
             void handleProtocolHeader(const TcpConnection* tcpConnectionPtr, bool replyFlag, ProtocolHeader* protocolHeaderPtr);
             bool handleTcpClose(const TcpConnection* tcpConnectionPtr, bool replyFlag);
 
         protected:
             std::vector<amqpAnalyze::Error*> _errorList;
             std::string _closeError;
-            //bool _frameErrorFlag;
 
             std::string _initiatorAddrStr;
-            //std::string _initiatorCloseError;
-            std::map<uint16_t, SessionHanlder*> _initiatorEndpoints;
-            //bool _initiatorHeaderSent;
             const AmqpOpen* _initiatorOpen;
             ConnectionState _initiatorState;
             bool _initiatorTcpClosedFlag;
+            SessionMap_t _initiatorSessionMap;
 
             std::string _responderAddrStr;
-            //std::string _responderCloseError;
-            std::map<uint16_t, SessionHanlder*> _responderEndpoints;
-            //bool _responderHeaderSent;
             const AmqpOpen* _responderOpen;
             ConnectionState _responderState;
             bool _responderTcpClosedFlag;
+            SessionMap_t _responderSessionMap;
 
             LastActorType_t _lastActor;
 
-            void checkChannel(const Frame* framePtr);
+            uint16_t checkChannel(const Frame* framePtr);
             bool checkError(const AmqpClose* amqpClosePtr);
             bool isInitiator(const TcpConnection* tcpConnectionPtr, bool replyFlag) const;
-            bool isResponder(const TcpConnection* tcpConnectionPtr, bool replyFlag) const;
+            static Session* insertIfNotPresent(SessionMap_t& sessionMap, uint16_t channel, bool initiatorFlag);
         };
 
     } /* namespace amqp10 */

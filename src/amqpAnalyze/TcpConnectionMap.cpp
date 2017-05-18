@@ -7,6 +7,7 @@
 
 #include "TcpConnectionMap.hpp"
 
+#include <amqpAnalyze/AmqpDissector.hpp>
 #include <amqpAnalyze/Error.hpp>
 #include <amqpAnalyze/TcpConnection.hpp>
 #include <amqpAnalyze/TcpDissector.hpp>
@@ -83,13 +84,20 @@ namespace amqpAnalyze
     void TcpConnectionMap::print(std::ostream& os, bool showHashFlag) const {
         os << "TCP connections found:\nindex       initiator          responder";
         if (showHashFlag) os << "  hash            ";
-        os << "  packet range" << "\n";
+        os << "   packet range    AMQP ver  ssns links txfrs  txns\n";
+
+        os << "----- ---------------    ---------------  -------------  ---------- ----- ----- ----- -----\n";
+
         for (uint32_t i=0; i<_connectionList.size(); ++i) {
             TcpConnection* tcPtr = _connectionMap.at(_connectionList.at(i));
             os << std::setfill(' ') << std::setw(4) << (i+1) << ". " << std::setw(15) << tcPtr->srcAddress() << " -> "
                             << std::setw(15) << tcPtr->destAddress();
             if (showHashFlag) os << "  " << std::hex << std::setfill('0') << std::setw(16) << tcPtr->hash() << std::dec;
-            os << "  [" << tcPtr->firstPacketNumber() << " - " << tcPtr->lastPacketNumber() << "]" << "\n";
+            os << "  [" << std::setw(4) <<  tcPtr->firstPacketNumber() << " - " << std::setw(4) << tcPtr->lastPacketNumber() << "]";
+            os << "  " << std::setw(10) << AmqpDissector::amqpVersionStr(tcPtr->amqpVersion());
+            os << " " << std::setw(5) << tcPtr->numSessions() << " " << std::setw(5) << tcPtr->numLinks();
+            os << " " << std::setw(5) << tcPtr->numTransfers() << " " << std::setw(5) << tcPtr->numTransactions();
+            os << "\n";
         }
     }
 
